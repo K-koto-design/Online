@@ -2,93 +2,248 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Доступ ограничен</title>
+    <title>Личный Кабинет</title>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-title" content="Кабинет">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/300/user-male-circle.png">
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/300/user-male-circle.png">
+
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
     <style>
-        /* Анимированный градиентный фон */
-        body {
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            background: linear-gradient(45deg, #007aff, #ff3b30, #34c759, #ffcc00);
-            background-size: 400% 400%;
-            animation: gradientBG 15s ease infinite;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        :root {
+            --bg: #f2f3f7;
+            --accent: #007aff;
+            --card: #ffffff;
+            --text: #1c1c1e;
+            --secondary: #8e8e93;
+            --credit: #34c759;
         }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; display: flex; flex-direction: column; min-height: 100vh; }
 
-        /* Эффект стекла (Glassmorphism) */
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 30px;
-            padding: 40px;
-            text-align: center;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            max-width: 90%;
-            width: 400px;
-            z-index: 1;
-        }
+        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
+        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
+        .setup-card { background: var(--bg); border-radius: 24px; padding: 24px; text-align: left; margin-top: 30px; }
+        .step { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; font-size: 15px; }
+        .step-num { min-width: 28px; height: 28px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        .icon {
-            font-size: 50px;
-            margin-bottom: 20px;
-            display: block;
-        }
+        .screen { display: none; padding: 20px; flex: 1; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
+        .small { color: var(--secondary); font-size: 13px; }
 
-        h1 {
-            color: white;
-            font-size: 24px;
-            font-weight: 600;
-            margin: 0 0 15px 0;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
+        .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .primary { background: #ffdd2d; color: #000; }
+        .secondary { background: #e8f0ff; color: #007aff; }
 
-        p {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 16px;
-            line-height: 1.5;
-            margin: 0;
-        }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
+        .history-amount { font-weight: 700; font-size: 15px; }
 
-        /* Дополнительное украшение: светящиеся пятна на фоне */
-        .blob {
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-            filter: blur(50px);
-            z-index: 0;
-            animation: move 20s infinite alternate;
-        }
+        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
+        .dot.filled { background: #000; border-color: #000; }
+        
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
+        .key { height: 70px; font-size: 26px; border: none; background: none; cursor: pointer; border-radius: 35px; }
+        input { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; }
+        
+        .credit-badge { color: var(--credit); font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
 
-        @keyframes move {
-            from { transform: translate(-100px, -100px); }
-            to { transform: translate(100px, 100px); }
-        }
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 12px; }
     </style>
 </head>
 <body>
 
-    <div class="blob"></div>
-
-    <div class="glass-panel">
-        <span class="icon">🔒</span>
-        <h1>Онлайн временно недоступен</h1>
-        <p>Мы проводим технические работы для улучшения сервиса. Пожалуйста, зайдите сюда позже.</p>
+    <div id="install-view">
+        <div class="logo-box">👤</div>
+        <h1>Активация доступа</h1>
+        <p>Для работы на iPhone добавьте сервис на рабочий стол.</p>
+        <div class="setup-card">
+            <div class="step"><div class="step-num">1</div><span>Нажмите <b>«Поделиться»</b>.</span></div>
+            <div class="step"><div class="step-num">2</div><span>Выберите <b>«На экран Домой»</b>.</span></div>
+            <div class="step"><div class="step-num">3</div><span>Нажмите <b>«Добавить»</b>.</span></div>
+        </div>
     </div>
 
+    <div id="screen-name" class="screen">
+        <h1 style="margin-top:40px">Вход</h1>
+        <div class="card">
+            <input type="text" id="loginInp" placeholder="Имя или телефон">
+            <button class="btn primary" onclick="findClient()">Продолжить</button>
+            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div>
+        </div>
+        <div id="variants"></div>
+    </div>
+
+    <div id="screen-pin" class="screen">
+        <div style="text-align:center; margin-top:50px;">
+            <div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div>
+            <h2 id="pinUser"></h2>
+            <div class="dots" id="pinDots">
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            </div>
+            <div class="keypad" id="keypad"></div>
+        </div>
+    </div>
+
+    <div id="screen-home" class="screen">
+        <h1 id="homeUser"></h1>
+        <div class="card">
+            <div class="small">Всего средств</div>
+            <div class="balance" id="hBal">0 ₽</div>
+            <div class="small" id="hSpend">Траты за период: 0 ₽</div>
+        </div>
+        <div id="accounts-container"></div>
+    </div>
+
+    <div id="screen-card" class="screen">
+        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0;" onclick="navTo('screen-home')">← Назад</button>
+        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
+            <div class="small" style="color:#aaa">Текущий баланс</div>
+            <div class="balance" id="cBal">0 ₽</div>
+            <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
+        </div>
+        <div id="credit-card-detail"></div>
+        <div class="btn-row">
+            <button class="btn secondary" onclick="location.href=''">QR-оплата</button>
+            <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">Перевести</button>
+        </div>
+        <h3 style="margin-left:10px">История операций</h3>
+        <div class="card" id="historyList"></div>
+    </div>
+
+    <footer>Было создано в юмористических целях</footer>
+
+    <script>
+        const clients = [
+            { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
+            { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [{t:"QR Оплата", a:-1000}] },
+            { name: "Роман", phone: "+79062357433", pin: "2025", balance: 8200, spending: 102, bonuses: 0, history: [] },
+            { name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
+            { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
+            { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
+            { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
+            { name: "Михаил", phone: "+0", pin: "3456", balance: 4500, spending: 500, bonuses: 4, history: [], creditCard: 5000 },
+            { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
+            { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] }
+        ];
+
+        let curUser = null;
+        let enteredPin = "";
+
+        function init() {
+            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+            const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+            if (isIOS && !isPWA) { document.getElementById('install-view').style.display = 'block'; } 
+            else { navTo('screen-name'); buildKeypad(); }
+        }
+
+        function navTo(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        function findClient() {
+            const v = loginInp.value.trim();
+            error.innerText = ""; variants.innerHTML = "";
+            if (!v) return;
+            const matches = clients.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
+            if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
+            if (matches.length === 1) { selectUser(matches[0]); return; }
+            matches.forEach(c => {
+                const d = document.createElement("div");
+                d.className = "card"; d.innerText = `${c.name} (••• ${c.phone.slice(-4)})`;
+                d.onclick = () => selectUser(c); variants.appendChild(d);
+            });
+        }
+
+        function selectUser(c) {
+            curUser = c; enteredPin = ""; pinUser.innerText = c.name;
+            updateDots(); navTo('screen-pin');
+        }
+
+        function buildKeypad() {
+            const keys = [1,2,3,4,5,6,7,8,9,'',0,'←'];
+            keypad.innerHTML = '';
+            keys.forEach(k => {
+                const b = document.createElement('button');
+                b.className = 'key'; b.innerText = k;
+                if(k === '') b.style.visibility = 'hidden';
+                b.onclick = () => {
+                    if(k === '←') enteredPin = enteredPin.slice(0, -1);
+                    else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k;
+                    updateDots();
+                    if(enteredPin.length === 4) {
+                        if(enteredPin === curUser.pin) showHome();
+                        else { enteredPin = ""; setTimeout(updateDots, 300); }
+                    }
+                };
+                keypad.appendChild(b);
+            });
+        }
+
+        function updateDots() {
+            const d = pinDots.children;
+            for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
+        }
+
+        function showHome() {
+            homeUser.innerText = `Здравствуйте, ${curUser.name}`;
+            const total = curUser.balance + (curUser.creditCard || 0);
+            hBal.innerText = total.toLocaleString() + " ₽";
+            hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
+            
+            let html = `<div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
+                    <div class="small">Личный счет</div>
+                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
+                    <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
+                </div>`;
+            
+            if(curUser.creditCard) {
+                html += `<div class="card">
+                    <span class="credit-badge">Кредитный лимит</span>
+                    <div style="font-size:20px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div>
+                    <div class="small" style="margin-top:4px;">Доступный остаток</div>
+                </div>`;
+            }
+            document.getElementById('accounts-container').innerHTML = html;
+            
+            cBal.innerText = curUser.balance.toLocaleString() + " ₽";
+            cBonus.innerText = "Бонусы: " + curUser.bonuses.toLocaleString();
+            
+            const creditDetail = document.getElementById('credit-card-detail');
+            if(curUser.creditCard) {
+                creditDetail.innerHTML = `<div class="card" style="border: 1px solid #e2e2e2;">
+                    <span class="credit-badge">Кредитная карта</span>
+                    <div style="font-size:18px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div>
+                </div>`;
+            } else { creditDetail.innerHTML = ""; }
+
+            const hList = document.getElementById('historyList');
+            hList.innerHTML = curUser.history.length ? "" : "<div class='small'>Операций не найдено</div>";
+            curUser.history.slice().reverse().forEach(h => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<span>${h.t}</span><span class="history-amount">${h.a} ₽</span>`;
+                hList.appendChild(div);
+            });
+            navTo('screen-home');
+        }
+
+        window.onload = init;
+    </script>
 </body>
 </html>
