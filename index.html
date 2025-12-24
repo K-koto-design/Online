@@ -11,8 +11,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="mobile-web-app-capable" content="yes">
     
-    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/300/user-male-circle.png">
-    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/300/user-male-circle.png">
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg">
+    <link rel="icon" type="image/png" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg">
 
     <style>
         :root {
@@ -21,19 +21,18 @@
             --card: #ffffff;
             --text: #1c1c1e;
             --secondary: #8e8e93;
+            --credit: #34c759;
         }
 
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; }
 
-        /* ЭКРАН УСТАНОВКИ (ТОЛЬКО ДЛЯ IOS) */
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
         .setup-card { background: var(--bg); border-radius: 24px; padding: 24px; text-align: left; margin-top: 30px; }
         .step { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; font-size: 15px; }
         .step-num { min-width: 28px; height: 28px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        /* ЭКРАНЫ ПРИЛОЖЕНИЯ */
         .screen { display: none; padding: 20px; min-height: 100vh; }
         .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -57,6 +56,9 @@
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
         .key { height: 70px; font-size: 26px; border: none; background: none; cursor: pointer; border-radius: 35px; }
         input { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; }
+        
+        /* Стиль для кредитной карты */
+        .credit-badge { color: var(--credit); font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
     </style>
 </head>
 <body>
@@ -66,7 +68,7 @@
         <h1>Активация доступа</h1>
         <p>Для работы на iPhone добавьте сервис на рабочий стол.</p>
         <div class="setup-card">
-            <div class="step"><div class="step-num">1</div><span>Нажмите <b>«Поделиться»</b> (квадрат со стрелкой).</span></div>
+            <div class="step"><div class="step-num">1</div><span>Нажмите <b>«Поделиться»</b>.</span></div>
             <div class="step"><div class="step-num">2</div><span>Выберите <b>«На экран Домой»</b>.</span></div>
             <div class="step"><div class="step-num">3</div><span>Нажмите <b>«Добавить»</b>.</span></div>
         </div>
@@ -100,20 +102,21 @@
             <div class="balance" id="hBal">0 ₽</div>
             <div class="small" id="hSpend">Траты за период: 0 ₽</div>
         </div>
-        <div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
-            <div class="small">Основной аккаунт</div>
-            <div id="hShortBal" style="font-size:20px; font-weight:600; margin-top:8px;">0 ₽</div>
-            <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
-        </div>
+        
+        <div id="accounts-container"></div>
     </div>
 
     <div id="screen-card" class="screen">
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0;" onclick="navTo('screen-home')">← Назад</button>
+        
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
-            <div class="small" style="color:#aaa">Баланс счета</div>
+            <div class="small" style="color:#aaa">Текущий баланс</div>
             <div class="balance" id="cBal">0 ₽</div>
             <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
         </div>
+
+        <div id="credit-card-detail"></div>
+
         <div class="btn-row">
             <button class="btn secondary" onclick="location.href=''">QR-оплата</button>
             <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">Перевести</button>
@@ -124,19 +127,18 @@
 
     <script>
         const clients = [
-            { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}, {t:"Перевод", a:-100}] },
-            { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [{t:"Перевод", a:-100}, {t:"QR Оплата", a:-1000}] },
+            { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
+            { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [{t:"QR Оплата", a:-1000}] },
             { name: "Роман", phone: "+79062357433", pin: "2025", balance: 8200, spending: 102, bonuses: 0, history: [] },
             { name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
             { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
-            { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [{t:"Перевод", a:-100}] },
+            { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
             { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
-            { name: "Михаил", phone: "+0", pin: "3456", balance: 4500, spending: 500, bonuses: 4, history: [] },
+            { name: "Михаил", phone: "+0", pin: "3456", balance: 4500, spending: 500, bonuses: 4, history: [], creditCard: 5000 },
             { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
             { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] }
         ];
 
-        // Дозаполнение до 30 человек
         while (clients.length < 30) {
             clients.push({ name: "Клиент " + (clients.length + 1), phone: "+7999" + (clients.length), pin: "0000", balance: 0, spending: 0, bonuses: 0, history: [] });
         }
@@ -147,13 +149,8 @@
         function init() {
             const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
             const isIOS = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-
-            if (isIOS && !isPWA) {
-                document.getElementById('install-view').style.display = 'block';
-            } else {
-                navTo('screen-name');
-                buildKeypad();
-            }
+            if (isIOS && !isPWA) { document.getElementById('install-view').style.display = 'block'; } 
+            else { navTo('screen-name'); buildKeypad(); }
         }
 
         function navTo(id) {
@@ -208,12 +205,43 @@
 
         function showHome() {
             homeUser.innerText = `Здравствуйте, ${curUser.name}`;
-            hBal.innerText = curUser.balance.toLocaleString() + " ₽";
-            hShortBal.innerText = curUser.balance.toLocaleString() + " ₽";
+            const total = curUser.balance + (curUser.creditCard || 0);
+            hBal.innerText = total.toLocaleString() + " ₽";
             hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
+            
+            // Основной счет
+            let html = `
+                <div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
+                    <div class="small">Личный счет</div>
+                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
+                    <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
+                </div>`;
+            
+            // Кредитка Михаила
+            if(curUser.creditCard) {
+                html += `
+                <div class="card">
+                    <span class="credit-badge">Кредитный лимит</span>
+                    <div style="font-size:20px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div>
+                    <div class="small" style="margin-top:4px;">Доступный остаток</div>
+                </div>`;
+            }
+            
+            document.getElementById('accounts-container').innerHTML = html;
+            
+            // Детальный экран
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
             cBonus.innerText = "Бонусы: " + curUser.bonuses.toLocaleString();
             
+            const creditDetail = document.getElementById('credit-card-detail');
+            if(curUser.creditCard) {
+                creditDetail.innerHTML = `
+                <div class="card" style="border: 1px solid #e2e2e2;">
+                    <span class="credit-badge">Кредитная карта</span>
+                    <div style="font-size:18px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div>
+                </div>`;
+            } else { creditDetail.innerHTML = ""; }
+
             const hList = document.getElementById('historyList');
             hList.innerHTML = curUser.history.length ? "" : "<div class='small'>Операций не найдено</div>";
             curUser.history.slice().reverse().forEach(h => {
