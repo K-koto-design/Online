@@ -94,20 +94,19 @@
     </div>
 
     <script>
-        // --- СИСТЕМА ОБНОВЛЕНИЯ ---
-        // МЕНЯЙ ЭТО ЧИСЛО ПРИ КАЖДОМ ИЗМЕНЕНИИ БАЛАНСОВ!
-        const VERSION = "2.1"; 
+// --- СИСТЕМА ОБНОВЛЕНИЯ (БЕЗ ЦИКЛА) ---
+        const VERSION = "2.3"; // Меняйте на 2.3, 2.4 и т.д.
 
         function hardReset() {
-            localStorage.clear();
-            // Добавляем случайный параметр, чтобы обмануть кэш GitHub и Safari
+            // НЕ чистим весь localStorage, чтобы не удалить номер версии
             const cleanUrl = window.location.origin + window.location.pathname + "?u=" + Date.now();
             window.location.replace(cleanUrl);
         }
 
+        // Проверяем версию корректно
         if (localStorage.getItem('app_v') !== VERSION) {
-            localStorage.setItem('app_v', VERSION);
-            hardReset();
+            localStorage.setItem('app_v', VERSION); // Сначала записываем новую версию
+            hardReset(); // Потом обновляем
         }
 
         // --- СПИСОК КЛИЕНТОВ ---
