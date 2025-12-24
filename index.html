@@ -12,10 +12,6 @@
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/300/user-male-circle.png">
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/300/user-male-circle.png">
 
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-
     <style>
         :root {
             --bg: #f2f3f7;
@@ -29,13 +25,31 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; display: flex; flex-direction: column; min-height: 100vh; }
 
+        /* Дизайн кнопки обновления в углу */
+        .refresh-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 100;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
         .setup-card { background: var(--bg); border-radius: 24px; padding: 24px; text-align: left; margin-top: 30px; }
         .step { display: flex; align-items: center; gap: 16px; margin-bottom: 20px; font-size: 15px; }
         .step-num { min-width: 28px; height: 28px; background: var(--accent); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        .screen { display: none; padding: 20px; flex: 1; }
+        .screen { display: none; padding: 20px; flex: 1; position: relative; }
         .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -60,7 +74,6 @@
         input { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; }
         
         .credit-badge { color: var(--credit); font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
-
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 12px; margin-top: auto; }
     </style>
 </head>
@@ -75,6 +88,18 @@
             <div class="step"><div class="step-num">2</div><span>Выберите <b>«На экран Домой»</b>.</span></div>
             <div class="step"><div class="step-num">3</div><span>Нажмите <b>«Добавить»</b>.</span></div>
         </div>
+    </div>
+
+    <div id="screen-home" class="screen">
+        <div class="refresh-btn" onclick="manualUpdate()">🔄</div>
+
+        <h1 id="homeUser" style="margin-top: 40px;"></h1>
+        <div class="card">
+            <div class="small">Всего средств</div>
+            <div class="balance" id="hBal">0 ₽</div>
+            <div class="small" id="hSpend">Траты за период: 0 ₽</div>
+        </div>
+        <div id="accounts-container"></div>
     </div>
 
     <div id="screen-name" class="screen">
@@ -98,16 +123,6 @@
         </div>
     </div>
 
-    <div id="screen-home" class="screen">
-        <h1 id="homeUser"></h1>
-        <div class="card">
-            <div class="small">Всего средств</div>
-            <div class="balance" id="hBal">0 ₽</div>
-            <div class="small" id="hSpend">Траты за период: 0 ₽</div>
-        </div>
-        <div id="accounts-container"></div>
-    </div>
-
     <div id="screen-card" class="screen">
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0;" onclick="navTo('screen-home')">← Назад</button>
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
@@ -127,30 +142,28 @@
     <footer>Было создано в юмористических целях</footer>
 
     <script>
-        // СИСТЕМА ОБНОВЛЕНИЯ: меняйте VERSION на "1.1", "1.2" и т.д. при каждом изменении данных
-        const VERSION = "1.1"; 
+        // --- СИСТЕМА ОБНОВЛЕНИЯ ---
+        // МЕНЯЙ VERSION при каждом пуше на GitHub (например "1.1", "1.2"...)
+        const VERSION = "1.0"; 
 
-        function checkUpdate() {
-            const savedVersion = localStorage.getItem('app_version');
-            if (savedVersion !== VERSION) {
-                localStorage.setItem('app_version', VERSION);
-                window.location.reload(true); 
-            }
+        function manualUpdate() {
+            // Принудительно заставляем браузер скачать новый файл, добавляя случайное число в URL
+            const url = window.location.origin + window.location.pathname + "?v=" + Math.random();
+            window.location.replace(url);
         }
-        checkUpdate();
 
-        // ДАННЫЕ КЛИЕНТОВ (Будьте внимательны с запятыми!)
+        // Авто-проверка при запуске
+        if (localStorage.getItem('app_version') !== VERSION) {
+            localStorage.setItem('app_version', VERSION);
+            manualUpdate();
+        }
+
         const clients = [
             { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
             { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [{t:"QR Оплата", a:-1000}] },
             { name: "Роман", phone: "+79062357433", pin: "2025", balance: 8200, spending: 102, bonuses: 0, history: [] },
-            { name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
-            { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
-            { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
-            { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
-            { name: "Михаил", phone: "+0", pin: "3456", balance: 3786, spending: 500, bonuses: 4, history: [{t:"Оплата кредита" a:-714}], creditCard: 4286 },
-            { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
-            { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] }
+            { name: "Михаил", phone: "+0", pin: "3456", balance: 4500, spending: 500, bonuses: 4, history: [], creditCard: 5000 },
+            { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] }
         ];
 
         let curUser = null;
