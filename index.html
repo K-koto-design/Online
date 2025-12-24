@@ -11,7 +11,6 @@
     
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/300/user-male-circle.png">
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/300/user-male-circle.png">
-    <link rel="canonical" href="https://k-koto-design.github.io/Online/?v=2">
 
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -62,7 +61,7 @@
         
         .credit-badge { color: var(--credit); font-weight: 600; font-size: 12px; text-transform: uppercase; margin-bottom: 4px; display: block; }
 
-        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 12px; }
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 12px; margin-top: auto; }
     </style>
 </head>
 <body>
@@ -118,7 +117,7 @@
         </div>
         <div id="credit-card-detail"></div>
         <div class="btn-row">
-            <button class="btn secondary" onclick="location.href=''">QR-оплата</button>
+            <button class="btn secondary" onclick="location.href='https://aatem758-svg.github.io/QR/'">QR-оплата</button>
             <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">Перевести</button>
         </div>
         <h3 style="margin-left:10px">История операций</h3>
@@ -128,6 +127,19 @@
     <footer>Было создано в юмористических целях</footer>
 
     <script>
+        // СИСТЕМА ОБНОВЛЕНИЯ: меняйте VERSION на "1.1", "1.2" и т.д. при каждом изменении данных
+        const VERSION = "1.0"; 
+
+        function checkUpdate() {
+            const savedVersion = localStorage.getItem('app_version');
+            if (savedVersion !== VERSION) {
+                localStorage.setItem('app_version', VERSION);
+                window.location.reload(true); 
+            }
+        }
+        checkUpdate();
+
+        // ДАННЫЕ КЛИЕНТОВ (Будьте внимательны с запятыми!)
         const clients = [
             { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
             { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [{t:"QR Оплата", a:-1000}] },
@@ -136,7 +148,7 @@
             { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
             { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
             { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
-            { name: "Михаил", phone: "+0", pin: "3456", balance: 3786, spending: 500, bonuses: 4, history: [{t:"Оплата кредита", a:-715}], creditCard: 4286 },
+            { name: "Михаил", phone: "+0", pin: "3456", balance: 4500, spending: 500, bonuses: 4, history: [], creditCard: 5000 },
             { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
             { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] }
         ];
