@@ -22,10 +22,14 @@
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
         .small { color: var(--secondary); font-size: 13px; }
-        .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
-        .btn { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; }
+        
+        /* ОБНОВЛЕННЫЙ РЯД КНОПОК */
+        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
+        .btn { flex: 1; padding: 14px 5px; border-radius: 18px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
+        .btn-icon { font-size: 18px; }
+
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
         .dot.filled { background: #000; border-color: #000; }
@@ -52,7 +56,7 @@
         <h1 style="margin-top:60px">Вход</h1>
         <div class="card">
             <input type="text" id="loginInp" placeholder="Имя или телефон">
-            <button class="btn primary" onclick="findClient()">Продолжить</button>
+            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Продолжить</button>
             <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div>
         </div>
         <div id="variants"></div>
@@ -92,8 +96,15 @@
         <div id="credit-card-detail"></div>
 
         <div class="btn-row">
-            <button class="btn secondary" onclick="location.href='https://aatem758-svg.github.io/QR/'">QR-оплата</button>
-            <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">Перевести</button>
+            <button class="btn secondary" onclick="location.href='https://aatem758-svg.github.io/QR/'">
+                <span class="btn-icon">📷</span>QR-оплата
+            </button>
+            <button class="btn secondary" onclick="location.href='https://google.com'">
+                <span class="btn-icon">📱</span>Телефоном
+            </button>
+            <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">
+                <span class="btn-icon">💸</span>Перевести
+            </button>
         </div>
 
         <h3 style="margin-left:10px">История операций</h3>
@@ -101,8 +112,7 @@
     </div>
 
     <script>
-        // --- СИСТЕМА ОБНОВЛЕНИЯ ---
-        const VERSION = "3.2"; 
+        const VERSION = "3.3"; 
 
         function hardReset() {
             const cleanUrl = window.location.origin + window.location.pathname + "?u=" + Date.now();
@@ -195,7 +205,6 @@
             hBal.innerText = total.toLocaleString() + " ₽";
             hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
             
-            // Наполняем главный экран
             let html = `<div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
                 <div class="small">Личный счет</div>
                 <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
@@ -210,7 +219,6 @@
             }
             document.getElementById('accounts-container').innerHTML = html;
 
-            // Наполняем экран подробностей карты
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
             cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
             
