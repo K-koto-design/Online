@@ -102,7 +102,7 @@
 
     <script>
         // --- СИСТЕМА ОБНОВЛЕНИЯ ---
-        const VERSION = "2.5"; 
+        const VERSION = "2.6"; 
 
         function hardReset() {
             const cleanUrl = window.location.origin + window.location.pathname + "?u=" + Date.now();
@@ -117,12 +117,12 @@
         const clients = [
             { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
             { name: "Даня", phone: "+79673657830", pin: "1115", balance: 9000, spending: 1405, bonuses: 3, history: [] },
-            { name: "Роман", phone: "+79062357433", pin: "2025", balance: 8200, spending: 102, bonuses: 0, history: [] },
+            { name: "Роман", phone: "+79062357433", pin: "2025", balance: 9700, spending: 102, bonuses: 0, history: [{t:"Поплнение", a:-1500}] },
             { name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
             { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
             { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
             { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
-            { name: "Михаил", phone: "+0", pin: "3456", balance: 3786, spending: 500, bonuses: 8, creditCard: 4286, history: [{t:"Оплата кредита", a:-714}] },
+            { name: "Михаил", phone: "+0", pin: "3456", balance: 3786, spending: 500, bonuses: 8, creditCard: 4286, history: [{t:"Оплата кредита", a:-714},{t:"Перевод", a:-1500}] },
             { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
             { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] }
         ];
