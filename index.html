@@ -485,15 +485,24 @@
             }).then(() => alert("Деньги успешно отложены!")); 
         } 
 
-        // --- ЛОГИКА ЧАТА ---
+        // --- ИСПРАВЛЕННАЯ ЛОГИКА ЧАТА ---
         function renderChat() { 
             const container = document.getElementById('chat-container'); 
+            if (!container) return;
+            
             let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`; 
-            if (curUser.chat && Array.isArray(curUser.chat)) { 
-                curUser.chat.forEach(msg => { 
-                    chatHtml += `<div class="msg ${msg.role}">${msg.text}</div>`; 
+            
+            if (curUser && curUser.chat) { 
+                // Преобразуем в массив, если Firebase вернул объект
+                const messages = Array.isArray(curUser.chat) ? curUser.chat : Object.values(curUser.chat);
+                
+                messages.forEach(msg => { 
+                    // Если роль не 'user', считаем это сообщением админа/сотрудника
+                    const roleClass = (msg.role === 'user') ? 'user' : 'admin';
+                    chatHtml += `<div class="msg ${roleClass}">${msg.text}</div>`; 
                 }); 
             } 
+            
             container.innerHTML = chatHtml; 
             container.scrollTop = container.scrollHeight; 
         } 
@@ -501,11 +510,30 @@
         function sendChatMsg() { 
             const input = document.getElementById('chatInput'); 
             const text = input.value.trim(); 
-            if (!text) return; 
-            if (!curUser.chat) curUser.chat = []; 
-            curUser.chat.push({ role: 'user', text: text, time: Date.now() }); 
-            firebase.database().ref('clients/' + curUser.fbKey).update({ chat: curUser.chat }); 
-            input.value = ""; 
+            if (!text || !curUser) return; 
+
+            // Получаем текущий чат или создаем пустой
+            let currentChat = [];
+            if (curUser.chat) {
+                currentChat = Array.isArray(curUser.chat) ? [...curUser.chat] : Object.values(curUser.chat);
+            }
+            
+            const newMessage = { 
+                role: 'user', 
+                text: text, 
+                time: Date.now() 
+            };
+
+            currentChat.push(newMessage);
+
+            // Обновляем в Firebase и локально
+            firebase.database().ref('clients/' + curUser.fbKey).update({ 
+                chat: currentChat 
+            }).then(() => {
+                input.value = ""; 
+                // Принудительно отрисовываем сразу для плавности
+                renderChat();
+            });
         } 
 
         // --- ПЕРЕВОДЫ ---
