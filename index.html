@@ -39,7 +39,6 @@
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
         .small { color: var(--secondary); font-size: 13px; }
         
-        /* СТИЛЬ МЕТКИ ИП */
         .ip-badge {
             display: none;
             position: absolute;
@@ -51,38 +50,23 @@
             border-radius: 8px;
             font-size: 12px;
             font-weight: 800;
-            letter-spacing: 1px;
         }
 
         .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
-        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
-        .danger { background: var(--red); color: white; }
+
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
         .dot.filled { background: var(--text); border-color: var(--text); }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
         .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }
-        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
-        .history-amount { font-weight: 700; font-size: 15px; }
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
-        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; background: var(--card); color: var(--text); }
+        
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; }
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); }
         .tab-item.active { color: var(--accent); }
-        .tab-icon { font-size: 24px; margin-bottom: 4px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
-        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
-        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
-        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
-
-        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; }
-        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
-        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }
-        body.dark .msg.admin { background: #3a3a3c; color: #fff; }
-        .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -91,42 +75,17 @@
 
     <div id="blocked-view">
         <div class="lock-icon">❄️</div>
-        <h1 style="color: var(--red);">Карта заблокирована</h1>
-        <p style="color: var(--secondary);">Ваш доступ временно ограничен.</p>
-        <button class="btn secondary" style="max-width:200px; margin: 20px auto;" onclick="hardReset()">Проверить статус</button>
-    </div>
-
-    <div id="install-view">
-        <div class="logo-box">👤</div>
-        <h1>Активация доступа</h1>
-        <p>Нажмите «Поделиться», затем «На экран Домой».</p>
-    </div>
-
-    <div id="transfer-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-top:0">Перевод</h2>
-            <select id="transfer-target"></select>
-            <input type="number" id="transfer-amount" placeholder="0 ₽">
-            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button>
-            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button>
-        </div>
-    </div>
-
-    <div id="success-modal" class="modal">
-        <div class="modal-content">
-            <div class="check-icon">✓</div>
-            <div class="check-sum" id="check-amount">0 ₽</div>
-            <div id="check-names" style="margin: 20px 0;"></div>
-            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button>
-        </div>
+        <h1 style="color: var(--red);">Доступ ограничен</h1>
+        <p>Обратитесь в поддержку для разблокировки.</p>
+        <button class="btn secondary" onclick="hardReset()">Обновить статус</button>
     </div>
 
     <div id="screen-name" class="screen">
-        <h1 style="margin-top:60px">Вход</h1>
+        <h1 style="margin-top:60px">Вход в банк</h1>
         <div class="card">
             <input type="text" id="loginInp" placeholder="Имя или телефон">
-            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Продолжить</button>
-            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div>
+            <button class="btn primary" style="width: 100%;" onclick="findClient()">Найти мой аккаунт</button>
+            <div id="error" style="color:red; margin-top:10px; text-align:center;"></div>
         </div>
         <div id="variants"></div>
     </div>
@@ -145,73 +104,17 @@
     <div id="screen-home" class="screen">
         <h1 id="homeUser" style="margin-top:10px"></h1>
         <div class="card">
-            <div class="small">Всего средств</div>
+            <div class="ip-badge" id="ipBadge">ИП</div>
+            <div class="small">Всего на счету</div>
             <div class="balance" id="hBal">0 ₽</div>
-            <div class="small" id="hSpend">Траты за период: 0 ₽</div>
+            <div class="small" id="hBonuses" style="color: var(--credit)">Бонусы: 0 Б</div>
         </div>
         <div id="accounts-container"></div>
     </div>
 
-    <div id="screen-piggy" class="screen">
-        <h1>Копилки</h1>
-        <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button>
-        <div id="piggy-container"></div>
-    </div>
-
-    <div id="screen-chat" class="screen">
-        <h1>Поддержка</h1>
-        <div class="card" style="padding: 15px;">
-            <div id="chat-container"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chatInput" placeholder="Ваш вопрос..." style="margin-bottom: 0;">
-                <button class="btn primary" style="flex: 0 0 60px; height: 54px;" onclick="sendChatMsg()">➤</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="screen-settings" class="screen">
-        <h1>Настройки</h1>
-        <div class="card">
-            <p class="small">Тема</p>
-            <select id="themeSelect" onchange="applyTheme()">
-                <option value="light">Светлая</option>
-                <option value="dark">Темная</option>
-            </select>
-        </div>
-        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button>
-        <footer id="version-label"></footer>
-    </div>
-
-    <div id="screen-card" class="screen">
-        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button>
-        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
-            <div id="ipBadge" class="ip-badge">ИП</div>
-            
-            <div class="small" style="color:#aaa">Текущий баланс</div>
-            <div class="balance" id="cBal">0 ₽</div>
-            <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
-        </div>
-        <div class="btn-row">
-            <button class="btn secondary" onclick="alert('Сервис недоступен')">QR-оплата</button>
-            <button class="btn primary" onclick="showTransfer()">Перевести</button>
-        </div>
-        <h3 style="margin-left:10px">История операций</h3>
-        <div class="card" id="historyList"></div>
-    </div>
-
     <div class="tab-bar" id="main-nav" style="display: none;">
-        <div class="tab-item active" onclick="navTo('screen-home', this)">
-            <span class="tab-icon">🏠</span><span>Главная</span>
-        </div>
-        <div class="tab-item" onclick="navTo('screen-piggy', this)">
-            <span class="tab-icon">🐷</span><span>Копилки</span>
-        </div>
-        <div class="tab-item" onclick="navTo('screen-chat', this)">
-            <span class="tab-icon">💬</span><span>Чат</span>
-        </div>
-        <div class="tab-item" onclick="navTo('screen-settings', this)">
-            <span class="tab-icon">⚙️</span><span>Настройки</span>
-        </div>
+        <div class="tab-item active" onclick="navTo('screen-home', this)"><span>🏠</span><span>Главная</span></div>
+        <div class="tab-item"><span>⚙️</span><span>Настройки</span></div>
     </div>
 
     <script>
@@ -226,234 +129,129 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const dbRef = firebase.database().ref('bank_db');
+        const dbRef = firebase.database().ref('clients'); // Синхронизация с папкой clients из админки
 
-        let db = [];
+        let clientsData = [];
         let curUser = null;
         let enteredPin = "";
 
+        // Слушаем изменения в базе в реальном времени
         dbRef.on('value', (snapshot) => {
-            db = snapshot.val() || [];
-            if (curUser) {
-                const freshData = db.find(u => u.id === curUser.id);
-                if (freshData) {
-                    curUser = freshData;
-                    document.getElementById('blocked-view').style.display = curUser.blockedCard ? 'flex' : 'none';
-                    if (document.getElementById('screen-home').classList.contains('active')) showHome();
-                    if (document.getElementById('screen-card').classList.contains('active')) showHome();
-                    if (document.getElementById('screen-chat').classList.contains('active')) renderChat();
+            const val = snapshot.val();
+            clientsData = val ? Object.keys(val).map(key => ({...val[key], fbKey: key})) : [];
+            
+            if(curUser) {
+                const updated = clientsData.find(c => c.fbKey === curUser.fbKey);
+                if(updated) {
+                    curUser = updated;
+                    checkLock();
+                    if(document.getElementById('screen-home').classList.contains('active')) showHome();
                 }
             }
         });
 
-        function hardReset() { location.reload(); }
-
-        function init() {
-            document.getElementById('version-label').innerText = "Версия системы: 9.0 Cloud";
-            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-            if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) {
-                document.getElementById('install-view').style.display = 'block';
-            } else {
-                navTo('screen-name');
-                buildKeypad();
-            }
-            applyTheme();
-        }
-
-        function navTo(id, el) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(el) {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                el.classList.add('active');
-            }
-            const nav = document.getElementById('main-nav');
-            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-chat'].includes(id) ? 'flex' : 'none';
-            
-            if(id === 'screen-home' || id === 'screen-card') showHome();
-            if(id === 'screen-piggy') renderPiggies();
-            if(id === 'screen-chat') renderChat();
-        }
-
-        function renderChat() {
-            const container = document.getElementById('chat-container');
-            let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`;
-            if (curUser.chat) {
-                curUser.chat.forEach(msg => {
-                    chatHtml += `<div class="msg ${msg.role}">${msg.text}</div>`;
-                });
-            }
-            container.innerHTML = chatHtml;
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sendChatMsg() {
-            const input = document.getElementById('chatInput');
-            const text = input.value.trim();
-            if (!text) return;
-            if (!curUser.chat) curUser.chat = [];
-            curUser.chat.push({ role: 'user', text: text, time: Date.now() });
-            dbRef.set(db);
-            input.value = "";
-        }
-
         function findClient() {
-            const v = loginInp.value.trim();
-            error.innerText = ""; variants.innerHTML = "";
-            const matches = db.filter(c => (c.name && c.name.toLowerCase() === v.toLowerCase()) || c.phone === v);
-            if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
-            if (matches.length === 1) { selectUser(matches[0]); return; }
-            matches.forEach(c => {
-                const d = document.createElement("div");
-                d.className = "card"; d.innerText = `${c.name} (${c.phone})`;
-                d.onclick = () => selectUser(c); variants.appendChild(d);
-            });
+            const val = document.getElementById('loginInp').value.trim().toLowerCase();
+            const results = clientsData.filter(c => c.name.toLowerCase().includes(val) || c.phone.includes(val));
+            
+            if(results.length === 0) {
+                document.getElementById('error').innerText = "Аккаунт не найден";
+            } else if (results.length === 1) {
+                selectUser(results[0]);
+            } else {
+                let html = '';
+                results.forEach(c => {
+                    html += `<div class="card" onclick='selectUserByFbKey("${c.fbKey}")'>${c.name}</div>`;
+                });
+                document.getElementById('variants').innerHTML = html;
+            }
         }
 
-        function selectUser(c) {
-            curUser = c; enteredPin = ""; 
-            pinUser.innerText = curUser.name;
-            updateDots(); navTo('screen-pin');
+        function selectUser(user) {
+            curUser = user;
+            enteredPin = "";
+            document.getElementById('pinUser').innerText = curUser.name;
+            updateDots();
+            navTo('screen-pin');
+        }
+
+        function selectUserByFbKey(key) {
+            const user = clientsData.find(c => c.fbKey === key);
+            selectUser(user);
+        }
+
+        function checkLock() {
+            document.getElementById('blocked-view').style.display = curUser.frozen ? 'flex' : 'none';
         }
 
         function buildKeypad() {
             const keys = [1,2,3,4,5,6,7,8,9,'',0,'←'];
-            keypad.innerHTML = '';
+            const container = document.getElementById('keypad');
+            container.innerHTML = '';
             keys.forEach(k => {
                 const b = document.createElement('button');
-                b.className = 'key'; b.innerText = k;
+                b.className = 'key';
+                b.innerText = k;
                 if(k === '') b.style.visibility = 'hidden';
                 b.onclick = () => {
                     if(k === '←') enteredPin = enteredPin.slice(0, -1);
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k;
                     updateDots();
+                    
                     if(enteredPin.length === 4) {
-                        if(enteredPin === curUser.pin) {
-                            if (curUser.blockedCard) {
-                                document.getElementById('blocked-view').style.display = 'flex';
-                            } else {
-                                navTo('screen-home');
-                            }
+                        // ПРОВЕРКА ПИН-КОДА ИЗ АДМИНКИ
+                        if(enteredPin === curUser.clientPin) {
+                            checkLock();
+                            navTo('screen-home');
                         } else {
-                            enteredPin = ""; updateDots();
+                            alert("Неверный ПИН-код");
+                            enteredPin = "";
+                            updateDots();
                         }
                     }
                 };
-                keypad.appendChild(b);
+                container.appendChild(b);
             });
         }
 
         function updateDots() {
-            const d = pinDots.children;
-            for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
+            const dots = document.getElementById('pinDots').children;
+            for(let i=0; i<4; i++) dots[i].classList.toggle('filled', i < enteredPin.length);
         }
 
         function showHome() {
-            if (!curUser) return;
-            homeUser.innerText = `Здравствуйте, ${curUser.name}`;
-            hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
-            hSpend.innerText = `Траты: ${(curUser.spending || 0).toLocaleString()} ₽`;
+            document.getElementById('homeUser').innerText = `Привет, ${curUser.name}`;
+            document.getElementById('hBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
+            document.getElementById('hBonuses').innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString() + " Б";
             
-            // Логика отображения метки ИП
-            const badge = document.getElementById('ipBadge');
-            if (curUser.isIP === true) {
-                badge.style.display = 'block';
-            } else {
-                badge.style.display = 'none';
-            }
+            // Показываем метку ИП если статус совпадает
+            document.getElementById('ipBadge').style.display = (curUser.orgType === 'ИП') ? 'block' : 'none';
 
-            let html = `<div class="card" onclick="navTo('screen-card')">
-                <div class="small">Личный счет</div>
-                <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
-                <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
-            </div>`;
-            
-            if(curUser.creditCard) {
-                html += `<div class="card"><span style="color:var(--credit); font-size:12px; font-weight:600;">Кредитный лимит</span>
-                <div style="font-size:20px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div></div>`;
-            }
-            document.getElementById('accounts-container').innerHTML = html;
-            cBal.innerText = curUser.balance.toLocaleString() + " ₽";
-            cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
-            
-            const hList = document.getElementById('historyList');
-            hList.innerHTML = "";
-            if(curUser.history) {
-                curUser.history.slice().reverse().forEach(h => {
-                    hList.innerHTML += `<div class="history-item"><span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span></div>`;
-                });
+            document.getElementById('accounts-container').innerHTML = `
+                <div class="card">
+                    <div class="small">Номер счета</div>
+                    <div style="font-weight:600">ID: ${curUser.id}</div>
+                    <div class="small" style="margin-top:10px">Траты в этом месяце</div>
+                    <div style="font-weight:600">${(curUser.spentMonth || 0).toLocaleString()} ₽</div>
+                </div>
+            `;
+        }
+
+        function navTo(id, el) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(id === 'screen-home') {
+                document.getElementById('main-nav').style.display = 'flex';
+                showHome();
             }
         }
 
-        function showTransfer() {
-            const select = document.getElementById('transfer-target');
-            select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-            document.getElementById('transfer-modal').style.display = 'flex';
-        }
-
-        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
-
-        function processTransfer() {
-            const amount = Number(document.getElementById('transfer-amount').value);
-            const targetId = Number(document.getElementById('transfer-target').value);
-            if(amount <= 0 || amount > curUser.balance) { alert("Ошибка суммы"); return; }
-            const targetUser = db.find(u => u.id === targetId);
-            curUser.balance -= amount;
-            targetUser.balance += amount;
-            if(!curUser.history) curUser.history = [];
-            if(!targetUser.history) targetUser.history = [];
-            curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
-            targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
-            dbRef.set(db).then(() => {
-                closeTransfer();
-                document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
-                document.getElementById('check-names').innerText = `${curUser.name} → ${targetUser.name}`;
-                document.getElementById('success-modal').style.display = 'flex';
-            });
-        }
-
-        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); }
-
-        function showPiggyModal() {
-            const t = Number(prompt("Цель (₽):"));
-            if(!t) return;
-            if(!curUser.piggies) curUser.piggies = [];
-            curUser.piggies.push({ id: Date.now(), target: t, current: 0 });
-            dbRef.set(db);
-        }
-
-        function renderPiggies() {
-            const cont = document.getElementById('piggy-container');
-            cont.innerHTML = "";
-            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "Пока пусто"; return; }
-            curUser.piggies.forEach(p => {
-                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100);
-                cont.innerHTML += `<div class="card">
-                    <b>Цель: ${p.target} ₽</b>
-                    <div style="background:#eee; height:8px; border-radius:4px; margin:10px 0; overflow:hidden;"><div style="width:${perc}%; background:var(--accent); height:100%;"></div></div>
-                    <div class="small">Накоплено: ${p.current} ₽ (${perc}%)</div>
-                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${p.id})">Пополнить</button>
-                </div>`;
-            });
-        }
-
-        function topUpPiggy(id) {
-            const sum = Number(prompt("Сколько отложить?"));
-            if(sum > curUser.balance) return;
-            const p = curUser.piggies.find(x => x.id === id);
-            p.current += sum; curUser.balance -= sum;
-            dbRef.set(db);
-        }
-
-        function applyTheme() {
-            const t = localStorage.getItem('app_theme') || 'light';
-            document.body.className = t;
-            themeSelect.value = t;
-        }
-
-        function logout() { curUser = null; navTo('screen-name'); }
-
-        window.onload = init;
+        function hardReset() { location.reload(); }
+        
+        window.onload = () => {
+            buildKeypad();
+            navTo('screen-name');
+        };
     </script>
 </body>
 </html>
