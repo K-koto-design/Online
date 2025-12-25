@@ -22,101 +22,90 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; }
         
-        #blocked-view { 
-            display: none; padding: 40px; text-align: center; background: var(--card); 
-            height: 100vh; flex-direction: column; justify-content: center; 
-            position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; 
-        }
-        .lock-icon { font-size: 80px; margin-bottom: 20px; }
-
+        /* Стили экранов */
+        #blocked-view { display: none; padding: 40px; text-align: center; background: var(--card); height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; }
         .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }
-        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
-        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
         .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }
         .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Карточки и кнопки */
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
         .small { color: var(--secondary); font-size: 13px; }
-        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
-        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }
+        .btn { width: 100%; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
-        .danger { background: var(--red); color: white; }
-        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
-        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
-        .dot.filled { background: var(--text); border-color: var(--text); }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
-        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }
-        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
-        .history-amount { font-weight: 700; font-size: 15px; }
+        
+        /* Чат */
+        #chat-container { height: 60vh; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; border-radius: 15px; background: rgba(0,0,0,0.02); }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.4; }
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }
+
+        /* Таб-бар */
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
         .tab-item.active { color: var(--accent); }
         .tab-icon { font-size: 24px; margin-bottom: 4px; }
+
+        /* Пин-код */
+        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
+        .dot.filled { background: var(--text); border-color: var(--text); }
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
+        .key { height: 70px; font-size: 26px; border: none; background: none; color: var(--text); cursor: pointer; }
+        
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; background: var(--card); color: var(--text); outline: none; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
-        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
-        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
-        
-        /* Стили ЧАТА */
-        #chat-container { display: flex; flex-direction: column; height: 60vh; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 15px; margin-bottom: 15px; }
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; margin-bottom: 8px; font-size: 14px; line-height: 1.4; position: relative; }
-        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
-        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }
-        .chat-input-row { display: flex; gap: 10px; }
-        
-        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
     </style>
 </head>
 <body>
 
-    <button class="refresh-btn" onclick="hardReset()">🔄</button>
+    <button class="refresh-btn" onclick="location.reload()">🔄</button>
 
     <div id="blocked-view">
-        <div class="lock-icon">❄️</div>
         <h1 style="color: var(--red);">Карта заблокирована</h1>
-        <p style="color: var(--secondary);">Ваш доступ временно ограничен.</p>
-        <button class="btn secondary" style="max-width:200px; margin: 20px auto;" onclick="hardReset()">Проверить статус</button>
+        <button class="btn secondary" onclick="location.reload()">Проверить статус</button>
     </div>
 
-    <div id="install-view">
-        <div class="logo-box">👤</div>
-        <h1>Активация доступа</h1>
-        <p>Нажмите «Поделиться», затем «На экран Домой».</p>
+    <div id="screen-name" class="screen">
+        <h1 style="margin-top:60px">Вход</h1>
+        <div class="card">
+            <input type="text" id="loginInp" placeholder="Имя или телефон">
+            <button class="btn primary" onclick="findClient()">Продолжить</button>
+            <div id="error" style="color:red; text-align:center;"></div>
+        </div>
+        <div id="variants"></div>
     </div>
 
-    <div id="transfer-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0">Перевод</h2><p class="small">Сумма:</p><input type="number" id="transfer-amount" placeholder="0 ₽"><p class="small">Кому:</p><select id="transfer-target"></select><button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button><button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button></div></div>
-    <div id="success-modal" class="modal"><div class="modal-content"><div class="check-icon">✓</div><div class="check-sum" id="check-amount">0 ₽</div><div id="check-names" style="margin: 20px 0;"></div><button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button></div></div>
-
-    <div id="screen-name" class="screen"><h1 style="margin-top:60px">Вход</h1><div class="card"><input type="text" id="loginInp" placeholder="Имя или телефон"><button class="btn primary" style="width: 100%" onclick="findClient()">Продолжить</button><div id="error" style="color:red; margin-top:10px; text-align:center;"></div></div><div id="variants"></div></div>
-    <div id="screen-pin" class="screen"><div style="text-align:center; margin-top:80px;"><div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div><h2 id="pinUser"></h2><div class="dots" id="pinDots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="keypad" id="keypad"></div></div></div>
+    <div id="screen-pin" class="screen">
+        <div style="text-align:center; margin-top:80px;">
+            <h2 id="pinUser"></h2>
+            <div class="dots" id="pinDots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+            <div class="keypad" id="keypad"></div>
+        </div>
+    </div>
 
     <div id="screen-home" class="screen">
         <h1 id="homeUser" style="margin-top:10px"></h1>
         <div class="card">
-            <div class="small">Баланс</div>
+            <div class="small">Всего средств</div>
             <div class="balance" id="hBal">0 ₽</div>
+            <div class="small" id="hSpend">Траты: 0 ₽</div>
         </div>
         <div id="accounts-container"></div>
-    </div>
-
-    <div id="screen-piggy" class="screen">
-        <h1>Копилки</h1>
-        <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button>
-        <div id="piggy-container"></div>
     </div>
 
     <div id="screen-support" class="screen">
         <h1>Поддержка</h1>
         <div class="card" style="padding: 10px;">
-            <div id="chat-container">
-                <div class="msg admin">Здравствуйте! Чем я могу вам помочь?</div>
-            </div>
-            <div class="chat-input-row">
+            <div id="chat-container"></div>
+            <div style="display: flex; gap: 8px;">
                 <input type="text" id="chatInput" placeholder="Сообщение..." style="margin-bottom:0">
-                <button class="btn primary" style="flex:0 0 60px; padding:0;" onclick="sendMsg()">➤</button>
+                <button class="btn primary" style="width: 60px; margin-bottom:0" onclick="sendMsg()">➤</button>
             </div>
         </div>
     </div>
@@ -130,26 +119,11 @@
                 <option value="dark">Темная</option>
             </select>
         </div>
-        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти</button>
-        <footer id="version-label"></footer>
-    </div>
-
-    <div id="screen-card" class="screen">
-        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0;" onclick="navTo('screen-home')">← Назад</button>
-        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
-            <div class="balance" id="cBal">0 ₽</div>
-            <div id="cBonus" class="small">Бонусы: 0</div>
-        </div>
-        <div class="btn-row">
-            <button class="btn primary" onclick="showTransfer()">Перевести</button>
-        </div>
-        <h3>История</h3>
-        <div class="card" id="historyList"></div>
+        <button class="btn secondary" onclick="logout()">Выйти</button>
     </div>
 
     <div class="tab-bar" id="main-nav" style="display: none;">
         <div class="tab-item active" onclick="navTo('screen-home', this)"><span class="tab-icon">🏠</span><span>Главная</span></div>
-        <div class="tab-item" onclick="navTo('screen-piggy', this)"><span class="tab-icon">🐷</span><span>Копилки</span></div>
         <div class="tab-item" onclick="navTo('screen-support', this)"><span class="tab-icon">💬</span><span>Чат</span></div>
         <div class="tab-item" onclick="navTo('screen-settings', this)"><span class="tab-icon">⚙️</span><span>Настройки</span></div>
     </div>
@@ -178,23 +152,13 @@
                 curUser = db.find(u => u.id === curUser.id);
                 if (curUser.blockedCard) document.getElementById('blocked-view').style.display = 'flex';
                 else document.getElementById('blocked-view').style.display = 'none';
-                updateUI();
+                
+                // Обновление экранов при изменении в БД
+                if(document.getElementById('screen-home').classList.contains('active')) showHome();
+                if(document.getElementById('screen-support').classList.contains('active')) loadChat();
             }
         });
 
-        function updateUI() {
-            if (document.getElementById('screen-home').classList.contains('active')) showHome();
-            if (document.getElementById('screen-support').classList.contains('active')) loadChat();
-        }
-
-        function init() {
-            document.getElementById('version-label').innerText = "Версия системы: 10.0 Chat";
-            navTo('screen-name');
-            buildKeypad();
-            applyTheme();
-        }
-
-        // Навигация
         function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -202,54 +166,35 @@
                 document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                 el.classList.add('active');
             }
-            document.getElementById('main-nav').style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-support'].includes(id) ? 'flex' : 'none';
+            document.getElementById('main-nav').style.display = ['screen-home', 'screen-support', 'screen-settings'].includes(id) ? 'flex' : 'none';
+            if(id === 'screen-home') showHome();
             if(id === 'screen-support') loadChat();
         }
 
-        // Логика ЧАТА
-        function sendMsg() {
-            const text = chatInput.value.trim();
-            if(!text || !curUser) return;
-            
-            if(!curUser.chat) curUser.chat = [];
-            curUser.chat.push({ role: 'user', text: text, time: Date.now() });
-            
-            chatInput.value = "";
-            dbRef.set(db); // Сохраняем в Firebase
-        }
-
-        function loadChat() {
-            const container = document.getElementById('chat-container');
-            container.innerHTML = '<div class="msg admin">Здравствуйте! Чем я могу вам помочь?</div>';
-            if(curUser && curUser.chat) {
-                curUser.chat.forEach(m => {
-                    const d = document.createElement('div');
-                    d.className = `msg ${m.role}`;
-                    d.innerText = m.text;
-                    container.appendChild(d);
-                });
-            }
-            container.scrollTop = container.scrollHeight;
-        }
-
-        // Остальные функции (из твоего кода)
         function findClient() {
             const v = loginInp.value.trim();
             const matches = db.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
-            if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
-            if (matches.length === 1) { selectUser(matches[0]); return; }
-            variants.innerHTML = "";
-            matches.forEach(c => {
-                const d = document.createElement("div"); d.className = "card"; d.innerText = `${c.name} (${c.phone})`;
-                d.onclick = () => selectUser(c); variants.appendChild(d);
-            });
+            if (!matches.length) { error.innerText = "Не найден"; return; }
+            if (matches.length === 1) selectUser(matches[0]);
+            else {
+                variants.innerHTML = "";
+                matches.forEach(c => {
+                    let d = document.createElement('div'); d.className = "card"; d.innerText = c.name;
+                    d.onclick = () => selectUser(c); variants.appendChild(d);
+                });
+            }
         }
-        function selectUser(c) { curUser = c; enteredPin = ""; pinUser.innerText = curUser.name; updateDots(); navTo('screen-pin'); }
+
+        function selectUser(c) {
+            curUser = c; enteredPin = ""; pinUser.innerText = curUser.name;
+            updateDots(); navTo('screen-pin'); buildKeypad();
+        }
+
         function buildKeypad() {
             const keys = [1,2,3,4,5,6,7,8,9,'',0,'←'];
             keypad.innerHTML = '';
             keys.forEach(k => {
-                const b = document.createElement('button'); b.className = 'key'; b.innerText = k;
+                let b = document.createElement('button'); b.className = 'key'; b.innerText = k;
                 if(k === '') b.style.visibility = 'hidden';
                 b.onclick = () => {
                     if(k === '←') enteredPin = enteredPin.slice(0, -1);
@@ -263,21 +208,62 @@
                 keypad.appendChild(b);
             });
         }
-        function updateDots() { const d = pinDots.children; for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length); }
-        function showHome() {
-            homeUser.innerText = `Привет, ${curUser.name}`;
-            hBal.innerText = (curUser.balance).toLocaleString() + " ₽";
-            document.getElementById('accounts-container').innerHTML = `<div class="card" onclick="navTo('screen-card')"><div class="small">Личный счет</div><b>${curUser.balance} ₽</b></div>`;
-            cBal.innerText = curUser.balance.toLocaleString() + " ₽";
-            const hList = document.getElementById('historyList'); hList.innerHTML = "";
-            if(curUser.history) curUser.history.slice().reverse().forEach(h => {
-                hList.innerHTML += `<div class="history-item"><span>${h.t}</span><span style="color:${h.a>0?'green':''}">${h.a} ₽</span></div>`;
-            });
+
+        function updateDots() {
+            const d = pinDots.children;
+            for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
         }
-        function applyTheme() { document.body.className = localStorage.getItem('app_theme') || 'light'; }
+
+        function showHome() {
+            if(!curUser) return;
+            homeUser.innerText = `Привет, ${curUser.name}`;
+            hBal.innerText = (curUser.balance || 0).toLocaleString() + " ₽";
+            hSpend.innerText = `Траты: ${(curUser.spending || 0).toLocaleString()} ₽`;
+            document.getElementById('accounts-container').innerHTML = `
+                <div class="card">
+                    <div class="small">Личный счет</div>
+                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${(curUser.balance || 0).toLocaleString()} ₽</div>
+                </div>`;
+        }
+
+        function loadChat() {
+            const cont = document.getElementById('chat-container');
+            cont.innerHTML = '<div class="msg admin">Здравствуйте! Чем помочь?</div>';
+            if(curUser.chat) {
+                curUser.chat.forEach(m => {
+                    let d = document.createElement('div');
+                    d.className = `msg ${m.role}`; d.innerText = m.text;
+                    cont.appendChild(d);
+                });
+            }
+            cont.scrollTop = cont.scrollHeight;
+        }
+
+        function sendMsg() {
+            const t = chatInput.value.trim();
+            if(!t) return;
+            if(!curUser.chat) curUser.chat = [];
+            curUser.chat.push({role: 'user', text: t, time: Date.now()});
+            chatInput.value = "";
+            dbRef.set(db);
+        }
+
+        function applyTheme() {
+            const t = localStorage.getItem('theme') || 'light';
+            document.body.className = t; themeSelect.value = t;
+        }
+
+        themeSelect.onchange = () => {
+            localStorage.setItem('theme', themeSelect.value);
+            applyTheme();
+        };
+
         function logout() { curUser = null; navTo('screen-name'); }
-        function hardReset() { location.reload(); }
-        window.onload = init;
+
+        window.onload = () => {
+            navTo('screen-name');
+            applyTheme();
+        };
     </script>
 </body>
 </html>
