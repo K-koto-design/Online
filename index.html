@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Онлайн</title>
+    <title>Онлайн Банк</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -10,19 +10,38 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg">
 
     <style>
-        :root { --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e; --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; }
+        :root { 
+            --bg: #f2f3f7; 
+            --accent: #007aff; 
+            --card: #ffffff; 
+            --text: #1c1c1e; 
+            --secondary: #8e8e93; 
+            --credit: #34c759; 
+            --red: #ff3b30; 
+            --tab-bg: #ffffff;
+        }
+
+        /* Темная тема */
+        body.dark {
+            --bg: #000000;
+            --card: #1c1c1e;
+            --text: #ffffff;
+            --secondary: #8e8e93;
+            --tab-bg: #121212;
+        }
+
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; }
+        body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; }
         
         #blocked-view { display: none; padding: 40px; text-align: center; background: white; height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; }
         .lock-icon { font-size: 64px; margin-bottom: 20px; }
 
-        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; }
+        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }
         
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
         
-        .screen { display: none; padding: 20px; min-height: 100vh; position: relative; }
+        .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }
         .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
@@ -31,24 +50,32 @@
         .small { color: var(--secondary); font-size: 13px; }
         
         .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
-        /* Кнопки теперь просто центрируют текст */
         .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
+        .danger { background: var(--red); color: white; }
 
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
-        .dot.filled { background: #000; border-color: #000; }
+        .dot.filled { background: var(--text); border-color: var(--text); }
         
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
-        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; }
+        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }
         
-        input { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; }
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
         .history-amount { font-weight: 700; font-size: 15px; }
         
-        .update-bar { background: #fff; padding: 12px; border-radius: 15px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #e5e5ea; }
-        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; margin-top: 20px; }
+        /* Навигация */
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
+        .tab-item.active { color: var(--accent); }
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }
+
+        .piggy-progress { width: 100%; height: 10px; background: #e5e5ea; border-radius: 5px; margin: 10px 0; overflow: hidden; }
+        .piggy-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
+
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
 </head>
 <body>
@@ -58,7 +85,7 @@
     <div id="blocked-view">
         <div class="lock-icon">❄️</div>
         <h1 style="color: var(--red);">Карта заблокирована</h1>
-        <p style="color: var(--secondary);">Ваш доступ временно ограничен.<br>Для разблокировки обратитесь в поддержку.</p>
+        <p style="color: var(--secondary);">Ваш доступ временно ограничен.</p>
         <button class="btn secondary" style="max-width:200px; margin: 20px auto;" onclick="hardReset()">Проверить статус</button>
     </div>
 
@@ -90,10 +117,6 @@
     </div>
 
     <div id="screen-home" class="screen">
-        <div class="update-bar">
-            <span style="font-size: 13px; color: var(--secondary);">Данные обновлены</span>
-            <button onclick="hardReset()" style="background: none; border: none; color: var(--accent); font-weight: 600; font-size: 13px;">Обновить ↻</button>
-        </div>
         <h1 id="homeUser" style="margin-top:10px"></h1>
         <div class="card">
             <div class="small">Всего средств</div>
@@ -101,33 +124,70 @@
             <div class="small" id="hSpend">Траты за период: 0 ₽</div>
         </div>
         <div id="accounts-container"></div>
+    </div>
+
+    <div id="screen-piggy" class="screen">
+        <h1>Копилки</h1>
+        <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button>
+        <div id="piggy-container"></div>
+        <button class="btn danger" style="margin-top: 20px; width: 100%;" onclick="deleteAllPiggies()">Удалить все копилки</button>
+    </div>
+
+    <div id="screen-settings" class="screen">
+        <h1>Настройки</h1>
+        <div class="card">
+            <p class="small">Страна</p>
+            <select id="countrySelect" onchange="saveSettings()">
+                <option value="Россия">Россия</option>
+                <option value="Украина">Украина</option>
+                <option value="Беларусь">Беларусь</option>
+            </select>
+            
+            <p class="small">Тема</p>
+            <select id="themeSelect" onchange="applyTheme()">
+                <option value="light">Светлая</option>
+                <option value="dark">Темная</option>
+            </select>
+        </div>
+        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button>
         <footer id="version-label"></footer>
     </div>
 
     <div id="screen-card" class="screen">
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button>
-        
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
             <div class="small" style="color:#aaa">Текущий баланс</div>
             <div class="balance" id="cBal">0 ₽</div>
             <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
         </div>
-        <div id="credit-card-detail"></div>
-
         <div class="btn-row">
-            <button class="btn secondary" onclick="window.location.href='https://www.google.com'">QR-оплата</button>
-            <button class="btn secondary" onclick="window.location.href='https://ya.ru'">Телефоном</button>
-            <button class="btn primary" onclick="window.location.href='https://t.me/send'">Перевести</button>
+            <button class="btn secondary" onclick="alert('Сервис недоступен')">QR-оплата</button>
+            <button class="btn primary" onclick="alert('Сервис недоступен')">Перевести</button>
         </div>
-
         <h3 style="margin-left:10px">История операций</h3>
         <div class="card" id="historyList"></div>
     </div>
 
-    <script>
-        const VERSION = "4.9"; // Версия обновлена
+    <div class="tab-bar" id="main-nav" style="display: none;">
+        <div class="tab-item active" onclick="navTo('screen-home', this)">
+            <span class="tab-icon">🏠</span>
+            <span>Главная</span>
+        </div>
+        <div class="tab-item" onclick="navTo('screen-piggy', this)">
+            <span class="tab-icon">🐷</span>
+            <span>Копилки</span>
+        </div>
+        <div class="tab-item" onclick="navTo('screen-settings', this)">
+            <span class="tab-icon">⚙️</span>
+            <span>Настройки</span>
+        </div>
+    </div>
 
-        const clients = [
+    <script>
+        const VERSION = "5.0";
+        
+        // База клиентов
+        const clientsData = [
             { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, blockedCard: false, history: [{t:"Покупка: Магазин", a:-540}] },
             { id: 2, name: "Даня", phone: "+79673657830", pin: "1115", balance: 4500, spending: 5500, bonuses: 5, blockedCard: false, history: [{t:"Перевод", a:-4500}] },
             { id: 3, name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, blockedCard: false, history: [] },
@@ -143,20 +203,14 @@
 
         let curUser = null;
         let enteredPin = "";
+        let userPiggies = [];
 
         function hardReset() {
             window.location.replace(window.location.origin + window.location.pathname + "?v=" + Date.now());
         }
 
         function init() {
-            const savedV = localStorage.getItem('app_v');
-            if (savedV !== VERSION) {
-                localStorage.setItem('app_v', VERSION);
-                hardReset();
-                return;
-            }
             document.getElementById('version-label').innerText = "Версия системы: " + VERSION;
-            
             const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
             if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) {
                 document.getElementById('install-view').style.display = 'block';
@@ -164,17 +218,34 @@
                 navTo('screen-name');
                 buildKeypad();
             }
+            loadGlobalSettings();
         }
 
-        function navTo(id) {
+        function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            
+            if(el) {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+            }
+
+            // Показываем/скрываем навигацию
+            const nav = document.getElementById('main-nav');
+            if(['screen-home', 'screen-piggy', 'screen-settings'].includes(id)) {
+                nav.style.display = 'flex';
+            } else {
+                nav.style.display = 'none';
+            }
+
+            if(id === 'screen-piggy') renderPiggies();
+            if(id === 'screen-home') showHome();
         }
 
         function findClient() {
             const v = loginInp.value.trim();
             error.innerText = ""; variants.innerHTML = "";
-            const matches = clients.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
+            const matches = clientsData.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
             if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
             if (matches.length === 1) { selectUser(matches[0]); return; }
             matches.forEach(c => {
@@ -185,8 +256,18 @@
         }
 
         function selectUser(c) {
-            curUser = c; enteredPin = ""; pinUser.innerText = c.name;
-            updateDots(); navTo('screen-pin');
+            // Загрузка данных пользователя из localStorage или использование базовых
+            const savedData = localStorage.getItem('user_data_' + c.id);
+            if(savedData) {
+                curUser = JSON.parse(savedData);
+            } else {
+                curUser = JSON.parse(JSON.stringify(c)); // Глубокое копирование
+            }
+            
+            enteredPin = ""; 
+            pinUser.innerText = curUser.name;
+            updateDots(); 
+            navTo('screen-pin');
         }
 
         function buildKeypad() {
@@ -202,10 +283,10 @@
                     updateDots();
                     if(enteredPin.length === 4) {
                         if(enteredPin === curUser.pin) {
-                            if (curUser.blockedCard === true) {
+                            if (curUser.blockedCard) {
                                 document.getElementById('blocked-view').style.display = 'flex';
                             } else {
-                                showHome();
+                                navTo('screen-home');
                             }
                         } else { enteredPin = ""; updateDots(); }
                     }
@@ -220,6 +301,7 @@
         }
 
         function showHome() {
+            saveUserData();
             homeUser.innerText = `Здравствуйте, ${curUser.name}`;
             hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
             hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
@@ -236,27 +318,133 @@
             }
             document.getElementById('accounts-container').innerHTML = html;
 
+            // Карта
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
             cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
             
-            const creditDetail = document.getElementById('credit-card-detail');
-            if(curUser.creditCard) {
-                creditDetail.innerHTML = `<div class="card" style="border: 1px solid #e2e2e2;">
-                <span style="color:var(--credit); font-size:12px; font-weight:600;">Кредитная карта</span>
-                <div style="font-size:18px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div></div>`;
-            } else { creditDetail.innerHTML = ""; }
-
             const hList = document.getElementById('historyList');
-            hList.innerHTML = curUser.history && curUser.history.length ? "" : "<div class='small'>Операций не найдено</div>";
-            if(curUser.history) {
-                curUser.history.slice().reverse().forEach(h => {
-                    const div = document.createElement('div');
-                    div.className = 'history-item';
-                    div.innerHTML = `<span>${h.t}</span><span class="history-amount">${h.a} ₽</span>`;
-                    hList.appendChild(div);
-                });
+            hList.innerHTML = "";
+            curUser.history.slice().reverse().forEach(h => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `<span>${h.t}</span><span class="history-amount">${h.a} ₽</span>`;
+                hList.appendChild(div);
+            });
+        }
+
+        /* --- ЛОГИКА КОПИЛОК --- */
+        function showPiggyModal() {
+            const target = prompt("Напишите сумму, которую хотите накопить:");
+            if(!target || isNaN(target)) return;
+            
+            const initial = prompt("Сколько положить сейчас?");
+            if(initial === null || isNaN(initial)) return;
+            
+            const initialNum = Number(initial);
+            if(initialNum > curUser.balance) {
+                alert("Недостаточно средств на карте!");
+                return;
             }
-            navTo('screen-home');
+
+            const newPiggy = {
+                id: Date.now(),
+                target: Number(target),
+                current: initialNum
+            };
+
+            if(!curUser.piggies) curUser.piggies = [];
+            curUser.piggies.push(newPiggy);
+            
+            if(initialNum > 0) {
+                curUser.balance -= initialNum;
+                curUser.history.push({t: "В копилку", a: -initialNum});
+            }
+            
+            renderPiggies();
+            saveUserData();
+        }
+
+        function renderPiggies() {
+            const container = document.getElementById('piggy-container');
+            container.innerHTML = "";
+            
+            if(!curUser.piggies || curUser.piggies.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>";
+                return;
+            }
+
+            curUser.piggies.forEach(p => {
+                const perc = Math.floor((p.current / p.target) * 100);
+                const card = document.createElement('div');
+                card.className = "card";
+                card.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                        <span style="font-weight:600">На цель: ${p.target.toLocaleString()} ₽</span>
+                        <span style="color:var(--accent)">${perc}%</span>
+                    </div>
+                    <div class="piggy-progress"><div class="piggy-fill" style="width:${Math.min(perc, 100)}%"></div></div>
+                    <p class="small">Накоплено: ${p.current.toLocaleString()} ₽</p>
+                    <button class="btn secondary" style="width:100%; margin-top:10px;" onclick="topUpPiggy(${p.id})">Пополнить</button>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function topUpPiggy(id) {
+            const amt = prompt("Введите сумму для добавления средств:");
+            if(!amt || isNaN(amt)) return;
+            const num = Number(amt);
+
+            if(num > curUser.balance) {
+                alert("Недостаточно средств на карте!");
+                return;
+            }
+
+            const p = curUser.piggies.find(x => x.id === id);
+            p.current += num;
+            curUser.balance -= num;
+            curUser.history.push({t: "Пополнение копилки", a: -num});
+            
+            renderPiggies();
+            saveUserData();
+        }
+
+        function deleteAllPiggies() {
+            if(confirm("Удалить все копилки? Деньги не вернутся на карту.")) {
+                curUser.piggies = [];
+                renderPiggies();
+                saveUserData();
+            }
+        }
+
+        /* --- НАСТРОЙКИ И СОХРАНЕНИЕ --- */
+        function saveUserData() {
+            if(curUser) localStorage.setItem('user_data_' + curUser.id, JSON.stringify(curUser));
+        }
+
+        function saveSettings() {
+            const country = document.getElementById('countrySelect').value;
+            localStorage.setItem('app_country', country);
+        }
+
+        function applyTheme() {
+            const theme = document.getElementById('themeSelect').value;
+            document.body.className = theme;
+            localStorage.setItem('app_theme', theme);
+        }
+
+        function loadGlobalSettings() {
+            const theme = localStorage.getItem('app_theme') || 'light';
+            const country = localStorage.getItem('app_country') || 'Россия';
+            
+            document.getElementById('themeSelect').value = theme;
+            document.getElementById('countrySelect').value = country;
+            document.body.className = theme;
+        }
+
+        function logout() {
+            curUser = null;
+            navTo('screen-name');
         }
 
         window.onload = init;
