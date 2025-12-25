@@ -113,6 +113,7 @@
             <h2 style="margin-top:0">Перевод</h2> 
             <select id="transfer-target"></select> 
             <input type="number" id="transfer-amount" placeholder="0 ₽"> 
+            <input type="text" id="transfer-message" placeholder="Сообщение получателю"> 
             <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button> 
             <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
         </div> 
@@ -303,7 +304,6 @@
         let enteredPin = ""; 
         let activeLoginTab = 'Клиент'; 
 
-        // Справочник сервисов
         const services = {
             mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
             transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
@@ -323,7 +323,6 @@
             } 
         }); 
 
-        // --- ЛОГИКА СЕРВИСОВ ---
         function openService(type) {
             const data = services[type];
             document.getElementById('service-title').innerText = data.title;
@@ -358,7 +357,6 @@
             });
         }
 
-        // --- ОСТАЛЬНЫЕ ФУНКЦИИ БАНКА ---
         function switchLoginTab(type) {
             activeLoginTab = type;
             document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
@@ -371,7 +369,6 @@
             if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
-            if (document.getElementById('screen-piggy').classList.contains('active')) renderPiggies();
         } 
 
         function hardReset() { location.reload(); } 
@@ -399,7 +396,6 @@
             nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-chat', 'screen-card'].includes(id) ? 'flex' : 'none'; 
              
             if(id === 'screen-home' || id === 'screen-card') showHome(); 
-            if(id === 'screen-piggy') renderPiggies(); 
             if(id === 'screen-chat') renderChat(); 
         } 
 
@@ -488,7 +484,10 @@
             if(curUser.history && Array.isArray(curUser.history)) { 
                 curUser.history.slice().reverse().forEach(h => { 
                     hList.innerHTML += `<div class="history-item"> 
-                        <span>${h.t}</span> 
+                        <div>
+                            <div style="font-weight:600;">${h.t}</div>
+                            ${h.msg ? `<div class="small" style="color:var(--accent); font-style:italic;">"${h.msg}"</div>` : ''}
+                        </div>
                         <span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span> 
                     </div>`; 
                 }); 
@@ -501,25 +500,35 @@
             const select = document.getElementById('transfer-target'); 
             const others = db.filter(u => u.fbKey !== curUser.fbKey); 
             select.innerHTML = others.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join(''); 
+            document.getElementById('transfer-amount').value = "";
+            document.getElementById('transfer-message').value = "";
             document.getElementById('transfer-modal').style.display = 'flex'; 
         } 
 
         function processTransfer() { 
             const amount = Number(document.getElementById('transfer-amount').value); 
             const targetKey = document.getElementById('transfer-target').value; 
+            const message = document.getElementById('transfer-message').value.trim(); // Получаем сообщение
+
             if(amount <= 0 || amount > curUser.balance) { alert("Недостаточно средств"); return; } 
+            
             const targetUser = db.find(u => u.fbKey === targetKey); 
             const newCurBal = curUser.balance - amount; 
             const newTarBal = (Number(targetUser.balance) || 0) + amount; 
+            
             const curHistory = curUser.history || []; 
             const tarHistory = targetUser.history || []; 
-            curHistory.push({t: `Перевод: ${targetUser.name}`, a: -amount}); 
-            tarHistory.push({t: `Входящий: ${curUser.name}`, a: amount}); 
+            
+            // Добавляем сообщение в объект истории обоих участников
+            curHistory.push({t: `Перевод: ${targetUser.name}`, a: -amount, msg: message}); 
+            tarHistory.push({t: `Входящий: ${curUser.name}`, a: amount, msg: message}); 
+            
             const updates = {}; 
             updates['/clients/' + curUser.fbKey + '/balance'] = newCurBal; 
             updates['/clients/' + curUser.fbKey + '/history'] = curHistory; 
             updates['/clients/' + targetKey + '/balance'] = newTarBal; 
             updates['/clients/' + targetKey + '/history'] = tarHistory; 
+            
             firebase.database().ref().update(updates).then(() => { 
                 document.getElementById('transfer-modal').style.display = 'none'; 
                 document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽"; 
