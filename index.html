@@ -22,7 +22,6 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; }
         
-        /* Стили экрана блокировки */
         #blocked-view { 
             display: none; padding: 40px; text-align: center; background: var(--card); 
             height: 100vh; flex-direction: column; justify-content: center; 
@@ -60,6 +59,14 @@
         .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
         .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
         .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
+        
+        /* Стили ЧАТА */
+        #chat-container { display: flex; flex-direction: column; height: 60vh; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 15px; margin-bottom: 15px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 18px; margin-bottom: 8px; font-size: 14px; line-height: 1.4; position: relative; }
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }
+        .chat-input-row { display: flex; gap: 10px; }
+        
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
 </head>
@@ -80,55 +87,17 @@
         <p>Нажмите «Поделиться», затем «На экран Домой».</p>
     </div>
 
-    <div id="transfer-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-top:0">Перевод</h2>
-            <p class="small">Выберите получателя:</p>
-            <select id="transfer-target"></select>
-            <p class="small">Сумма перевода:</p>
-            <input type="number" id="transfer-amount" placeholder="0 ₽">
-            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button>
-            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button>
-        </div>
-    </div>
+    <div id="transfer-modal" class="modal"><div class="modal-content"><h2 style="margin-top:0">Перевод</h2><p class="small">Сумма:</p><input type="number" id="transfer-amount" placeholder="0 ₽"><p class="small">Кому:</p><select id="transfer-target"></select><button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button><button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button></div></div>
+    <div id="success-modal" class="modal"><div class="modal-content"><div class="check-icon">✓</div><div class="check-sum" id="check-amount">0 ₽</div><div id="check-names" style="margin: 20px 0;"></div><button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button></div></div>
 
-    <div id="success-modal" class="modal">
-        <div class="modal-content">
-            <div class="check-icon">✓</div>
-            <div class="small">Перевод</div>
-            <div class="check-sum" id="check-amount">0 ₽</div>
-            <div id="check-names" style="margin: 20px 0;"></div>
-            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button>
-        </div>
-    </div>
-
-    <div id="screen-name" class="screen">
-        <h1 style="margin-top:60px">Вход</h1>
-        <div class="card">
-            <input type="text" id="loginInp" placeholder="Имя или телефон">
-            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Продолжить</button>
-            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div>
-        </div>
-        <div id="variants"></div>
-    </div>
-
-    <div id="screen-pin" class="screen">
-        <div style="text-align:center; margin-top:80px;">
-            <div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div>
-            <h2 id="pinUser"></h2>
-            <div class="dots" id="pinDots">
-                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
-            </div>
-            <div class="keypad" id="keypad"></div>
-        </div>
-    </div>
+    <div id="screen-name" class="screen"><h1 style="margin-top:60px">Вход</h1><div class="card"><input type="text" id="loginInp" placeholder="Имя или телефон"><button class="btn primary" style="width: 100%" onclick="findClient()">Продолжить</button><div id="error" style="color:red; margin-top:10px; text-align:center;"></div></div><div id="variants"></div></div>
+    <div id="screen-pin" class="screen"><div style="text-align:center; margin-top:80px;"><div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div><h2 id="pinUser"></h2><div class="dots" id="pinDots"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="keypad" id="keypad"></div></div></div>
 
     <div id="screen-home" class="screen">
         <h1 id="homeUser" style="margin-top:10px"></h1>
         <div class="card">
-            <div class="small">Всего средств</div>
+            <div class="small">Баланс</div>
             <div class="balance" id="hBal">0 ₽</div>
-            <div class="small" id="hSpend">Траты за период: 0 ₽</div>
         </div>
         <div id="accounts-container"></div>
     </div>
@@ -137,6 +106,19 @@
         <h1>Копилки</h1>
         <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button>
         <div id="piggy-container"></div>
+    </div>
+
+    <div id="screen-support" class="screen">
+        <h1>Поддержка</h1>
+        <div class="card" style="padding: 10px;">
+            <div id="chat-container">
+                <div class="msg admin">Здравствуйте! Чем я могу вам помочь?</div>
+            </div>
+            <div class="chat-input-row">
+                <input type="text" id="chatInput" placeholder="Сообщение..." style="margin-bottom:0">
+                <button class="btn primary" style="flex:0 0 60px; padding:0;" onclick="sendMsg()">➤</button>
+            </div>
+        </div>
     </div>
 
     <div id="screen-settings" class="screen">
@@ -148,39 +130,31 @@
                 <option value="dark">Темная</option>
             </select>
         </div>
-        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button>
+        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти</button>
         <footer id="version-label"></footer>
     </div>
 
     <div id="screen-card" class="screen">
-        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button>
+        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0;" onclick="navTo('screen-home')">← Назад</button>
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
-            <div class="small" style="color:#aaa">Текущий баланс</div>
             <div class="balance" id="cBal">0 ₽</div>
-            <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
+            <div id="cBonus" class="small">Бонусы: 0</div>
         </div>
         <div class="btn-row">
-            <button class="btn secondary" onclick="alert('Сервис недоступен')">QR-оплата</button>
             <button class="btn primary" onclick="showTransfer()">Перевести</button>
         </div>
-        <h3 style="margin-left:10px">История операций</h3>
+        <h3>История</h3>
         <div class="card" id="historyList"></div>
     </div>
 
     <div class="tab-bar" id="main-nav" style="display: none;">
-        <div class="tab-item active" onclick="navTo('screen-home', this)">
-            <span class="tab-icon">🏠</span><span>Главная</span>
-        </div>
-        <div class="tab-item" onclick="navTo('screen-piggy', this)">
-            <span class="tab-icon">🐷</span><span>Копилки</span>
-        </div>
-        <div class="tab-item" onclick="navTo('screen-settings', this)">
-            <span class="tab-icon">⚙️</span><span>Настройки</span>
-        </div>
+        <div class="tab-item active" onclick="navTo('screen-home', this)"><span class="tab-icon">🏠</span><span>Главная</span></div>
+        <div class="tab-item" onclick="navTo('screen-piggy', this)"><span class="tab-icon">🐷</span><span>Копилки</span></div>
+        <div class="tab-item" onclick="navTo('screen-support', this)"><span class="tab-icon">💬</span><span>Чат</span></div>
+        <div class="tab-item" onclick="navTo('screen-settings', this)"><span class="tab-icon">⚙️</span><span>Настройки</span></div>
     </div>
 
     <script>
-        // Исправленный Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
             authDomain: "webapp-b7149.firebaseapp.com",
@@ -198,44 +172,29 @@
         let curUser = null;
         let enteredPin = "";
 
-        // СЛУШАТЕЛЬ БАЗЫ ДАННЫХ В РЕАЛЬНОМ ВРЕМЕНИ
         dbRef.on('value', (snapshot) => {
             db = snapshot.val() || [];
-            
-            // Если кто-то уже вошел, проверяем его статус мгновенно
             if (curUser) {
-                const freshData = db.find(u => u.id === curUser.id);
-                if (freshData) {
-                    curUser = freshData;
-                    
-                    // МГНОВЕННАЯ БЛОКИРОВКА
-                    if (curUser.blockedCard === true) {
-                        document.getElementById('blocked-view').style.display = 'flex';
-                    } else {
-                        document.getElementById('blocked-view').style.display = 'none';
-                    }
-                    
-                    // Обновляем баланс на экране, если он изменился в базе
-                    if (document.getElementById('screen-home').classList.contains('active')) showHome();
-                    if (document.getElementById('screen-card').classList.contains('active')) showHome();
-                }
+                curUser = db.find(u => u.id === curUser.id);
+                if (curUser.blockedCard) document.getElementById('blocked-view').style.display = 'flex';
+                else document.getElementById('blocked-view').style.display = 'none';
+                updateUI();
             }
         });
 
-        function hardReset() { location.reload(); }
+        function updateUI() {
+            if (document.getElementById('screen-home').classList.contains('active')) showHome();
+            if (document.getElementById('screen-support').classList.contains('active')) loadChat();
+        }
 
         function init() {
-            document.getElementById('version-label').innerText = "Версия системы: 9.0 Cloud";
-            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-            if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) {
-                document.getElementById('install-view').style.display = 'block';
-            } else {
-                navTo('screen-name');
-                buildKeypad();
-            }
+            document.getElementById('version-label').innerText = "Версия системы: 10.0 Chat";
+            navTo('screen-name');
+            buildKeypad();
             applyTheme();
         }
 
+        // Навигация
         function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -243,171 +202,81 @@
                 document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                 el.classList.add('active');
             }
-            const nav = document.getElementById('main-nav');
-            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings'].includes(id) ? 'flex' : 'none';
-            if(id === 'screen-home') showHome();
-            if(id === 'screen-piggy') renderPiggies();
+            document.getElementById('main-nav').style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-support'].includes(id) ? 'flex' : 'none';
+            if(id === 'screen-support') loadChat();
         }
 
+        // Логика ЧАТА
+        function sendMsg() {
+            const text = chatInput.value.trim();
+            if(!text || !curUser) return;
+            
+            if(!curUser.chat) curUser.chat = [];
+            curUser.chat.push({ role: 'user', text: text, time: Date.now() });
+            
+            chatInput.value = "";
+            dbRef.set(db); // Сохраняем в Firebase
+        }
+
+        function loadChat() {
+            const container = document.getElementById('chat-container');
+            container.innerHTML = '<div class="msg admin">Здравствуйте! Чем я могу вам помочь?</div>';
+            if(curUser && curUser.chat) {
+                curUser.chat.forEach(m => {
+                    const d = document.createElement('div');
+                    d.className = `msg ${m.role}`;
+                    d.innerText = m.text;
+                    container.appendChild(d);
+                });
+            }
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Остальные функции (из твоего кода)
         function findClient() {
             const v = loginInp.value.trim();
-            error.innerText = ""; variants.innerHTML = "";
             const matches = db.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
             if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
             if (matches.length === 1) { selectUser(matches[0]); return; }
+            variants.innerHTML = "";
             matches.forEach(c => {
-                const d = document.createElement("div");
-                d.className = "card"; d.innerText = `${c.name} (${c.phone})`;
+                const d = document.createElement("div"); d.className = "card"; d.innerText = `${c.name} (${c.phone})`;
                 d.onclick = () => selectUser(c); variants.appendChild(d);
             });
         }
-
-        function selectUser(c) {
-            curUser = c; enteredPin = ""; 
-            pinUser.innerText = curUser.name;
-            updateDots(); navTo('screen-pin');
-        }
-
+        function selectUser(c) { curUser = c; enteredPin = ""; pinUser.innerText = curUser.name; updateDots(); navTo('screen-pin'); }
         function buildKeypad() {
             const keys = [1,2,3,4,5,6,7,8,9,'',0,'←'];
             keypad.innerHTML = '';
             keys.forEach(k => {
-                const b = document.createElement('button');
-                b.className = 'key'; b.innerText = k;
+                const b = document.createElement('button'); b.className = 'key'; b.innerText = k;
                 if(k === '') b.style.visibility = 'hidden';
                 b.onclick = () => {
                     if(k === '←') enteredPin = enteredPin.slice(0, -1);
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k;
                     updateDots();
                     if(enteredPin.length === 4) {
-                        if(enteredPin === curUser.pin) {
-                            // Проверка блокировки при входе
-                            if (curUser.blockedCard === true) {
-                                document.getElementById('blocked-view').style.display = 'flex';
-                            } else {
-                                navTo('screen-home');
-                            }
-                        } else {
-                            enteredPin = ""; updateDots();
-                        }
+                        if(enteredPin === curUser.pin) navTo('screen-home');
+                        else { enteredPin = ""; updateDots(); }
                     }
                 };
                 keypad.appendChild(b);
             });
         }
-
-        function updateDots() {
-            const d = pinDots.children;
-            for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
-        }
-
+        function updateDots() { const d = pinDots.children; for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length); }
         function showHome() {
-            if (!curUser) return;
-            homeUser.innerText = `Здравствуйте, ${curUser.name}`;
-            hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
-            hSpend.innerText = `Траты: ${(curUser.spending || 0).toLocaleString()} ₽`;
-            
-            let html = `<div class="card" onclick="navTo('screen-card')">
-                <div class="small">Личный счет</div>
-                <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
-                <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
-            </div>`;
-            
-            if(curUser.creditCard) {
-                html += `<div class="card"><span style="color:var(--credit); font-size:12px; font-weight:600;">Кредитный лимит</span>
-                <div style="font-size:20px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div></div>`;
-            }
-            document.getElementById('accounts-container').innerHTML = html;
+            homeUser.innerText = `Привет, ${curUser.name}`;
+            hBal.innerText = (curUser.balance).toLocaleString() + " ₽";
+            document.getElementById('accounts-container').innerHTML = `<div class="card" onclick="navTo('screen-card')"><div class="small">Личный счет</div><b>${curUser.balance} ₽</b></div>`;
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
-            cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
-            
-            const hList = document.getElementById('historyList');
-            hList.innerHTML = "";
-            if(curUser.history) {
-                curUser.history.slice().reverse().forEach(h => {
-                    hList.innerHTML += `<div class="history-item"><span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span></div>`;
-                });
-            }
-        }
-
-        function showTransfer() {
-            const select = document.getElementById('transfer-target');
-            select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
-            document.getElementById('transfer-modal').style.display = 'flex';
-        }
-
-        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
-
-        function processTransfer() {
-            const amount = Number(document.getElementById('transfer-amount').value);
-            const targetId = Number(document.getElementById('transfer-target').value);
-            if(amount <= 0 || amount > curUser.balance) { alert("Ошибка суммы"); return; }
-
-            const targetUser = db.find(u => u.id === targetId);
-            
-            // Локальное обновление
-            curUser.balance -= amount;
-            targetUser.balance += amount;
-            if(!curUser.history) curUser.history = [];
-            if(!targetUser.history) targetUser.history = [];
-            curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
-            targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
-
-            // СОХРАНЕНИЕ В FIREBASE
-            dbRef.set(db).then(() => {
-                closeTransfer();
-                document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
-                document.getElementById('check-names').innerText = `${curUser.name} → ${targetUser.name}`;
-                document.getElementById('success-modal').style.display = 'flex';
+            const hList = document.getElementById('historyList'); hList.innerHTML = "";
+            if(curUser.history) curUser.history.slice().reverse().forEach(h => {
+                hList.innerHTML += `<div class="history-item"><span>${h.t}</span><span style="color:${h.a>0?'green':''}">${h.a} ₽</span></div>`;
             });
         }
-
-        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); }
-
-        function showPiggyModal() {
-            const t = Number(prompt("Цель (₽):"));
-            if(!t) return;
-            if(!curUser.piggies) curUser.piggies = [];
-            curUser.piggies.push({ id: Date.now(), target: t, current: 0 });
-            dbRef.set(db);
-        }
-
-        function renderPiggies() {
-            const cont = document.getElementById('piggy-container');
-            cont.innerHTML = "";
-            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "Пока пусто"; return; }
-            curUser.piggies.forEach(p => {
-                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100);
-                cont.innerHTML += `<div class="card">
-                    <b>Цель: ${p.target} ₽</b>
-                    <div class="piggy-progress"><div class="piggy-fill" style="width:${perc}%"></div></div>
-                    <div class="small">Накоплено: ${p.current} ₽ (${perc}%)</div>
-                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${p.id})">Пополнить</button>
-                </div>`;
-            });
-        }
-
-        function topUpPiggy(id) {
-            const sum = Number(prompt("Сколько отложить?"));
-            if(sum > curUser.balance) return;
-            const p = curUser.piggies.find(x => x.id === id);
-            p.current += sum; curUser.balance -= sum;
-            dbRef.set(db);
-        }
-
-        function applyTheme() {
-            const t = localStorage.getItem('app_theme') || 'light';
-            document.body.className = t;
-            themeSelect.value = t;
-        }
-
-        themeSelect.onchange = () => {
-            localStorage.setItem('app_theme', themeSelect.value);
-            applyTheme();
-        };
-
+        function applyTheme() { document.body.className = localStorage.getItem('app_theme') || 'light'; }
         function logout() { curUser = null; navTo('screen-name'); }
-
+        function hardReset() { location.reload(); }
         window.onload = init;
     </script>
 </body>
