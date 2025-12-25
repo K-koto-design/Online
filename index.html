@@ -14,7 +14,6 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; }
         
-        /* Экран блокировки */
         #blocked-view { display: none; padding: 40px; text-align: center; background: white; height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; }
         .lock-icon { font-size: 64px; margin-bottom: 20px; }
 
@@ -32,10 +31,11 @@
         .small { color: var(--secondary); font-size: 13px; }
         
         .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
-        .btn { flex: 1; padding: 14px 5px; border-radius: 18px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+        /* Кнопки теперь просто центрируют текст */
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
-        
+
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
         .dot.filled { background: #000; border-color: #000; }
@@ -106,24 +106,26 @@
 
     <div id="screen-card" class="screen">
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button>
+        
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;">
             <div class="small" style="color:#aaa">Текущий баланс</div>
             <div class="balance" id="cBal">0 ₽</div>
             <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div>
         </div>
         <div id="credit-card-detail"></div>
+
         <div class="btn-row">
-            <button class="btn secondary">QR-оплата</button>
-            <button class="btn secondary">Телефоном</button>
-            <button class="btn primary">Перевести</button>
+            <button class="btn secondary" onclick="window.location.href='https://www.google.com'">QR-оплата</button>
+            <button class="btn secondary" onclick="window.location.href='https://ya.ru'">Телефоном</button>
+            <button class="btn primary" onclick="window.location.href='https://t.me/send'">Перевести</button>
         </div>
+
         <h3 style="margin-left:10px">История операций</h3>
         <div class="card" id="historyList"></div>
     </div>
 
     <script>
-        // --- ПРИ ИЗМЕНЕНИИ КЛИЕНТОВ МЕНЯЙТЕ ВЕРСИЮ НИЖЕ ---
-        const VERSION = "4.3"; 
+        const VERSION = "4.9"; // Версия обновлена
 
         const clients = [
             { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, blockedCard: false, history: [{t:"Покупка: Магазин", a:-540}] },
