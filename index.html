@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Онлайн</title>
+    <title>Онлайн Банк</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -21,7 +21,15 @@
         }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; }
-        #blocked-view { display: none; padding: 40px; text-align: center; background: white; height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; }
+        
+        /* Стили экрана блокировки */
+        #blocked-view { 
+            display: none; padding: 40px; text-align: center; background: var(--card); 
+            height: 100vh; flex-direction: column; justify-content: center; 
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; 
+        }
+        .lock-icon { font-size: 80px; margin-bottom: 20px; }
+
         .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
@@ -48,13 +56,10 @@
         .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
         .tab-item.active { color: var(--accent); }
         .tab-icon { font-size: 24px; margin-bottom: 4px; }
-        .piggy-progress { width: 100%; height: 10px; background: #e5e5ea; border-radius: 5px; margin: 10px 0; overflow: hidden; }
-        .piggy-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
         .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
         .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
-        .check-names { margin: 20px 0; font-size: 16px; line-height: 1.5; color: var(--text); }
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
 </head>
@@ -92,11 +97,7 @@
             <div class="check-icon">✓</div>
             <div class="small">Перевод</div>
             <div class="check-sum" id="check-amount">0 ₽</div>
-            <div class="check-names">
-                <div style="font-weight: 600;" id="check-from">Отправитель</div>
-                <div class="small">→</div>
-                <div style="font-weight: 600;" id="check-to">Получатель</div>
-            </div>
+            <div id="check-names" style="margin: 20px 0;"></div>
             <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button>
         </div>
     </div>
@@ -136,18 +137,11 @@
         <h1>Копилки</h1>
         <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button>
         <div id="piggy-container"></div>
-        <button class="btn danger" style="margin-top: 20px; width: 100%;" onclick="deleteAllPiggies()">Удалить все копилки</button>
     </div>
 
     <div id="screen-settings" class="screen">
         <h1>Настройки</h1>
         <div class="card">
-            <p class="small">Страна</p>
-            <select id="countrySelect" onchange="saveSettings()">
-                <option value="Россия">Россия</option>
-                <option value="Украина">Украина</option>
-                <option value="Беларусь">Беларусь</option>
-            </select>
             <p class="small">Тема</p>
             <select id="themeSelect" onchange="applyTheme()">
                 <option value="light">Светлая</option>
@@ -175,21 +169,18 @@
 
     <div class="tab-bar" id="main-nav" style="display: none;">
         <div class="tab-item active" onclick="navTo('screen-home', this)">
-            <span class="tab-icon">🏠</span>
-            <span>Главная</span>
+            <span class="tab-icon">🏠</span><span>Главная</span>
         </div>
         <div class="tab-item" onclick="navTo('screen-piggy', this)">
-            <span class="tab-icon">🐷</span>
-            <span>Копилки</span>
+            <span class="tab-icon">🐷</span><span>Копилки</span>
         </div>
         <div class="tab-item" onclick="navTo('screen-settings', this)">
-            <span class="tab-icon">⚙️</span>
-            <span>Настройки</span>
+            <span class="tab-icon">⚙️</span><span>Настройки</span>
         </div>
     </div>
 
     <script>
-        // --- КОНФИГУРАЦИЯ FIREBASE ---
+        // Исправленный Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
             authDomain: "webapp-b7149.firebaseapp.com",
@@ -201,34 +192,40 @@
         };
 
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        const dbRef = database.ref('bank_db');
+        const dbRef = firebase.database().ref('bank_db');
 
-        const VERSION = "8.0 Cloud";
         let db = [];
         let curUser = null;
         let enteredPin = "";
 
-        // Синхронизация данных с Firebase в реальном времени
+        // СЛУШАТЕЛЬ БАЗЫ ДАННЫХ В РЕАЛЬНОМ ВРЕМЕНИ
         dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                db = data;
-                if (curUser) {
-                    // Обновляем текущего пользователя, если данные изменились
-                    curUser = db.find(u => u.id === curUser.id);
+            db = snapshot.val() || [];
+            
+            // Если кто-то уже вошел, проверяем его статус мгновенно
+            if (curUser) {
+                const freshData = db.find(u => u.id === curUser.id);
+                if (freshData) {
+                    curUser = freshData;
+                    
+                    // МГНОВЕННАЯ БЛОКИРОВКА
+                    if (curUser.blockedCard === true) {
+                        document.getElementById('blocked-view').style.display = 'flex';
+                    } else {
+                        document.getElementById('blocked-view').style.display = 'none';
+                    }
+                    
+                    // Обновляем баланс на экране, если он изменился в базе
                     if (document.getElementById('screen-home').classList.contains('active')) showHome();
-                    if (document.getElementById('screen-piggy').classList.contains('active')) renderPiggies();
+                    if (document.getElementById('screen-card').classList.contains('active')) showHome();
                 }
             }
         });
 
-        function saveDB() { dbRef.set(db); }
-
-        function hardReset() { window.location.reload(); }
+        function hardReset() { location.reload(); }
 
         function init() {
-            document.getElementById('version-label').innerText = "Версия системы: " + VERSION;
+            document.getElementById('version-label').innerText = "Версия системы: 9.0 Cloud";
             const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
             if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) {
                 document.getElementById('install-view').style.display = 'block';
@@ -236,7 +233,7 @@
                 navTo('screen-name');
                 buildKeypad();
             }
-            loadGlobalSettings();
+            applyTheme();
         }
 
         function navTo(id, el) {
@@ -247,11 +244,9 @@
                 el.classList.add('active');
             }
             const nav = document.getElementById('main-nav');
-            if(['screen-home', 'screen-piggy', 'screen-settings'].includes(id)) { nav.style.display = 'flex'; } 
-            else { nav.style.display = 'none'; }
-
-            if(id === 'screen-piggy') renderPiggies();
+            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings'].includes(id) ? 'flex' : 'none';
             if(id === 'screen-home') showHome();
+            if(id === 'screen-piggy') renderPiggies();
         }
 
         function findClient() {
@@ -268,11 +263,9 @@
         }
 
         function selectUser(c) {
-            curUser = c;
-            enteredPin = ""; 
+            curUser = c; enteredPin = ""; 
             pinUser.innerText = curUser.name;
-            updateDots(); 
-            navTo('screen-pin');
+            updateDots(); navTo('screen-pin');
         }
 
         function buildKeypad() {
@@ -288,9 +281,15 @@
                     updateDots();
                     if(enteredPin.length === 4) {
                         if(enteredPin === curUser.pin) {
-                            if (curUser.blockedCard) { document.getElementById('blocked-view').style.display = 'flex'; } 
-                            else { navTo('screen-home'); }
-                        } else { enteredPin = ""; updateDots(); }
+                            // Проверка блокировки при входе
+                            if (curUser.blockedCard === true) {
+                                document.getElementById('blocked-view').style.display = 'flex';
+                            } else {
+                                navTo('screen-home');
+                            }
+                        } else {
+                            enteredPin = ""; updateDots();
+                        }
                     }
                 };
                 keypad.appendChild(b);
@@ -306,9 +305,9 @@
             if (!curUser) return;
             homeUser.innerText = `Здравствуйте, ${curUser.name}`;
             hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
-            hSpend.innerText = `Траты за период: ${(curUser.spending || 0).toLocaleString()} ₽`;
+            hSpend.innerText = `Траты: ${(curUser.spending || 0).toLocaleString()} ₽`;
             
-            let html = `<div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
+            let html = `<div class="card" onclick="navTo('screen-card')">
                 <div class="small">Личный счет</div>
                 <div style="font-size:20px; font-weight:600; margin-top:8px;">${curUser.balance.toLocaleString()} ₽</div>
                 <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div>
@@ -326,117 +325,89 @@
             hList.innerHTML = "";
             if(curUser.history) {
                 curUser.history.slice().reverse().forEach(h => {
-                    const div = document.createElement('div');
-                    div.className = 'history-item';
-                    div.innerHTML = `<span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span>`;
-                    hList.appendChild(div);
+                    hList.innerHTML += `<div class="history-item"><span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span></div>`;
                 });
             }
         }
 
         function showTransfer() {
             const select = document.getElementById('transfer-target');
-            select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => 
-                `<option value="${u.id}">${u.name} (${u.phone})</option>`
-            ).join('');
+            select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => `<option value="${u.id}">${u.name}</option>`).join('');
             document.getElementById('transfer-modal').style.display = 'flex';
         }
 
-        function closeTransfer() {
-            document.getElementById('transfer-modal').style.display = 'none';
-            document.getElementById('transfer-amount').value = '';
-        }
+        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
 
         function processTransfer() {
             const amount = Number(document.getElementById('transfer-amount').value);
             const targetId = Number(document.getElementById('transfer-target').value);
+            if(amount <= 0 || amount > curUser.balance) { alert("Ошибка суммы"); return; }
+
             const targetUser = db.find(u => u.id === targetId);
-
-            if(amount <= 0) { alert("Введите сумму"); return; }
-            if(amount > curUser.balance) { alert("Недостаточно средств"); return; }
-
-            // Обновляем локальные данные (Firebase синхронизирует их потом)
+            
+            // Локальное обновление
             curUser.balance -= amount;
             targetUser.balance += amount;
-            
             if(!curUser.history) curUser.history = [];
             if(!targetUser.history) targetUser.history = [];
-
             curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
             targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
 
-            saveDB();
-            closeTransfer();
-            
-            document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
-            document.getElementById('check-from').innerText = curUser.name;
-            document.getElementById('check-to').innerText = targetUser.name;
-            document.getElementById('success-modal').style.display = 'flex';
+            // СОХРАНЕНИЕ В FIREBASE
+            dbRef.set(db).then(() => {
+                closeTransfer();
+                document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
+                document.getElementById('check-names').innerText = `${curUser.name} → ${targetUser.name}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            });
         }
 
-        function closeSuccess() {
-            document.getElementById('success-modal').style.display = 'none';
-            showHome();
-        }
+        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); }
 
         function showPiggyModal() {
-            const target = prompt("Напишите сумму, которую хотите накопить:");
-            if(!target || isNaN(target)) return;
-            const initialNum = Number(prompt("Сколько положить сейчас?")) || 0;
-            if(initialNum > curUser.balance) { alert("Недостаточно средств!"); return; }
+            const t = Number(prompt("Цель (₽):"));
+            if(!t) return;
             if(!curUser.piggies) curUser.piggies = [];
-            curUser.piggies.push({ id: Date.now(), target: Number(target), current: initialNum });
-            if(initialNum > 0) {
-                curUser.balance -= initialNum;
-                if(!curUser.history) curUser.history = [];
-                curUser.history.push({t: "В копилку", a: -initialNum});
-            }
-            saveDB();
+            curUser.piggies.push({ id: Date.now(), target: t, current: 0 });
+            dbRef.set(db);
         }
 
         function renderPiggies() {
-            const container = document.getElementById('piggy-container');
-            container.innerHTML = "";
-            if(!curUser || !curUser.piggies || curUser.piggies.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>"; return;
-            }
+            const cont = document.getElementById('piggy-container');
+            cont.innerHTML = "";
+            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "Пока пусто"; return; }
             curUser.piggies.forEach(p => {
-                const perc = Math.floor((p.current / p.target) * 100);
-                const card = document.createElement('div');
-                card.className = "card";
-                card.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                        <span style="font-weight:600">На цель: ${p.target.toLocaleString()} ₽</span>
-                        <span style="color:var(--accent)">${perc}%</span>
-                    </div>
-                    <div class="piggy-progress"><div class="piggy-fill" style="width:${Math.min(perc, 100)}%"></div></div>
-                    <p class="small">Накоплено: ${p.current.toLocaleString()} ₽</p>
-                    <button class="btn secondary" style="width:100%; margin-top:10px;" onclick="topUpPiggy(${p.id})">Пополнить</button>`;
-                container.appendChild(card);
+                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100);
+                cont.innerHTML += `<div class="card">
+                    <b>Цель: ${p.target} ₽</b>
+                    <div class="piggy-progress"><div class="piggy-fill" style="width:${perc}%"></div></div>
+                    <div class="small">Накоплено: ${p.current} ₽ (${perc}%)</div>
+                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${p.id})">Пополнить</button>
+                </div>`;
             });
         }
 
         function topUpPiggy(id) {
-            const num = Number(prompt("Сумма пополнения:")) || 0;
-            if(num > curUser.balance) { alert("Недостаточно средств!"); return; }
+            const sum = Number(prompt("Сколько отложить?"));
+            if(sum > curUser.balance) return;
             const p = curUser.piggies.find(x => x.id === id);
-            p.current += num; curUser.balance -= num;
-            if(!curUser.history) curUser.history = [];
-            curUser.history.push({t: "Пополнение копилки", a: -num});
-            saveDB();
+            p.current += sum; curUser.balance -= sum;
+            dbRef.set(db);
         }
 
-        function deleteAllPiggies() { if(confirm("Удалить все копилки?")) { curUser.piggies = []; saveDB(); } }
-        function saveSettings() { localStorage.setItem('app_country', countrySelect.value); }
         function applyTheme() {
-            document.body.className = themeSelect.value;
+            const t = localStorage.getItem('app_theme') || 'light';
+            document.body.className = t;
+            themeSelect.value = t;
+        }
+
+        themeSelect.onchange = () => {
             localStorage.setItem('app_theme', themeSelect.value);
-        }
-        function loadGlobalSettings() {
-            themeSelect.value = localStorage.getItem('app_theme') || 'light';
-            countrySelect.value = localStorage.getItem('app_country') || 'Россия';
             applyTheme();
-        }
+        };
+
         function logout() { curUser = null; navTo('screen-name'); }
+
         window.onload = init;
     </script>
 </body>
