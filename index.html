@@ -21,7 +21,6 @@
             --tab-bg: #ffffff;
         }
 
-        /* Темная тема */
         body.dark {
             --bg: #000000;
             --card: #1c1c1e;
@@ -66,7 +65,6 @@
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
         .history-amount { font-weight: 700; font-size: 15px; }
         
-        /* Навигация */
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
         .tab-item.active { color: var(--accent); }
@@ -74,6 +72,9 @@
 
         .piggy-progress { width: 100%; height: 10px; background: #e5e5ea; border-radius: 5px; margin: 10px 0; overflow: hidden; }
         .piggy-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
+
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; }
 
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
@@ -93,6 +94,18 @@
         <div class="logo-box">👤</div>
         <h1>Активация доступа</h1>
         <p>Нажмите «Поделиться», затем «На экран Домой».</p>
+    </div>
+
+    <div id="transfer-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0">Перевод</h2>
+            <p class="small">Выберите получателя:</p>
+            <select id="transfer-target"></select>
+            <p class="small">Сумма перевода:</p>
+            <input type="number" id="transfer-amount" placeholder="0 ₽">
+            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button>
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button>
+        </div>
     </div>
 
     <div id="screen-name" class="screen">
@@ -162,7 +175,7 @@
         </div>
         <div class="btn-row">
             <button class="btn secondary" onclick="alert('Сервис недоступен')">QR-оплата</button>
-            <button class="btn primary" onclick="alert('Сервис недоступен')">Перевести</button>
+            <button class="btn primary" onclick="showTransfer()">Перевести</button>
         </div>
         <h3 style="margin-left:10px">История операций</h3>
         <div class="card" id="historyList"></div>
@@ -184,10 +197,9 @@
     </div>
 
     <script>
-        const VERSION = "5.0";
+        const VERSION = "6.0";
         
-        // База клиентов
-        const clientsData = [
+        const initialClients = [
             { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, blockedCard: false, history: [{t:"Покупка: Магазин", a:-540}] },
             { id: 2, name: "Даня", phone: "+79673657830", pin: "1115", balance: 4500, spending: 5500, bonuses: 5, blockedCard: false, history: [{t:"Перевод", a:-4500}] },
             { id: 3, name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, blockedCard: false, history: [] },
@@ -201,9 +213,14 @@
             { id: 11, name: "Роман", phone: "+79182467438", pin: "1473", balance: 5000, spending: 0, bonuses: 0, blockedCard: false, history: [] }
         ];
 
+        // Загрузка общей базы клиентов
+        let db = JSON.parse(localStorage.getItem('bank_db')) || initialClients;
         let curUser = null;
         let enteredPin = "";
-        let userPiggies = [];
+
+        function saveDB() {
+            localStorage.setItem('bank_db', JSON.stringify(db));
+        }
 
         function hardReset() {
             window.location.replace(window.location.origin + window.location.pathname + "?v=" + Date.now());
@@ -230,7 +247,6 @@
                 el.classList.add('active');
             }
 
-            // Показываем/скрываем навигацию
             const nav = document.getElementById('main-nav');
             if(['screen-home', 'screen-piggy', 'screen-settings'].includes(id)) {
                 nav.style.display = 'flex';
@@ -245,7 +261,7 @@
         function findClient() {
             const v = loginInp.value.trim();
             error.innerText = ""; variants.innerHTML = "";
-            const matches = clientsData.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
+            const matches = db.filter(c => c.name.toLowerCase() === v.toLowerCase() || c.phone === v);
             if (matches.length === 0) { error.innerText = "Клиент не найден"; return; }
             if (matches.length === 1) { selectUser(matches[0]); return; }
             matches.forEach(c => {
@@ -256,14 +272,7 @@
         }
 
         function selectUser(c) {
-            // Загрузка данных пользователя из localStorage или использование базовых
-            const savedData = localStorage.getItem('user_data_' + c.id);
-            if(savedData) {
-                curUser = JSON.parse(savedData);
-            } else {
-                curUser = JSON.parse(JSON.stringify(c)); // Глубокое копирование
-            }
-            
+            curUser = c;
             enteredPin = ""; 
             pinUser.innerText = curUser.name;
             updateDots(); 
@@ -301,7 +310,6 @@
         }
 
         function showHome() {
-            saveUserData();
             homeUser.innerText = `Здравствуйте, ${curUser.name}`;
             hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
             hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
@@ -318,7 +326,6 @@
             }
             document.getElementById('accounts-container').innerHTML = html;
 
-            // Карта
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
             cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
             
@@ -327,52 +334,76 @@
             curUser.history.slice().reverse().forEach(h => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                div.innerHTML = `<span>${h.t}</span><span class="history-amount">${h.a} ₽</span>`;
+                div.innerHTML = `<span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span>`;
                 hList.appendChild(div);
             });
+            saveDB();
+        }
+
+        /* --- ЛОГИКА ПЕРЕВОДОВ --- */
+        function showTransfer() {
+            const select = document.getElementById('transfer-target');
+            select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => 
+                `<option value="${u.id}">${u.name} (${u.phone})</option>`
+            ).join('');
+            document.getElementById('transfer-modal').style.display = 'flex';
+        }
+
+        function closeTransfer() {
+            document.getElementById('transfer-modal').style.display = 'none';
+            document.getElementById('transfer-amount').value = '';
+        }
+
+        function processTransfer() {
+            const amount = Number(document.getElementById('transfer-amount').value);
+            const targetId = Number(document.getElementById('transfer-target').value);
+            const targetUser = db.find(u => u.id === targetId);
+
+            if(amount <= 0) { alert("Введите корректную сумму"); return; }
+            if(amount > curUser.balance) { alert("Недостаточно средств"); return; }
+
+            // Выполнение перевода
+            curUser.balance -= amount;
+            targetUser.balance += amount;
+
+            // Запись историй
+            curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
+            targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
+
+            saveDB();
+            closeTransfer();
+            showHome();
+            alert("Перевод выполнен!");
         }
 
         /* --- ЛОГИКА КОПИЛОК --- */
         function showPiggyModal() {
             const target = prompt("Напишите сумму, которую хотите накопить:");
             if(!target || isNaN(target)) return;
-            
             const initial = prompt("Сколько положить сейчас?");
             if(initial === null || isNaN(initial)) return;
-            
             const initialNum = Number(initial);
-            if(initialNum > curUser.balance) {
-                alert("Недостаточно средств на карте!");
-                return;
-            }
 
-            const newPiggy = {
-                id: Date.now(),
-                target: Number(target),
-                current: initialNum
-            };
+            if(initialNum > curUser.balance) { alert("Недостаточно средств!"); return; }
 
             if(!curUser.piggies) curUser.piggies = [];
-            curUser.piggies.push(newPiggy);
+            curUser.piggies.push({ id: Date.now(), target: Number(target), current: initialNum });
             
             if(initialNum > 0) {
                 curUser.balance -= initialNum;
                 curUser.history.push({t: "В копилку", a: -initialNum});
             }
-            
             renderPiggies();
-            saveUserData();
+            saveDB();
         }
 
         function renderPiggies() {
             const container = document.getElementById('piggy-container');
             container.innerHTML = "";
-            
             if(!curUser.piggies || curUser.piggies.length === 0) {
                 container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>";
                 return;
             }
-
             curUser.piggies.forEach(p => {
                 const perc = Math.floor((p.current / p.target) * 100);
                 const card = document.createElement('div');
@@ -391,62 +422,33 @@
         }
 
         function topUpPiggy(id) {
-            const amt = prompt("Введите сумму для добавления средств:");
+            const amt = prompt("Сумма пополнения:");
             if(!amt || isNaN(amt)) return;
             const num = Number(amt);
-
-            if(num > curUser.balance) {
-                alert("Недостаточно средств на карте!");
-                return;
-            }
-
+            if(num > curUser.balance) { alert("Недостаточно средств!"); return; }
             const p = curUser.piggies.find(x => x.id === id);
             p.current += num;
             curUser.balance -= num;
             curUser.history.push({t: "Пополнение копилки", a: -num});
-            
             renderPiggies();
-            saveUserData();
+            saveDB();
         }
 
         function deleteAllPiggies() {
-            if(confirm("Удалить все копилки? Деньги не вернутся на карту.")) {
-                curUser.piggies = [];
-                renderPiggies();
-                saveUserData();
-            }
+            if(confirm("Удалить все копилки?")) { curUser.piggies = []; renderPiggies(); saveDB(); }
         }
 
-        /* --- НАСТРОЙКИ И СОХРАНЕНИЕ --- */
-        function saveUserData() {
-            if(curUser) localStorage.setItem('user_data_' + curUser.id, JSON.stringify(curUser));
-        }
-
-        function saveSettings() {
-            const country = document.getElementById('countrySelect').value;
-            localStorage.setItem('app_country', country);
-        }
-
+        function saveSettings() { localStorage.setItem('app_country', countrySelect.value); }
         function applyTheme() {
-            const theme = document.getElementById('themeSelect').value;
-            document.body.className = theme;
-            localStorage.setItem('app_theme', theme);
+            document.body.className = themeSelect.value;
+            localStorage.setItem('app_theme', themeSelect.value);
         }
-
         function loadGlobalSettings() {
-            const theme = localStorage.getItem('app_theme') || 'light';
-            const country = localStorage.getItem('app_country') || 'Россия';
-            
-            document.getElementById('themeSelect').value = theme;
-            document.getElementById('countrySelect').value = country;
-            document.body.className = theme;
+            themeSelect.value = localStorage.getItem('app_theme') || 'light';
+            countrySelect.value = localStorage.getItem('app_country') || 'Россия';
+            applyTheme();
         }
-
-        function logout() {
-            curUser = null;
-            navTo('screen-name');
-        }
-
+        function logout() { curUser = null; navTo('screen-name'); }
         window.onload = init;
     </script>
 </body>
