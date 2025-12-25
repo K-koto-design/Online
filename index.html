@@ -98,7 +98,7 @@
     <div id="blocked-view"> 
         <div class="lock-icon">🔒</div> 
         <h1 style="color: var(--red);">Аккаунт заблокирован</h1> 
-        <p style="color: var(--secondary);">Ваш доступ ограничен. Считаете что блокировка произошла по ошибке? Напишите @equaringsber в телеграм.</p> 
+        <p style="color: var(--secondary);">Ваш доступ ограничен. Пожалуйста, обратитесь в поддержку.</p> 
         <button class="btn secondary" style="max-width:200px; margin: 20px auto;" onclick="hardReset()">Вернуться ко входу</button> 
     </div> 
 
@@ -117,6 +117,17 @@
             <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
         </div> 
     </div> 
+
+    <div id="service-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 id="service-title" style="margin-top:0">Оплата</h2> 
+            <select id="service-provider" onchange="toggleServiceFields()"></select> 
+            <input type="text" id="service-account" placeholder="Номер счета / Телефона"> 
+            <input type="number" id="service-sum" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="processServicePayment()">Оплатить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeServiceModal()">Отмена</button> 
+        </div> 
+    </div>
 
     <div id="piggy-modal" class="modal"> 
         <div class="modal-content"> 
@@ -192,6 +203,24 @@
                 </div>
             </div>
         </div>
+
+        <div class="card">
+            <div style="font-weight:700; margin-bottom:15px">Платежи и сервисы</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <div onclick="openService('mobile')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">📱</div>
+                    <div style="font-size:10px; margin-top:5px;">Связь</div>
+                </div>
+                <div onclick="openService('transport')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🚌</div>
+                    <div style="font-size:10px; margin-top:5px;">Транспорт</div>
+                </div>
+                <div onclick="openService('internet')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🌐</div>
+                    <div style="font-size:10px; margin-top:5px;">Интернет</div>
+                </div>
+            </div>
+        </div>
     </div> 
 
     <div id="screen-piggy" class="screen"> 
@@ -228,7 +257,6 @@
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
             <div id="ipBadge" class="ip-badge">ИП</div> 
-              
             <div class="small" style="color:#aaa">Текущий баланс</div> 
             <div class="balance" id="cBal">0 ₽</div> 
             <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
@@ -275,10 +303,16 @@
         let enteredPin = ""; 
         let activeLoginTab = 'Клиент'; 
 
+        // Справочник сервисов
+        const services = {
+            mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
+            transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
+            internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
+        };
+
         dbRef.on('value', (snapshot) => { 
             const data = snapshot.val(); 
             db = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : []; 
-             
             if (curUser) { 
                 const freshData = db.find(u => u.fbKey === curUser.fbKey); 
                 if (freshData) { 
@@ -289,6 +323,42 @@
             } 
         }); 
 
+        // --- ЛОГИКА СЕРВИСОВ ---
+        function openService(type) {
+            const data = services[type];
+            document.getElementById('service-title').innerText = data.title;
+            const select = document.getElementById('service-provider');
+            select.innerHTML = data.providers.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('service-account').placeholder = type === 'mobile' ? 'Номер телефона' : 'Номер карты / счета';
+            document.getElementById('service-modal').style.display = 'flex';
+        }
+
+        function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
+
+        function processServicePayment() {
+            const provider = document.getElementById('service-provider').value;
+            const amount = Number(document.getElementById('service-sum').value);
+            const account = document.getElementById('service-account').value;
+
+            if (amount <= 0 || !account) return alert("Заполните все поля");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+
+            const newBalance = curUser.balance - amount;
+            const history = curUser.history || [];
+            history.push({ t: `Оплата: ${provider}`, a: -amount });
+
+            firebase.database().ref('clients/' + curUser.fbKey).update({ 
+                balance: newBalance, 
+                history: history 
+            }).then(() => {
+                closeServiceModal();
+                document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽"; 
+                document.getElementById('check-names').innerHTML = `<div style="color:var(--secondary)">Услуга:</div><b>${provider}</b><br><div class='small' style='margin-top:5px'>Счёт: ${account}</div>`; 
+                document.getElementById('success-modal').style.display = 'flex';
+            });
+        }
+
+        // --- ОСТАЛЬНЫЕ ФУНКЦИИ БАНКА ---
         function switchLoginTab(type) {
             activeLoginTab = type;
             document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
@@ -337,16 +407,13 @@
             const v = loginInp.value.trim().toLowerCase(); 
             error.innerText = ""; variants.innerHTML = ""; 
             if(!v) return; 
-
             const matches = db.filter(c => {
                 const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
                 const nameMatch = (c.name && c.name.toLowerCase().includes(v));
                 const phoneMatch = (c.phone && c.phone.includes(v));
                 return isCorrectType && (nameMatch || phoneMatch);
             });
-
-            if (matches.length === 0) { error.innerText = "В этой категории ничего не найдено"; return; } 
-
+            if (matches.length === 0) { error.innerText = "Ничего не найдено"; return; } 
             matches.forEach(c => { 
                 const d = document.createElement("div"); 
                 d.className = "card"; d.style.marginBottom = "8px"; 
@@ -398,11 +465,9 @@
         function showHome() { 
             if (!curUser) return; 
             homeUser.innerText = activeLoginTab === 'ИП' ? curUser.name : `Здравствуйте, ${curUser.name}`; 
-             
             const totalBalance = (Number(curUser.balance) || 0) + (Number(curUser.creditLimit) || 0); 
             hBal.innerText = totalBalance.toLocaleString() + " ₽"; 
             hSpend.innerText = `Траты: ${(Number(curUser.spentMonth) || 0).toLocaleString()} ₽`; 
-             
             const badge = document.getElementById('ipBadge'); 
             badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
 
@@ -411,16 +476,13 @@
                 <div style="font-size:20px; font-weight:600; margin-top:8px;">${(Number(curUser.balance) || 0).toLocaleString()} ₽</div> 
                 <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
             </div>`; 
-             
             if(curUser.creditLimit && Number(curUser.creditLimit) > 0) { 
                 html += `<div class="card"><span style="color:var(--credit); font-size:12px; font-weight:600;">Кредитный лимит</span> 
                 <div style="font-size:20px; font-weight:600;">${Number(curUser.creditLimit).toLocaleString()} ₽</div></div>`; 
             } 
             document.getElementById('accounts-container').innerHTML = html; 
-             
             cBal.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
             cBonus.innerText = "Бонусы: " + (Number(curUser.bonuses) || 0).toLocaleString(); 
-             
             const hList = document.getElementById('historyList'); 
             hList.innerHTML = ""; 
             if(curUser.history && Array.isArray(curUser.history)) { 
@@ -435,108 +497,6 @@
             } 
         } 
 
-        // --- ЛОГИКА КОПИЛОК ---
-        function showPiggyModal() { document.getElementById('piggy-modal').style.display = 'flex'; }
-        function closePiggyModal() { document.getElementById('piggy-modal').style.display = 'none'; }
-
-        function createPiggy() {
-            const name = document.getElementById('piggy-name').value.trim();
-            const target = Number(document.getElementById('piggy-target').value);
-            if (!name || target <= 0) return alert("Введите корректные данные");
-            
-            if (!curUser.piggies) curUser.piggies = [];
-            curUser.piggies.push({ target: target, current: 0, name: name });
-            
-            firebase.database().ref('clients/' + curUser.fbKey).update({ piggies: curUser.piggies });
-            closePiggyModal();
-        }
-
-        function renderPiggies() { 
-            const cont = document.getElementById('piggy-container'); 
-            cont.innerHTML = ""; 
-            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "<p class='small' style='text-align:center'>Пока пусто</p>"; return; } 
-            curUser.piggies.forEach((p, idx) => { 
-                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100); 
-                cont.innerHTML += `<div class="card"> 
-                    <b>${p.name || 'На цель'}</b> 
-                    <div style="font-size:14px; margin-top:5px">Цель: ${p.target.toLocaleString()} ₽</div>
-                    <div style="background:#eee; height:8px; border-radius:4px; margin:10px 0; overflow:hidden;"><div style="width:${perc}%; background:var(--accent); height:100%;"></div></div> 
-                    <div class="small">Накоплено: ${p.current.toLocaleString()} ₽ (${perc}%)</div> 
-                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${idx})">Пополнить</button> 
-                </div>`; 
-            }); 
-        } 
-
-        function topUpPiggy(idx) { 
-            const sum = Number(prompt("Какую сумму перевести с карты в копилку?")); 
-            if(!sum || sum <= 0) return;
-            if(sum > curUser.balance) return alert("Недостаточно средств на карте"); 
-            
-            curUser.piggies[idx].current += sum; 
-            curUser.balance -= sum; 
-            
-            if(!curUser.history) curUser.history = [];
-            curUser.history.push({ t: `В копилку: ${curUser.piggies[idx].name || 'Цель'}`, a: -sum });
-
-            firebase.database().ref('clients/' + curUser.fbKey).update({  
-                piggies: curUser.piggies, 
-                balance: curUser.balance,
-                history: curUser.history
-            }).then(() => alert("Деньги успешно отложены!")); 
-        } 
-
-        // --- ИСПРАВЛЕННАЯ ЛОГИКА ЧАТА ---
-        function renderChat() { 
-            const container = document.getElementById('chat-container'); 
-            if (!container) return;
-            
-            let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`; 
-            
-            if (curUser && curUser.chat) { 
-                // Преобразуем в массив, если Firebase вернул объект
-                const messages = Array.isArray(curUser.chat) ? curUser.chat : Object.values(curUser.chat);
-                
-                messages.forEach(msg => { 
-                    // Если роль не 'user', считаем это сообщением админа/сотрудника
-                    const roleClass = (msg.role === 'user') ? 'user' : 'admin';
-                    chatHtml += `<div class="msg ${roleClass}">${msg.text}</div>`; 
-                }); 
-            } 
-            
-            container.innerHTML = chatHtml; 
-            container.scrollTop = container.scrollHeight; 
-        } 
-
-        function sendChatMsg() { 
-            const input = document.getElementById('chatInput'); 
-            const text = input.value.trim(); 
-            if (!text || !curUser) return; 
-
-            // Получаем текущий чат или создаем пустой
-            let currentChat = [];
-            if (curUser.chat) {
-                currentChat = Array.isArray(curUser.chat) ? [...curUser.chat] : Object.values(curUser.chat);
-            }
-            
-            const newMessage = { 
-                role: 'user', 
-                text: text, 
-                time: Date.now() 
-            };
-
-            currentChat.push(newMessage);
-
-            // Обновляем в Firebase и локально
-            firebase.database().ref('clients/' + curUser.fbKey).update({ 
-                chat: currentChat 
-            }).then(() => {
-                input.value = ""; 
-                // Принудительно отрисовываем сразу для плавности
-                renderChat();
-            });
-        } 
-
-        // --- ПЕРЕВОДЫ ---
         function showTransfer() { 
             const select = document.getElementById('transfer-target'); 
             const others = db.filter(u => u.fbKey !== curUser.fbKey); 
@@ -548,23 +508,18 @@
             const amount = Number(document.getElementById('transfer-amount').value); 
             const targetKey = document.getElementById('transfer-target').value; 
             if(amount <= 0 || amount > curUser.balance) { alert("Недостаточно средств"); return; } 
-             
             const targetUser = db.find(u => u.fbKey === targetKey); 
             const newCurBal = curUser.balance - amount; 
             const newTarBal = (Number(targetUser.balance) || 0) + amount; 
-             
             const curHistory = curUser.history || []; 
             const tarHistory = targetUser.history || []; 
-             
             curHistory.push({t: `Перевод: ${targetUser.name}`, a: -amount}); 
             tarHistory.push({t: `Входящий: ${curUser.name}`, a: amount}); 
-
             const updates = {}; 
             updates['/clients/' + curUser.fbKey + '/balance'] = newCurBal; 
             updates['/clients/' + curUser.fbKey + '/history'] = curHistory; 
             updates['/clients/' + targetKey + '/balance'] = newTarBal; 
             updates['/clients/' + targetKey + '/history'] = tarHistory; 
-
             firebase.database().ref().update(updates).then(() => { 
                 document.getElementById('transfer-modal').style.display = 'none'; 
                 document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽"; 
@@ -573,18 +528,35 @@
             }); 
         } 
 
-        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); } 
-        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
-
-        // --- ТЕМЫ И ВЫХОД ---
-        function applyTheme(t) { 
-            document.body.className = t; 
-            localStorage.setItem('app_theme', t);
-            if(document.getElementById('themeSelect')) themeSelect.value = t; 
+        function renderChat() { 
+            const container = document.getElementById('chat-container'); 
+            let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`; 
+            if (curUser && curUser.chat) { 
+                const messages = Array.isArray(curUser.chat) ? curUser.chat : Object.values(curUser.chat);
+                messages.forEach(msg => { 
+                    const roleClass = (msg.role === 'user') ? 'user' : 'admin';
+                    chatHtml += `<div class="msg ${roleClass}">${msg.text}</div>`; 
+                }); 
+            } 
+            container.innerHTML = chatHtml; 
+            container.scrollTop = container.scrollHeight; 
         } 
 
-        function logout() { curUser = null; navTo('screen-name'); } 
+        function sendChatMsg() { 
+            const input = document.getElementById('chatInput'); 
+            const text = input.value.trim(); 
+            if (!text || !curUser) return; 
+            let currentChat = curUser.chat ? (Array.isArray(curUser.chat) ? [...curUser.chat] : Object.values(curUser.chat)) : [];
+            currentChat.push({ role: 'user', text: text, time: Date.now() });
+            firebase.database().ref('clients/' + curUser.fbKey).update({ chat: currentChat }).then(() => {
+                input.value = ""; renderChat();
+            });
+        } 
 
+        function applyTheme(t) { document.body.className = t; localStorage.setItem('app_theme', t); } 
+        function logout() { curUser = null; navTo('screen-name'); } 
+        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); } 
+        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
         window.onload = init; 
         document.getElementById('loginInp').addEventListener('input', findClient);
     </script>
