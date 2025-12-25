@@ -74,7 +74,12 @@
         .piggy-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; }
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
+
+        /* Стиль чека Т-Банк */
+        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
+        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
+        .check-names { margin: 20px 0; font-size: 16px; line-height: 1.5; color: var(--text); }
 
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
@@ -105,6 +110,20 @@
             <input type="number" id="transfer-amount" placeholder="0 ₽">
             <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button>
             <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <div class="check-icon">✓</div>
+            <div class="small">Перевод</div>
+            <div class="check-sum" id="check-amount">0 ₽</div>
+            <div class="check-names">
+                <div style="font-weight: 600;" id="check-from">Отправитель</div>
+                <div class="small">→</div>
+                <div style="font-weight: 600;" id="check-to">Получатель</div>
+            </div>
+            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button>
         </div>
     </div>
 
@@ -197,7 +216,7 @@
     </div>
 
     <script>
-        const VERSION = "6.0";
+        const VERSION = "7.0";
         
         const initialClients = [
             { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, blockedCard: false, history: [{t:"Покупка: Магазин", a:-540}] },
@@ -213,18 +232,13 @@
             { id: 11, name: "Роман", phone: "+79182467438", pin: "1473", balance: 5000, spending: 0, bonuses: 0, blockedCard: false, history: [] }
         ];
 
-        // Загрузка общей базы клиентов
         let db = JSON.parse(localStorage.getItem('bank_db')) || initialClients;
         let curUser = null;
         let enteredPin = "";
 
-        function saveDB() {
-            localStorage.setItem('bank_db', JSON.stringify(db));
-        }
+        function saveDB() { localStorage.setItem('bank_db', JSON.stringify(db)); }
 
-        function hardReset() {
-            window.location.replace(window.location.origin + window.location.pathname + "?v=" + Date.now());
-        }
+        function hardReset() { window.location.replace(window.location.origin + window.location.pathname + "?v=" + Date.now()); }
 
         function init() {
             document.getElementById('version-label').innerText = "Версия системы: " + VERSION;
@@ -241,18 +255,13 @@
         function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
             if(el) {
                 document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                 el.classList.add('active');
             }
-
             const nav = document.getElementById('main-nav');
-            if(['screen-home', 'screen-piggy', 'screen-settings'].includes(id)) {
-                nav.style.display = 'flex';
-            } else {
-                nav.style.display = 'none';
-            }
+            if(['screen-home', 'screen-piggy', 'screen-settings'].includes(id)) { nav.style.display = 'flex'; } 
+            else { nav.style.display = 'none'; }
 
             if(id === 'screen-piggy') renderPiggies();
             if(id === 'screen-home') showHome();
@@ -292,11 +301,8 @@
                     updateDots();
                     if(enteredPin.length === 4) {
                         if(enteredPin === curUser.pin) {
-                            if (curUser.blockedCard) {
-                                document.getElementById('blocked-view').style.display = 'flex';
-                            } else {
-                                navTo('screen-home');
-                            }
+                            if (curUser.blockedCard) { document.getElementById('blocked-view').style.display = 'flex'; } 
+                            else { navTo('screen-home'); }
                         } else { enteredPin = ""; updateDots(); }
                     }
                 };
@@ -325,7 +331,6 @@
                 <div style="font-size:20px; font-weight:600;">${curUser.creditCard.toLocaleString()} ₽</div></div>`;
             }
             document.getElementById('accounts-container').innerHTML = html;
-
             cBal.innerText = curUser.balance.toLocaleString() + " ₽";
             cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0).toLocaleString();
             
@@ -340,7 +345,7 @@
             saveDB();
         }
 
-        /* --- ЛОГИКА ПЕРЕВОДОВ --- */
+        /* --- ЛОГИКА ПЕРЕВОДОВ И ЧЕКА --- */
         function showTransfer() {
             const select = document.getElementById('transfer-target');
             select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => 
@@ -359,85 +364,75 @@
             const targetId = Number(document.getElementById('transfer-target').value);
             const targetUser = db.find(u => u.id === targetId);
 
-            if(amount <= 0) { alert("Введите корректную сумму"); return; }
+            if(amount <= 0) { alert("Введите сумму"); return; }
             if(amount > curUser.balance) { alert("Недостаточно средств"); return; }
 
-            // Выполнение перевода
             curUser.balance -= amount;
             targetUser.balance += amount;
-
-            // Запись историй
             curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
             targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
 
             saveDB();
             closeTransfer();
-            showHome();
-            alert("Перевод выполнен!");
+            
+            // Заполнение и открытие чека
+            document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
+            document.getElementById('check-from').innerText = curUser.name;
+            document.getElementById('check-to').innerText = targetUser.name;
+            document.getElementById('success-modal').style.display = 'flex';
+        }
+
+        function closeSuccess() {
+            document.getElementById('success-modal').style.display = 'none';
+            showHome(); // Обновляем данные и возвращаемся к экрану карты
         }
 
         /* --- ЛОГИКА КОПИЛОК --- */
         function showPiggyModal() {
             const target = prompt("Напишите сумму, которую хотите накопить:");
             if(!target || isNaN(target)) return;
-            const initial = prompt("Сколько положить сейчас?");
-            if(initial === null || isNaN(initial)) return;
-            const initialNum = Number(initial);
-
+            const initialNum = Number(prompt("Сколько положить сейчас?")) || 0;
             if(initialNum > curUser.balance) { alert("Недостаточно средств!"); return; }
-
             if(!curUser.piggies) curUser.piggies = [];
             curUser.piggies.push({ id: Date.now(), target: Number(target), current: initialNum });
-            
             if(initialNum > 0) {
                 curUser.balance -= initialNum;
                 curUser.history.push({t: "В копилку", a: -initialNum});
             }
-            renderPiggies();
-            saveDB();
+            renderPiggies(); saveDB();
         }
 
         function renderPiggies() {
             const container = document.getElementById('piggy-container');
             container.innerHTML = "";
             if(!curUser.piggies || curUser.piggies.length === 0) {
-                container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>";
-                return;
+                container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>"; return;
             }
             curUser.piggies.forEach(p => {
                 const perc = Math.floor((p.current / p.target) * 100);
                 const card = document.createElement('div');
                 card.className = "card";
-                card.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                card.innerHTML = `<div style="display:flex; justify-content:space-between; margin-bottom:10px;">
                         <span style="font-weight:600">На цель: ${p.target.toLocaleString()} ₽</span>
                         <span style="color:var(--accent)">${perc}%</span>
                     </div>
                     <div class="piggy-progress"><div class="piggy-fill" style="width:${Math.min(perc, 100)}%"></div></div>
                     <p class="small">Накоплено: ${p.current.toLocaleString()} ₽</p>
-                    <button class="btn secondary" style="width:100%; margin-top:10px;" onclick="topUpPiggy(${p.id})">Пополнить</button>
-                `;
+                    <button class="btn secondary" style="width:100%; margin-top:10px;" onclick="topUpPiggy(${p.id})">Пополнить</button>`;
                 container.appendChild(card);
             });
         }
 
         function topUpPiggy(id) {
-            const amt = prompt("Сумма пополнения:");
-            if(!amt || isNaN(amt)) return;
-            const num = Number(amt);
+            const num = Number(prompt("Сумма пополнения:")) || 0;
             if(num > curUser.balance) { alert("Недостаточно средств!"); return; }
             const p = curUser.piggies.find(x => x.id === id);
-            p.current += num;
-            curUser.balance -= num;
+            p.current += num; curUser.balance -= num;
             curUser.history.push({t: "Пополнение копилки", a: -num});
-            renderPiggies();
-            saveDB();
+            renderPiggies(); saveDB();
         }
 
-        function deleteAllPiggies() {
-            if(confirm("Удалить все копилки?")) { curUser.piggies = []; renderPiggies(); saveDB(); }
-        }
-
+        function deleteAllPiggies() { if(confirm("Удалить все копилки?")) { curUser.piggies = []; renderPiggies(); saveDB(); } }
         function saveSettings() { localStorage.setItem('app_country', countrySelect.value); }
         function applyTheme() {
             document.body.className = themeSelect.value;
