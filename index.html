@@ -84,7 +84,6 @@
         body.dark .msg.admin { background: #3a3a3c; color: #fff; } 
         .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 
-        /* НОВЫЕ СТИЛИ ДЛЯ ВКЛАДОК ВХОДА */
         .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
         body.dark .login-tabs { background: #3a3a3c; }
         .login-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--secondary); }
@@ -119,6 +118,16 @@
         </div> 
     </div> 
 
+    <div id="piggy-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Новая копилка</h2> 
+            <input type="text" id="piggy-name" placeholder="Название (например, на мечту)"> 
+            <input type="number" id="piggy-target" placeholder="Цель (₽)"> 
+            <button class="btn primary" style="width:100%" onclick="createPiggy()">Создать</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closePiggyModal()">Отмена</button> 
+        </div> 
+    </div>
+
     <div id="credit-modal" class="modal"> 
         <div class="modal-content"> 
             <h2 style="margin-top:0">Заявка на кредит</h2> 
@@ -140,7 +149,7 @@
 
     <div id="screen-name" class="screen"> 
         <h1 style="margin-top:60px">Вход</h1> 
-        
+         
         <div class="login-tabs">
             <div class="login-tab active" id="tab-client" onclick="switchLoginTab('Клиент')">Клиенты</div>
             <div class="login-tab" id="tab-ip" onclick="switchLoginTab('ИП')">ИП</div>
@@ -173,7 +182,7 @@
             <div class="small" id="hSpend">Траты за период: 0 ₽</div> 
         </div> 
         <div id="accounts-container"></div> 
-        
+         
         <div class="card" onclick="document.getElementById('credit-modal').style.display='flex'">
             <div style="display:flex; align-items:center; gap:15px">
                 <div style="font-size:24px">💳</div>
@@ -206,7 +215,7 @@
         <h1>Настройки</h1> 
         <div class="card"> 
             <p class="small">Тема</p> 
-            <select id="themeSelect" onchange="applyTheme()"> 
+            <select id="themeSelect" onchange="applyTheme(this.value)"> 
                 <option value="light">Светлая</option> 
                 <option value="dark">Темная</option> 
             </select> 
@@ -219,7 +228,7 @@
         <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
         <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
             <div id="ipBadge" class="ip-badge">ИП</div> 
-             
+              
             <div class="small" style="color:#aaa">Текущий баланс</div> 
             <div class="balance" id="cBal">0 ₽</div> 
             <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
@@ -248,7 +257,6 @@
     </div> 
 
     <script> 
-        // ИНИЦИАЛИЗАЦИЯ FIREBASE 
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             authDomain: "webapp-b7149.firebaseapp.com", 
@@ -265,7 +273,7 @@
         let db = []; 
         let curUser = null; 
         let enteredPin = ""; 
-        let activeLoginTab = 'Клиент';
+        let activeLoginTab = 'Клиент'; 
 
         dbRef.on('value', (snapshot) => { 
             const data = snapshot.val(); 
@@ -286,13 +294,14 @@
             document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
             document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
             document.getElementById('loginInp').placeholder = type === 'Клиент' ? 'Имя или телефон' : 'Название компании или ИНН';
-            findClient(); // Обновить результаты поиска
+            findClient();
         }
 
         function updateUI() { 
             if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
+            if (document.getElementById('screen-piggy').classList.contains('active')) renderPiggies();
         } 
 
         function hardReset() { location.reload(); } 
@@ -306,7 +315,7 @@
                 navTo('screen-name'); 
                 buildKeypad(); 
             } 
-            applyTheme(); 
+            applyTheme(localStorage.getItem('app_theme') || 'light'); 
         } 
 
         function navTo(id, el) { 
@@ -317,7 +326,7 @@
                 el.classList.add('active'); 
             } 
             const nav = document.getElementById('main-nav'); 
-            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-chat'].includes(id) ? 'flex' : 'none'; 
+            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-chat', 'screen-card'].includes(id) ? 'flex' : 'none'; 
              
             if(id === 'screen-home' || id === 'screen-card') showHome(); 
             if(id === 'screen-piggy') renderPiggies(); 
@@ -329,7 +338,6 @@
             error.innerText = ""; variants.innerHTML = ""; 
             if(!v) return; 
 
-            // Фильтрация по вкладке (ИП или Клиент)
             const matches = db.filter(c => {
                 const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
                 const nameMatch = (c.name && c.name.toLowerCase().includes(v));
@@ -427,23 +435,57 @@
             } 
         } 
 
-        function requestCredit() {
-            const amount = document.getElementById('credit-amount').value;
-            if(!amount || amount <= 0) return;
+        // --- ЛОГИКА КОПИЛОК ---
+        function showPiggyModal() { document.getElementById('piggy-modal').style.display = 'flex'; }
+        function closePiggyModal() { document.getElementById('piggy-modal').style.display = 'none'; }
+
+        function createPiggy() {
+            const name = document.getElementById('piggy-name').value.trim();
+            const target = Number(document.getElementById('piggy-target').value);
+            if (!name || target <= 0) return alert("Введите корректные данные");
             
-            // В клиентском приложении мы просто отправляем запрос в чат админу
-            if (!curUser.chat) curUser.chat = []; 
-            curUser.chat.push({ 
-                role: 'user', 
-                text: `🚀 Заявка на кредит: ${amount} ₽`, 
-                time: Date.now() 
-            }); 
+            if (!curUser.piggies) curUser.piggies = [];
+            curUser.piggies.push({ target: target, current: 0, name: name });
             
-            firebase.database().ref('clients/' + curUser.fbKey).update({ chat: curUser.chat }); 
-            document.getElementById('credit-modal').style.display = 'none';
-            alert("Заявка отправлена. Ожидайте решения в чате.");
+            firebase.database().ref('clients/' + curUser.fbKey).update({ piggies: curUser.piggies });
+            closePiggyModal();
         }
 
+        function renderPiggies() { 
+            const cont = document.getElementById('piggy-container'); 
+            cont.innerHTML = ""; 
+            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "<p class='small' style='text-align:center'>Пока пусто</p>"; return; } 
+            curUser.piggies.forEach((p, idx) => { 
+                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100); 
+                cont.innerHTML += `<div class="card"> 
+                    <b>${p.name || 'На цель'}</b> 
+                    <div style="font-size:14px; margin-top:5px">Цель: ${p.target.toLocaleString()} ₽</div>
+                    <div style="background:#eee; height:8px; border-radius:4px; margin:10px 0; overflow:hidden;"><div style="width:${perc}%; background:var(--accent); height:100%;"></div></div> 
+                    <div class="small">Накоплено: ${p.current.toLocaleString()} ₽ (${perc}%)</div> 
+                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${idx})">Пополнить</button> 
+                </div>`; 
+            }); 
+        } 
+
+        function topUpPiggy(idx) { 
+            const sum = Number(prompt("Какую сумму перевести с карты в копилку?")); 
+            if(!sum || sum <= 0) return;
+            if(sum > curUser.balance) return alert("Недостаточно средств на карте"); 
+            
+            curUser.piggies[idx].current += sum; 
+            curUser.balance -= sum; 
+            
+            if(!curUser.history) curUser.history = [];
+            curUser.history.push({ t: `В копилку: ${curUser.piggies[idx].name || 'Цель'}`, a: -sum });
+
+            firebase.database().ref('clients/' + curUser.fbKey).update({  
+                piggies: curUser.piggies, 
+                balance: curUser.balance,
+                history: curUser.history
+            }).then(() => alert("Деньги успешно отложены!")); 
+        } 
+
+        // --- ЛОГИКА ЧАТА ---
         function renderChat() { 
             const container = document.getElementById('chat-container'); 
             let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`; 
@@ -466,6 +508,7 @@
             input.value = ""; 
         } 
 
+        // --- ПЕРЕВОДЫ ---
         function showTransfer() { 
             const select = document.getElementById('transfer-target'); 
             const others = db.filter(u => u.fbKey !== curUser.fbKey); 
@@ -503,43 +546,18 @@
         } 
 
         function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); } 
+        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
 
-        function renderPiggies() { 
-            const cont = document.getElementById('piggy-container'); 
-            cont.innerHTML = ""; 
-            if(!curUser.piggies || curUser.piggies.length === 0) { cont.innerHTML = "Пока пусто"; return; } 
-            curUser.piggies.forEach((p, idx) => { 
-                const perc = Math.min(Math.floor((p.current / p.target) * 100), 100); 
-                cont.innerHTML += `<div class="card"> 
-                    <b>Цель: ${p.target} ₽</b> 
-                    <div style="background:#eee; height:8px; border-radius:4px; margin:10px 0; overflow:hidden;"><div style="width:${perc}%; background:var(--accent); height:100%;"></div></div> 
-                    <div class="small">Накоплено: ${p.current} ₽ (${perc}%)</div> 
-                    <button class="btn secondary" style="width:100%; margin-top:10px" onclick="topUpPiggy(${idx})">Пополнить</button> 
-                </div>`; 
-            }); 
-        } 
-
-        function topUpPiggy(idx) { 
-            const sum = Number(prompt("Сколько отложить?")); 
-            if(!sum || sum > curUser.balance) return; 
-            curUser.piggies[idx].current += sum; 
-            curUser.balance -= sum; 
-            firebase.database().ref('clients/' + curUser.fbKey).update({  
-                piggies: curUser.piggies, 
-                balance: curUser.balance 
-            }); 
-        } 
-
-        function applyTheme() { 
-            const t = localStorage.getItem('app_theme') || 'light'; 
+        // --- ТЕМЫ И ВЫХОД ---
+        function applyTheme(t) { 
             document.body.className = t; 
+            localStorage.setItem('app_theme', t);
             if(document.getElementById('themeSelect')) themeSelect.value = t; 
         } 
 
         function logout() { curUser = null; navTo('screen-name'); } 
 
         window.onload = init; 
-        // Слушатель ввода для мгновенного поиска
         document.getElementById('loginInp').addEventListener('input', findClient);
     </script>
 </body>
