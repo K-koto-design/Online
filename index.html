@@ -2,85 +2,59 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Онлайн</title>
+    <title>Онлайн Банк Cloud</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
     <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg">
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root { 
-            --bg: #f2f3f7; 
-            --accent: #007aff; 
-            --card: #ffffff; 
-            --text: #1c1c1e; 
-            --secondary: #8e8e93; 
-            --credit: #34c759; 
-            --red: #ff3b30; 
-            --tab-bg: #ffffff;
+            --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e; 
+            --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; --tab-bg: #ffffff;
         }
-
         body.dark {
-            --bg: #000000;
-            --card: #1c1c1e;
-            --text: #ffffff;
-            --secondary: #8e8e93;
-            --tab-bg: #121212;
+            --bg: #000000; --card: #1c1c1e; --text: #ffffff; --secondary: #8e8e93; --tab-bg: #121212;
         }
-
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; }
-        
         #blocked-view { display: none; padding: 40px; text-align: center; background: white; height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 10000; }
-        .lock-icon { font-size: 64px; margin-bottom: 20px; }
-
         .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }
-        
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
-        
         .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }
         .screen.active { display: block; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
         .small { color: var(--secondary); font-size: 13px; }
-        
         .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
         .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }
         .primary { background: #ffdd2d; color: #000; }
         .secondary { background: #e8f0ff; color: #007aff; }
         .danger { background: var(--red); color: white; }
-
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
         .dot.filled { background: var(--text); border-color: var(--text); }
-        
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
         .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }
-        
         input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
         .history-amount { font-weight: 700; font-size: 15px; }
-        
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
         .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
         .tab-item.active { color: var(--accent); }
         .tab-icon { font-size: 24px; margin-bottom: 4px; }
-
         .piggy-progress { width: 100%; height: 10px; background: #e5e5ea; border-radius: 5px; margin: 10px 0; overflow: hidden; }
         .piggy-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.5s; }
-
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
         .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }
-
-        /* Стиль чека Т-Банк */
         .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }
         .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }
         .check-names { margin: 20px 0; font-size: 16px; line-height: 1.5; color: var(--text); }
-
         footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }
     </style>
 </head>
@@ -174,7 +148,6 @@
                 <option value="Украина">Украина</option>
                 <option value="Беларусь">Беларусь</option>
             </select>
-            
             <p class="small">Тема</p>
             <select id="themeSelect" onchange="applyTheme()">
                 <option value="light">Светлая</option>
@@ -216,29 +189,43 @@
     </div>
 
     <script>
-        const VERSION = "7.0";
-        
-        const initialClients = [
-            { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 100000, spending: 640, bonuses: 1250, blockedCard: false, history: [{t:"Покупка: Магазин", a:-540}] },
-            { id: 2, name: "Даня", phone: "+79673657830", pin: "1115", balance: 34500, spending: 5500, bonuses: 5, blockedCard: false, history: [{t:"Заработная Плата", a:+30000}] },
-            { id: 3, name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, blockedCard: false, history: [] },
-            { id: 4, name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, blockedCard: false, history: [] },
-            { id: 5, name: "Роман", phone: "+79062357433", pin: "2025", balance: 9700, spending: 102, bonuses: 0, blockedCard: false, history: [{t:"Пополнение", a:1500}] },
-            { id: 6, name: "Михаил", phone: "+0", pin: "3456", balance: 6786, spending: 500, bonuses: 8, creditCard: 4286, blockedCard: false, history: [{t:"Оплата кредита", a:-714}] },
-            { id: 7, name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, blockedCard: false, history: [] },
-            { id: 8, name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, blockedCard: false, history: [] },
-            { id: 9, name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, blockedCard: false, history: [] },
-            { id: 10, name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, blockedCard: false, history: [] },
-            { id: 11, name: "Роман", phone: "+79182467438", pin: "1473", balance: 5000, spending: 0, bonuses: 0, blockedCard: false, history: [] }
-        ];
+        // --- КОНФИГУРАЦИЯ FIREBASE ---
+        const firebaseConfig = {
+            apiKey: ""AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg",
+            authDomain: "webapp-b7149.firebaseapp.com",
+            databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "webapp-b7149",
+            storageBucket: "webapp-b7149.firebasestorage.app",
+            messagingSenderId: "1034835242406",
+            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367"
+        };
 
-        let db = JSON.parse(localStorage.getItem('bank_db')) || initialClients;
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const dbRef = database.ref('bank_db');
+
+        const VERSION = "8.0 Cloud";
+        let db = [];
         let curUser = null;
         let enteredPin = "";
 
-        function saveDB() { localStorage.setItem('bank_db', JSON.stringify(db)); }
+        // Синхронизация данных с Firebase в реальном времени
+        dbRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                db = data;
+                if (curUser) {
+                    // Обновляем текущего пользователя, если данные изменились
+                    curUser = db.find(u => u.id === curUser.id);
+                    if (document.getElementById('screen-home').classList.contains('active')) showHome();
+                    if (document.getElementById('screen-piggy').classList.contains('active')) renderPiggies();
+                }
+            }
+        });
 
-        function hardReset() { window.location.replace(window.location.origin + window.location.pathname + "?v=" + Date.now()); }
+        function saveDB() { dbRef.set(db); }
+
+        function hardReset() { window.location.reload(); }
 
         function init() {
             document.getElementById('version-label').innerText = "Версия системы: " + VERSION;
@@ -316,9 +303,10 @@
         }
 
         function showHome() {
+            if (!curUser) return;
             homeUser.innerText = `Здравствуйте, ${curUser.name}`;
             hBal.innerText = (curUser.balance + (curUser.creditCard || 0)).toLocaleString() + " ₽";
-            hSpend.innerText = `Траты за период: ${curUser.spending.toLocaleString()} ₽`;
+            hSpend.innerText = `Траты за период: ${(curUser.spending || 0).toLocaleString()} ₽`;
             
             let html = `<div class="card" onclick="navTo('screen-card')" style="cursor:pointer">
                 <div class="small">Личный счет</div>
@@ -336,16 +324,16 @@
             
             const hList = document.getElementById('historyList');
             hList.innerHTML = "";
-            curUser.history.slice().reverse().forEach(h => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `<span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span>`;
-                hList.appendChild(div);
-            });
-            saveDB();
+            if(curUser.history) {
+                curUser.history.slice().reverse().forEach(h => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    div.innerHTML = `<span>${h.t}</span><span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span>`;
+                    hList.appendChild(div);
+                });
+            }
         }
 
-        /* --- ЛОГИКА ПЕРЕВОДОВ И ЧЕКА --- */
         function showTransfer() {
             const select = document.getElementById('transfer-target');
             select.innerHTML = db.filter(u => u.id !== curUser.id).map(u => 
@@ -367,15 +355,19 @@
             if(amount <= 0) { alert("Введите сумму"); return; }
             if(amount > curUser.balance) { alert("Недостаточно средств"); return; }
 
+            // Обновляем локальные данные (Firebase синхронизирует их потом)
             curUser.balance -= amount;
             targetUser.balance += amount;
+            
+            if(!curUser.history) curUser.history = [];
+            if(!targetUser.history) targetUser.history = [];
+
             curUser.history.push({t: `Перевод: ${targetUser.name}`, a: -amount});
             targetUser.history.push({t: `Входящий: ${curUser.name}`, a: amount});
 
             saveDB();
             closeTransfer();
             
-            // Заполнение и открытие чека
             document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽";
             document.getElementById('check-from').innerText = curUser.name;
             document.getElementById('check-to').innerText = targetUser.name;
@@ -384,10 +376,9 @@
 
         function closeSuccess() {
             document.getElementById('success-modal').style.display = 'none';
-            showHome(); // Обновляем данные и возвращаемся к экрану карты
+            showHome();
         }
 
-        /* --- ЛОГИКА КОПИЛОК --- */
         function showPiggyModal() {
             const target = prompt("Напишите сумму, которую хотите накопить:");
             if(!target || isNaN(target)) return;
@@ -397,15 +388,16 @@
             curUser.piggies.push({ id: Date.now(), target: Number(target), current: initialNum });
             if(initialNum > 0) {
                 curUser.balance -= initialNum;
+                if(!curUser.history) curUser.history = [];
                 curUser.history.push({t: "В копилку", a: -initialNum});
             }
-            renderPiggies(); saveDB();
+            saveDB();
         }
 
         function renderPiggies() {
             const container = document.getElementById('piggy-container');
             container.innerHTML = "";
-            if(!curUser.piggies || curUser.piggies.length === 0) {
+            if(!curUser || !curUser.piggies || curUser.piggies.length === 0) {
                 container.innerHTML = "<p style='text-align:center; color:var(--secondary)'>У вас пока нет копилок</p>"; return;
             }
             curUser.piggies.forEach(p => {
@@ -428,11 +420,12 @@
             if(num > curUser.balance) { alert("Недостаточно средств!"); return; }
             const p = curUser.piggies.find(x => x.id === id);
             p.current += num; curUser.balance -= num;
+            if(!curUser.history) curUser.history = [];
             curUser.history.push({t: "Пополнение копилки", a: -num});
-            renderPiggies(); saveDB();
+            saveDB();
         }
 
-        function deleteAllPiggies() { if(confirm("Удалить все копилки?")) { curUser.piggies = []; renderPiggies(); saveDB(); } }
+        function deleteAllPiggies() { if(confirm("Удалить все копилки?")) { curUser.piggies = []; saveDB(); } }
         function saveSettings() { localStorage.setItem('app_country', countrySelect.value); }
         function applyTheme() {
             document.body.className = themeSelect.value;
