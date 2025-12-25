@@ -10,9 +10,14 @@
     <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg">
 
     <style>
-        :root { --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e; --secondary: #8e8e93; --credit: #34c759; }
+        :root { --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e; --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; }
+        
+        /* Стили для экрана блокировки */
+        #blocked-screen { display: none; padding: 40px; text-align: center; background: white; height: 100vh; flex-direction: column; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; z-index: 9999; }
+        .lock-icon { font-size: 64px; margin-bottom: 20px; }
+
         .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; }
         #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }
         .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }
@@ -23,7 +28,6 @@
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }
         .small { color: var(--secondary); font-size: 13px; }
         
-        /* ОБНОВЛЕННЫЙ РЯД КНОПОК */
         .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }
         .btn { flex: 1; padding: 14px 5px; border-radius: 18px; border: none; font-size: 13px; font-weight: 600; cursor: pointer; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }
         .primary { background: #ffdd2d; color: #000; }
@@ -45,6 +49,13 @@
 <body>
 
     <button class="refresh-btn" onclick="hardReset()">🔄</button>
+
+    <div id="blocked-screen">
+        <div class="lock-icon">❄️</div>
+        <h1 style="color: var(--red);">Карта заблокирована</h1>
+        <p style="color: var(--secondary);">Доступ к операциям ограничен.<br>Обратитесь в банк для разблокировки.</p>
+        <button class="btn secondary" style="margin-top:20px" onclick="hardReset()">Проверить статус</button>
+    </div>
 
     <div id="install-view">
         <div class="logo-box">👤</div>
@@ -96,13 +107,13 @@
         <div id="credit-card-detail"></div>
 
         <div class="btn-row">
-            <button class="btn secondary" onclick="location.href=''">
+            <button class="btn secondary">
                 <span class="btn-icon">📷</span>QR-оплата
             </button>
-            <button class="btn secondary" onclick="location.href='https://www.figma.com/proto/CdnocjGJaw2svyDRwYBe1J?node-id=1-2&starting-point-node-id=1:2&locale=en'">
+            <button class="btn secondary">
                 <span class="btn-icon">📱</span>Телефоном
             </button>
-            <button class="btn primary" onclick="location.href='https://docs.google.com/forms/d/e/1FAIpQLSfKTieRxBc0BpZt79ZHjVrK1yxGdogC4wgwnlYjx0JjW7rADg/viewform'">
+            <button class="btn primary">
                 <span class="btn-icon">💸</span>Перевести
             </button>
         </div>
@@ -112,34 +123,44 @@
     </div>
 
     <script>
-        const VERSION = "3.4"; 
+        const VERSION = "4.0"; 
+        const STORAGE_KEY = "portal_frozen_clients";
 
         function hardReset() {
             const cleanUrl = window.location.origin + window.location.pathname + "?u=" + Date.now();
             window.location.replace(cleanUrl);
         }
 
-        if (localStorage.getItem('app_v') !== VERSION) {
-            localStorage.setItem('app_v', VERSION);
-            hardReset();
-        }
-
         const clients = [
-            { name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
-            { name: "Даня", phone: "+79673657830", pin: "1115", balance: 4500, spending: 5500, bonuses: 5, history: [{t:"Перевод", a:-4500}] },
-            { name: "Роман", phone: "+79062357433", pin: "2025", balance: 9700, spending: 102, bonuses: 0, history: [{t:"Поплнение", a:+1500}] },
-            { name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
-            { name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
-            { name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
-            { name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
-            { name: "Михаил", phone: "+0", pin: "3456", balance: 6786, spending: 500, bonuses: 8, creditCard: 4286, history: [{t:"Оплата кредита", a:-714},{t:"Перевод", a:-1500},{t:"Поплнение", a:+4500}] },
-            { name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
-            { name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] },
-            { name: "Роман", phone: "+79182467438", pin: "1473", balance: 5000, spending: 0, bonuses: 0, history: [] }
+            { id: 1, name: "Артём", phone: "+79117961522", pin: "1234", balance: 14216, spending: 640, bonuses: 1250, history: [{t:"Покупка: Магазин", a:-540}] },
+            { id: 2, name: "Даня", phone: "+79673657830", pin: "1115", balance: 4500, spending: 5500, bonuses: 5, history: [{t:"Перевод", a:-4500}] },
+            { id: 3, name: "Матвей", phone: "+79017362415", pin: "2212", balance: 1000, spending: 300, bonuses: 2, history: [] },
+            { id: 4, name: "Святослав", phone: "+375298880088", pin: "3553", balance: 15000, spending: 5000, bonuses: 402, history: [] },
+            { id: 5, name: "Роман", phone: "+79062357433", pin: "2025", balance: 9700, spending: 102, bonuses: 0, history: [{t:"Поплнение", a:+1500}] },
+            { id: 6, name: "Михаил", phone: "+0", pin: "3456", balance: 6786, spending: 500, bonuses: 8, creditCard: 4286, history: [{t:"Оплата кредита", a:-714}] },
+            { id: 7, name: "Артём", phone: "+78907631890", pin: "1984", balance: 4500, spending: 250, bonuses: 0, history: [] },
+            { id: 8, name: "Алексей", phone: "+0", pin: "4711", balance: 1005, spending: 25, bonuses: 2, history: [] },
+            { id: 9, name: "Тимофей", phone: "+79028716109", pin: "6767", balance: 8200, spending: 1200, bonuses: 25, history: [] },
+            { id: 10, name: "Фёдор", phone: "+79259660001", pin: "1655", balance: 15000, spending: 2500, bonuses: 1, history: [] },
+            { id: 11, name: "Роман", phone: "+79182467438", pin: "1473", balance: 5000, spending: 0, bonuses: 0, history: [] }
         ];
 
         let curUser = null;
         let enteredPin = "";
+
+        // --- ЛОГИКА ПРОВЕРКИ БЛОКИРОВКИ ---
+        function checkBlocking(user) {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                const frozenIds = JSON.parse(saved);
+                if (frozenIds.includes(user.id)) {
+                    document.getElementById('blocked-screen').style.display = 'flex';
+                    return true;
+                }
+            }
+            document.getElementById('blocked-screen').style.display = 'none';
+            return false;
+        }
 
         function init() {
             const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
@@ -171,6 +192,9 @@
         }
 
         function selectUser(c) {
+            // Проверка блокировки ПЕРЕД вводом пин-кода (или после)
+            if (checkBlocking(c)) return; 
+            
             curUser = c; enteredPin = ""; pinUser.innerText = c.name;
             updateDots(); navTo('screen-pin');
         }
@@ -187,8 +211,9 @@
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k;
                     updateDots();
                     if(enteredPin.length === 4) {
-                        if(enteredPin === curUser.pin) showHome();
-                        else { enteredPin = ""; updateDots(); }
+                        if(enteredPin === curUser.pin) {
+                            if (!checkBlocking(curUser)) showHome();
+                        } else { enteredPin = ""; updateDots(); }
                     }
                 };
                 keypad.appendChild(b);
