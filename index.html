@@ -127,7 +127,9 @@
                     <div class="type-tab active" id="rt-client" onclick="setRegType('Клиент')">Клиент</div>
                     <div class="type-tab" id="rt-ip" onclick="setRegType('ИП')">ИП</div>
                 </div>
-                <div id="fields-client"><input type="text" id="reg-name" placeholder="Ваше Имя"></div>
+                <div id="fields-client">
+                    <input type="text" id="reg-name" placeholder="Ваше Имя">
+                </div>
                 <div id="fields-ip" style="display:none">
                     <input type="text" id="reg-company" placeholder="Название компании">
                     <input type="text" id="reg-inn" placeholder="ИНН">
@@ -322,6 +324,7 @@
     </div> 
 
     <script> 
+        // Firebase Config
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
@@ -366,22 +369,70 @@
             });
         } 
 
-        function updateUI() {
-            if(!curUser) return;
-            document.getElementById('blocked-view').style.display = curUser.frozen ? 'flex' : 'none';
-            showHome();
-            renderPiggies();
+        // Registration Logic
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+        function closeReg() { 
+            document.getElementById('reg-modal').style.display = 'none'; 
+            document.getElementById('reg-step-1').style.display = 'block';
+            document.getElementById('reg-step-2').style.display = 'none';
         }
 
-        // Вход
+        function setRegType(type) {
+            currentRegType = type;
+            document.getElementById('rt-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('rt-ip').classList.toggle('active', type === 'ИП');
+            document.getElementById('fields-client').style.display = type === 'Клиент' ? 'block' : 'none';
+            document.getElementById('fields-ip').style.display = type === 'ИП' ? 'block' : 'none';
+        }
+
+        function submitReg() {
+            const phone = document.getElementById('reg-phone').value.trim();
+            const pin = document.getElementById('reg-pin').value.trim();
+            let name = "";
+
+            if (currentRegType === 'Клиент') {
+                name = document.getElementById('reg-name').value.trim();
+            } else {
+                const comp = document.getElementById('reg-company').value.trim();
+                const inn = document.getElementById('reg-inn').value.trim();
+                name = comp + (inn ? " (ИНН " + inn + ")" : "");
+            }
+
+            if (!name || !phone || pin.length < 4) {
+                alert("Пожалуйста, заполните все поля корректно");
+                return;
+            }
+
+            const applicationData = {
+                name: name,
+                phone: phone,
+                clientPin: pin,
+                orgType: currentRegType,
+                balance: 0,
+                bonuses: 0,
+                creditLimit: 0,
+                frozen: false,
+                status: "pending",
+                timestamp: Date.now()
+            };
+
+            appRef.push(applicationData).then(() => {
+                document.getElementById('reg-step-1').style.display = 'none';
+                document.getElementById('reg-step-2').style.display = 'block';
+            }).catch(e => alert("Ошибка: " + e.message));
+        }
+
+        // Login UI logic
         function switchLoginTab(type) {
             activeLoginTab = type;
-            document.querySelectorAll('.login-tab').forEach(t => t.classList.toggle('active', t.innerText === type || (t.id === 'tab-ip' && type === 'ИП')));
+            document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
             findClient();
         }
 
         function findClient() {
-            const v = loginInp.value.trim().toLowerCase();
+            const v = document.getElementById('loginInp').value.trim().toLowerCase();
+            const variants = document.getElementById('variants');
             variants.innerHTML = "";
             if(v.length < 2) return;
             const matches = db.filter(u => (u.name.toLowerCase().includes(v) || u.phone.includes(v)) && (activeLoginTab === 'ИП' ? u.orgType === 'ИП' : u.orgType !== 'ИП'));
@@ -389,7 +440,7 @@
                 const div = document.createElement('div');
                 div.className = 'card'; div.style.padding = '10px'; div.style.marginTop = '5px';
                 div.innerText = u.name;
-                div.onclick = () => { curUser = u; pinUser.innerText = u.name; navTo('screen-pin'); };
+                div.onclick = () => { curUser = u; document.getElementById('pinUser').innerText = u.name; navTo('screen-pin'); };
                 variants.appendChild(div);
             });
         }
@@ -415,19 +466,25 @@
         } 
 
         function updateDots() { 
-            const d = pinDots.children; 
+            const d = document.getElementById('pinDots').children; 
             for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length); 
         } 
 
-        // Главная
+        function updateUI() {
+            if(!curUser) return;
+            document.getElementById('blocked-view').style.display = curUser.frozen ? 'flex' : 'none';
+            showHome();
+            renderPiggies();
+        }
+
         function showHome() {
-            homeUser.innerText = curUser.name;
+            document.getElementById('homeUser').innerText = curUser.name;
             const bal = Number(curUser.balance || 0);
             const cred = Number(curUser.creditLimit || 0);
-            hBal.innerText = (bal + cred).toLocaleString() + " ₽";
-            hSpend.innerText = "Траты: " + (curUser.spentMonth || 0) + " ₽";
-            cBal.innerText = bal.toLocaleString() + " ₽";
-            cBonus.innerText = "Бонусы: " + (curUser.bonuses || 0);
+            document.getElementById('hBal').innerText = (bal + cred).toLocaleString() + " ₽";
+            document.getElementById('hSpend').innerText = "Траты: " + (curUser.spentMonth || 0) + " ₽";
+            document.getElementById('cBal').innerText = bal.toLocaleString() + " ₽";
+            document.getElementById('cBonus').innerText = "Бонусы: " + (curUser.bonuses || 0);
             
             let html = `<div class="card" onclick="navTo('screen-card')">
                 <div class="small">Личный счет</div>
@@ -446,7 +503,7 @@
             });
         }
 
-        // Перевод
+        // Functions for Modals
         function showTransfer() {
             const sel = document.getElementById('transfer-target');
             sel.innerHTML = '<option value="">Выберите получателя</option>';
@@ -455,30 +512,25 @@
             });
             document.getElementById('transfer-modal').style.display = 'flex';
         }
-
+        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
         function processTransfer() {
             const targetKey = document.getElementById('transfer-target').value;
             const amount = Number(document.getElementById('transfer-amount').value);
-            const msg = document.getElementById('transfer-message').value;
-            if(!targetKey || amount <= 0 || amount > curUser.balance) return alert("Ошибка данных или недостаточно средств");
-
+            if(!targetKey || amount <= 0 || amount > curUser.balance) return alert("Недостаточно средств");
             const target = db.find(u => u.fbKey === targetKey);
             const hUser = curUser.history || [];
             const hTarget = target.history || [];
-
-            hUser.push({t: "Перевод: " + target.name, a: -amount, msg: msg});
-            hTarget.push({t: "Входящий от: " + curUser.name, a: amount, msg: msg});
-
+            hUser.push({t: "Перевод: " + target.name, a: -amount});
+            hTarget.push({t: "Входящий от: " + curUser.name, a: amount});
             dbRef.child(curUser.fbKey).update({ balance: curUser.balance - amount, history: hUser });
             dbRef.child(targetKey).update({ balance: (target.balance || 0) + amount, history: hTarget });
-
-            document.getElementById('transfer-modal').style.display = 'none';
+            closeTransfer();
             document.getElementById('check-amount').innerText = amount + " ₽";
             document.getElementById('check-names').innerText = curUser.name + " → " + target.name;
             document.getElementById('success-modal').style.display = 'flex';
         }
-
-        // Платежи
+        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; }
+        
         function openService(type) {
             const s = services[type];
             document.getElementById('service-title').innerText = s.title;
@@ -487,22 +539,19 @@
             s.providers.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
             document.getElementById('service-modal').style.display = 'flex';
         }
-
+        function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
         function processServicePayment() {
             const sum = Number(document.getElementById('service-sum').value);
-            const provider = document.getElementById('service-provider').value;
             if(sum <= 0 || sum > curUser.balance) return alert("Недостаточно средств");
-
             const h = curUser.history || [];
-            h.push({t: provider, a: -sum, msg: "Оплата услуг"});
+            h.push({t: document.getElementById('service-provider').value, a: -sum, msg: "Оплата услуг"});
             dbRef.child(curUser.fbKey).update({ balance: curUser.balance - sum, history: h, spentMonth: (curUser.spentMonth || 0) + sum });
-            
             closeServiceModal();
-            alert("Платеж успешно выполнен");
+            alert("Оплачено");
         }
 
-        // Копилки
         function showPiggyModal() { document.getElementById('piggy-modal').style.display = 'flex'; }
+        function closePiggyModal() { document.getElementById('piggy-modal').style.display = 'none'; }
         function createPiggy() {
             const name = document.getElementById('piggy-name').value;
             const target = Number(document.getElementById('piggy-target').value);
@@ -512,55 +561,40 @@
             dbRef.child(curUser.fbKey).update({ piggies: p });
             closePiggyModal();
         }
-
         function renderPiggies() {
             const cont = document.getElementById('piggy-container');
             cont.innerHTML = "";
             (curUser.piggies || []).forEach((p, idx) => {
                 const perc = Math.min((p.current / p.target) * 100, 100);
                 cont.innerHTML += `<div class="piggy-item">
-                    <div style="display:flex; justify-content:space-between">
-                        <b>${p.name}</b>
-                        <span>${p.current} / ${p.target} ₽</span>
-                    </div>
+                    <div style="display:flex; justify-content:space-between"><b>${p.name}</b><span>${p.current}/${p.target} ₽</span></div>
                     <div class="piggy-progress"><div class="piggy-bar" style="width:${perc}%"></div></div>
                     <button class="btn secondary" style="width:100%; padding:8px" onclick="addMoneyToPiggy(${idx})">Пополнить</button>
                 </div>`;
             });
         }
-
         function addMoneyToPiggy(idx) {
-            const val = Number(prompt("Сумма пополнения:"));
-            if(val <= 0 || val > curUser.balance) return alert("Недостаточно средств");
-            const p = curUser.piggies;
-            p[idx].current += val;
-            const h = curUser.history || [];
-            h.push({t: "Пополнение копилки: " + p[idx].name, a: -val});
+            const val = Number(prompt("Сумма:"));
+            if(val <= 0 || val > curUser.balance) return alert("Ошибка");
+            const p = curUser.piggies; p[idx].current += val;
+            const h = curUser.history || []; h.push({t: "Копилка: " + p[idx].name, a: -val});
             dbRef.child(curUser.fbKey).update({ balance: curUser.balance - val, history: h, piggies: p });
         }
 
-        // Кредит
         function requestCredit() {
             const amount = document.getElementById('credit-amount').value;
             if(amount <= 0) return;
-            firebase.database().ref('credit_requests').push({
-                user: curUser.name,
-                phone: curUser.phone,
-                amount: amount,
-                time: Date.now()
-            });
-            alert("Заявка отправлена. Ожидайте решения.");
+            firebase.database().ref('credit_requests').push({ user: curUser.name, phone: curUser.phone, amount: amount, time: Date.now() });
+            alert("Отправлено");
             document.getElementById('credit-modal').style.display = 'none';
         }
 
-        // Чат
         function sendChatMsg() {
-            const txt = chatInput.value.trim();
+            const txt = document.getElementById('chatInput').value.trim();
             if(!txt) return;
             chatRef.child(curUser.fbKey).push({ sender: 'user', text: txt, time: Date.now() });
-            chatInput.value = "";
+            document.getElementById('chatInput').value = "";
         }
-
         function renderChat() {
             chatRef.child(curUser.fbKey).on('value', snap => {
                 const cont = document.getElementById('chat-container');
@@ -576,7 +610,6 @@
             });
         }
 
-        // Общие
         function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -584,41 +617,14 @@
                 document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                 el.classList.add('active');
             }
-            document.getElementById('main-nav').style.display = id === 'screen-name' || id === 'screen-pin' ? 'none' : 'flex';
+            document.getElementById('main-nav').style.display = (id === 'screen-name' || id === 'screen-pin') ? 'none' : 'flex';
             if(id === 'screen-chat') renderChat();
             if(id === 'screen-home' || id === 'screen-card') showHome();
         }
 
-        function applyTheme(t) { 
-            document.body.classList.toggle('dark', t === 'dark'); 
-            localStorage.setItem('app_theme', t); 
-        }
-
-        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
-        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
-        function setRegType(t) {
-            currentRegType = t;
-            document.getElementById('rt-client').classList.toggle('active', t === 'Клиент');
-            document.getElementById('rt-ip').classList.toggle('active', t === 'ИП');
-            document.getElementById('fields-client').style.display = t === 'Клиент' ? 'block' : 'none';
-            document.getElementById('fields-ip').style.display = t === 'ИП' ? 'block' : 'none';
-        }
-        function submitReg() {
-            const name = currentRegType === 'Клиент' ? document.getElementById('reg-name').value : document.getElementById('reg-company').value;
-            appRef.push({
-                name, phone: reg-phone.value, clientPin: reg-pin.value, 
-                orgType: currentRegType, balance: 0, status: 'pending'
-            });
-            document.getElementById('reg-step-1').style.display = 'none';
-            document.getElementById('reg-step-2').style.display = 'block';
-        }
-
+        function applyTheme(t) { document.body.classList.toggle('dark', t === 'dark'); localStorage.setItem('app_theme', t); }
         function logout() { location.reload(); }
         function hardReset() { location.reload(); }
-        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
-        function closeServiceModal() { document.getElementById('service-modal').style.display = 'none'; }
-        function closePiggyModal() { document.getElementById('piggy-modal').style.display = 'none'; }
-        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; }
     </script> 
 </body> 
 </html>
