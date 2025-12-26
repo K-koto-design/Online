@@ -71,7 +71,6 @@
         .transfer-option { display: flex; align-items: center; gap: 15px; padding: 15px; background: #f8f8f8; border-radius: 15px; margin-bottom: 10px; cursor: pointer; }
         .bank-icon { width: 40px; height: 40px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         
-        /* Прогресс-бар для трат */
         .progress-bar { height: 8px; border-radius: 4px; background: #eee; margin-top: 10px; display: flex; overflow: hidden; }
         .frozen-label { background: var(--red); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; margin-bottom: 5px; display: none; }
     </style> 
@@ -99,7 +98,6 @@
 
     <div id="screen-home" class="screen"> 
         <h1 id="homeUser" style="margin-top:10px"></h1> 
-        
         <div class="card" onclick="navTo('screen-details')" style="cursor:pointer"> 
             <div id="frozen-status-home" class="frozen-label">ЗАБЛОКИРОВАНО</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
@@ -108,7 +106,7 @@
                     <div class="balance" id="hBal">0 ₽</div> 
                 </div>
                 <div style="text-align: right;">
-                    <div style="color:var(--accent); font-weight: 600; font-size: 14px;">Бонусы: <span id="bonus-val">5</span></div>
+                    <div style="color:var(--accent); font-weight: 600; font-size: 14px;">Бонусы: <span id="bonus-val">0</span></div>
                     <div class="small" style="margin-top: 4px;">Подробнее ></div>
                 </div>
             </div>
@@ -122,7 +120,6 @@
                 <div style="width: 20%; background: #5ac8fa;"></div>
             </div>
         </div>
-
         <button class="btn primary" onclick="alert('Заявка отправлена')">Взять кредит за 1 минуту</button>
     </div> 
 
@@ -139,12 +136,10 @@
                 <div class="action-item" id="btn-qr" onclick="alert('Камера временно недоступна')">📷 Оплата QR</div>
                 <div class="action-item" id="btn-tr" onclick="openTransferModal()">💸 Перевести</div>
             </div>
-
             <div style="margin-bottom:25px">
                 <div class="small" style="margin-bottom:10px; font-weight: bold;">ИСТОРИЯ ОПЕРАЦИЙ</div>
                 <div id="detHistory"></div>
             </div>
-            
             <div class="card" style="border: 1px solid #ffebeb; background: #fffcfc;">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <div>
@@ -162,27 +157,9 @@
         <div class="card" style="padding:0; overflow:hidden">
             <div id="chat-container"></div>
             <div style="display:flex; gap:10px; padding:15px; background: var(--card); border-top: 1px solid #eee;">
-                <input type="text" id="chatInp" placeholder="Сообщение..." style="margin:0">
+                <input type="text" id="chatInp" placeholder="Сообщение...">
                 <button class="btn primary" style="width:60px; padding:0" onclick="sendChat()">➤</button>
             </div>
-        </div>
-    </div>
-
-    <div id="transfer-modal" class="modal">
-        <div class="modal-content">
-            <h2 style="margin-top:0">Перевод</h2>
-            <input type="tel" id="tr-phone" placeholder="+7 900 000-00-00">
-            <div id="frequent-recipients">
-                <div class="transfer-option" onclick="selectRecipient('Артем Ф.', '+79117961522')">
-                    <div class="bank-icon" style="background:#4cd964; color:white">S</div>
-                    <div>
-                        <div style="font-weight:600">Артем Ф.</div>
-                        <div class="small">Сбербанк</div>
-                    </div>
-                </div>
-            </div>
-            <button class="btn primary" style="margin-top:20px" onclick="processTransfer()">Перевести</button>
-            <button class="btn" style="background:none" onclick="closeModal('transfer-modal')">Отмена</button>
         </div>
     </div>
 
@@ -225,9 +202,11 @@
 
         function init() { 
             buildKeypad(); 
+            // Слушаем базу данных в реальном времени
             dbRef.on('value', (snap) => {
                 const data = snap.val();
                 db = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
+                console.log("Клиентов загружено:", db.length);
                 if(curUser) {
                     curUser = db.find(u => u.fbKey === curUser.fbKey);
                     updateUI();
@@ -236,32 +215,41 @@
             });
         } 
 
-        function navTo(id, el) { 
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(el) {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                el.classList.add('active');
-            }
-            const isAuth = id !== 'screen-name' && id !== 'screen-pin';
-            document.getElementById('main-nav').style.display = isAuth ? 'flex' : 'none';
-        }
-
         function findClient() {
             const v = document.getElementById('loginInp').value.trim().toLowerCase();
             const variants = document.getElementById('variants');
             variants.innerHTML = "";
+            
             if(v.length < 2) return;
-            db.filter(u => u.name.toLowerCase().includes(v)).forEach(u => {
+            
+            // Ищем и по имени, и по телефону (убирая лишние символы)
+            const filtered = db.filter(u => {
+                const nameMatch = u.name && u.name.toLowerCase().includes(v);
+                const phoneMatch = u.phone && u.phone.includes(v);
+                return nameMatch || phoneMatch;
+            });
+
+            filtered.forEach(u => {
                 const div = document.createElement('div');
-                div.className = 'card'; div.style.padding = '15px'; div.innerText = u.name;
-                div.onclick = () => { curUser = u; document.getElementById('pinUser').innerText = u.name; navTo('screen-pin'); };
+                div.className = 'card'; 
+                div.style.padding = '15px'; 
+                div.style.marginBottom = '8px';
+                div.style.cursor = 'pointer';
+                div.innerText = u.name;
+                div.onclick = () => { 
+                    curUser = u; 
+                    enteredPin = ""; 
+                    updateDots();
+                    document.getElementById('pinUser').innerText = u.name; 
+                    navTo('screen-pin'); 
+                };
                 variants.appendChild(div);
             });
         }
 
         function buildKeypad() { 
             const keypad = document.getElementById('keypad');
+            keypad.innerHTML = "";
             [1,2,3,4,5,6,7,8,9,'',0,'←'].forEach(k => { 
                 const b = document.createElement('button'); 
                 b.className = 'key'; b.innerText = k; 
@@ -270,7 +258,7 @@
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k; 
                     updateDots(); 
                     if(enteredPin.length === 4) { 
-                        if(enteredPin === curUser.clientPin) navTo('screen-home'); 
+                        if(enteredPin === String(curUser.clientPin)) navTo('screen-home'); 
                         else { alert("Неверный ПИН"); enteredPin = ""; updateDots(); }
                     } 
                 }; 
@@ -289,9 +277,8 @@
             document.getElementById('hBal').innerText = balStr;
             document.getElementById('detBal').innerText = balStr;
             document.getElementById('homeUser').innerText = curUser.name;
-            document.getElementById('bonus-val').innerText = curUser.bonuses || 5;
+            document.getElementById('bonus-val').innerText = curUser.bonuses || 0;
 
-            // Логика Frozen (Блокировка)
             const isFrozen = curUser.frozen === true;
             document.getElementById('frozen-status-home').style.display = isFrozen ? 'block' : 'none';
             document.getElementById('frozen-status-det').style.display = isFrozen ? 'inline-block' : 'none';
@@ -322,36 +309,18 @@
         }
 
         function toggleFreeze() {
-            const newState = !curUser.frozen;
-            dbRef.child(curUser.fbKey).update({ frozen: newState });
+            dbRef.child(curUser.fbKey).update({ frozen: !curUser.frozen });
         }
 
-        function openTransferModal() { 
-            if(curUser.frozen) return alert("Карта заблокирована!");
-            document.getElementById('transfer-modal').style.display = 'flex'; 
-        }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function selectRecipient(name, phone) { document.getElementById('tr-phone').value = phone; }
-
-        async function processTransfer() {
-            if(curUser.frozen) return;
-            const phone = document.getElementById('tr-phone').value.replace(/\D/g, '');
-            const recipient = db.find(u => u.phone && u.phone.replace(/\D/g, '') === phone);
-            if(!recipient) return alert("Получатель не найден");
-            const amount = parseFloat(prompt("Сумма:"));
-            if(isNaN(amount) || amount <= 0 || amount > curUser.balance) return alert("Ошибка суммы");
-
-            const updates = {};
-            const sHist = curUser.history || []; sHist.push({title: `Перевод ${recipient.name}`, amount: -amount});
-            const rHist = recipient.history || []; rHist.push({title: `От ${curUser.name}`, amount: amount});
-            updates[`${curUser.fbKey}/balance`] = curUser.balance - amount;
-            updates[`${curUser.fbKey}/history`] = sHist;
-            updates[`${recipient.fbKey}/balance`] = (recipient.balance || 0) + amount;
-            updates[`${recipient.fbKey}/history`] = rHist;
-
-            await dbRef.update(updates);
-            alert("Успешно!");
-            closeModal('transfer-modal');
+        function navTo(id, el) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            if(el) {
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                el.classList.add('active');
+            }
+            const isAuth = id !== 'screen-name' && id !== 'screen-pin';
+            document.getElementById('main-nav').style.display = isAuth ? 'flex' : 'none';
         }
 
         function sendChat() {
@@ -372,12 +341,20 @@
 
         function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
         function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
+        
         function submitReg() {
             const name = document.getElementById('reg-name').value;
             const phone = document.getElementById('reg-phone').value;
             const pin = document.getElementById('reg-pin').value;
-            dbRef.push({name, phone, clientPin: pin, balance: 5000, bonuses: 5, frozen: false, history: [{title: "Бонус", amount: 5000}]}).then(() => {
-                alert("Готово!"); closeReg();
+            if(!name || !phone || !pin) return alert("Заполните все поля");
+            
+            dbRef.push({
+                name, phone, clientPin: pin, 
+                balance: 5000, bonuses: 5, frozen: false, 
+                history: [{title: "Подарок при регистрации", amount: 5000}]
+            }).then(() => {
+                alert("Аккаунт создан! Введите ваше имя в поиске."); 
+                closeReg();
             });
         }
     </script> 
