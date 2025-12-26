@@ -145,7 +145,7 @@
             <h2 style="margin-top:0">Заявка на кредит</h2> 
             <p class="small" style="margin-bottom:20px">Укажите желаемую сумму кредитного лимита</p>
             <input type="number" id="credit-amount" placeholder="Сумма ₽"> 
-            <button class="btn primary" style="width:100%" onclick="requestCredit()">Отправить заявку</button> 
+            <button class="btn primary" style="width:100%" onclick="alert('Заявка отправлена на рассмотрение')">Отправить заявку</button> 
             <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="document.getElementById('credit-modal').style.display='none'">Отмена</button> 
         </div> 
     </div> 
@@ -258,7 +258,7 @@
             <div id="cLockStatus"></div> <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
         </div> 
         <div class="btn-row"> 
-            <button class="btn secondary action-btn" onclick="alert('Сервис недоступен')">QR-оплата</button> 
+            <button class="btn secondary action-btn" onclick="alert('Сервис временно недоступен')">QR-оплата</button> 
             <button class="btn primary action-btn" onclick="showTransfer()">Перевести</button> 
         </div> 
 
@@ -457,7 +457,6 @@
             if(id === 'screen-chat') renderChat(); 
         } 
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ: ТЕПЕРЬ ШЛЕТ В APPLICATIONS
         function submitReg() {
             const type = document.getElementById('reg-type').value;
             const name = document.getElementById('reg-name').value;
@@ -479,15 +478,74 @@
                 messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
             };
 
-            // МЕНЯЕМ ПУТЬ НА APPLICATIONS ДЛЯ АДМИНКИ MAX STAFF
             firebase.database().ref('applications').push(newUser)
                 .then(() => {
-                    alert("Заявка на создание аккаунта успешно отправлена! Ожидайте подтверждения.");
+                    alert("Заявка успешно отправлена! Ожидайте подтверждения.");
                     closeReg();
                 })
                 .catch((e) => {
-                    alert("Ошибка при отправке: " + e.message);
+                    alert("Ошибка: " + e.message);
                 });
+        }
+
+        /* ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕРЕВОДА */
+        function processTransfer() {
+            const targetKey = document.getElementById('transfer-target').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            const message = document.getElementById('transfer-message').value || "Перевод";
+
+            if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+
+            const targetUser = db.find(u => u.fbKey === targetKey);
+            if (!targetUser) return alert("Получатель не найден");
+
+            // Обновляем баланс отправителя
+            const senderUpdate = {
+                balance: curUser.balance - amount,
+                spentMonth: (curUser.spentMonth || 0) + amount,
+                history: [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }]
+            };
+
+            // Обновляем баланс получателя
+            const receiverUpdate = {
+                balance: (targetUser.balance || 0) + amount,
+                history: [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }]
+            };
+
+            const updates = {};
+            updates['/clients/' + curUser.fbKey] = { ...curUser, ...senderUpdate };
+            updates['/clients/' + targetKey] = { ...targetUser, ...receiverUpdate };
+
+            firebase.database().ref().update(updates).then(() => {
+                closeTransfer();
+                document.getElementById('check-amount').innerText = amount + " ₽";
+                document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            }).catch(e => alert("Ошибка перевода: " + e.message));
+        }
+
+        /* ФУНКЦИЯ ОПЛАТЫ СЕРВИСОВ */
+        function processServicePayment() {
+            const sum = parseFloat(document.getElementById('service-sum').value);
+            const provider = document.getElementById('service-provider').value;
+            const account = document.getElementById('service-account').value;
+
+            if (isNaN(sum) || sum <= 0 || !account) return alert("Заполните все поля");
+            if (sum > curUser.balance) return alert("Недостаточно средств");
+
+            const newUpdate = {
+                balance: curUser.balance - sum,
+                spentMonth: (curUser.spentMonth || 0) + sum,
+                history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
+            };
+
+            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                closeServiceModal();
+                document.getElementById('check-amount').innerText = sum + " ₽";
+                document.getElementById('check-names').innerText = `Оплата ${provider}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            }).catch(e => alert("Ошибка: " + e.message));
         }
 
         function switchLoginTab(type) {
@@ -522,7 +580,7 @@
 
         function lockCard() {
             if(curUser.frozen) return;
-            if(confirm("Заблокировать карту?")) {
+            if(confirm("Заблокировать карту? Это действие нельзя отменить самостоятельно.")) {
                 firebase.database().ref('clients/' + curUser.fbKey).update({ frozen: true });
             }
         }
