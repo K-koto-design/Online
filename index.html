@@ -49,15 +49,15 @@
             <button class="btn primary" onclick="findClient()">Найти аккаунт</button> 
         </div> 
         <div id="variants"></div>
-        <p style="text-align:center; color:var(--accent)" onclick="openReg()">Создать аккаунт</p>
+        <p style="text-align:center; color:var(--accent); cursor:pointer;" onclick="openReg()">Создать аккаунт</p>
     </div> 
 
     <div id="screen-pin" class="screen"> 
         <div style="text-align:center; margin-top:80px;"> 
             <h2 id="pinUser"></h2> 
             <p>Введите ПИН</p>
-            <div id="pinDots" style="font-size:30px; margin-bottom:20px">....</div>
-            <div id="keypad" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:10px; max-width:250px; margin:0 auto;"></div> 
+            <div id="pinDots" style="font-size:30px; margin-bottom:20px; letter-spacing: 10px;">○ ○ ○ ○</div>
+            <div id="keypad" style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; max-width:280px; margin:0 auto;"></div> 
         </div> 
     </div>
 
@@ -106,6 +106,18 @@
         <button class="btn" style="color:red" onclick="location.reload()">Выйти</button>
     </div>
 
+    <div id="reg-modal" class="modal">
+        <div class="modal-content">
+            <h3>Регистрация</h3>
+            <input type="text" id="reg-name" placeholder="Имя Фамилия">
+            <input type="text" id="reg-phone" placeholder="Телефон">
+            <input type="text" id="reg-tg" placeholder="Telegram ID">
+            <input type="password" id="reg-pin-val" placeholder="ПИН (4 цифры)" maxlength="4">
+            <button class="btn primary" onclick="execReg()">Отправить заявку</button>
+            <button class="btn" onclick="closeModals()">Отмена</button>
+        </div>
+    </div>
+
     <div id="modal-transfer" class="modal">
         <div class="modal-content">
             <h3>Перевод</h3>
@@ -122,12 +134,12 @@
             <h3>Оплата услуг</h3>
             <select id="service-type" onchange="updateServiceList()">
                 <option value="none">Выберите категорию</option>
-                <option value="mobile">Связь (МТС, Билайн, Мегафон, Теле2...)</option>
-                <option value="transport">Транспорт (Тройка, Подорожник, ЕКП...)</option>
-                <option value="internet">Интернет и ТВ (Ростелеком, Дом.ру, МТС...)</option>
+                <option value="mobile">Связь (МТС, Билайн, Мегафон...)</option>
+                <option value="transport">Транспорт (Тройка, Подорожник...)</option>
+                <option value="internet">Интернет и ТВ (Ростелеком, Дом.ру...)</option>
             </select>
             <select id="service-name" style="display:none"></select>
-            <input type="text" id="service-acc" placeholder="Номер телефона/карты/лс">
+            <input type="text" id="service-acc" placeholder="Номер счета/телефона">
             <input type="number" id="service-sum" placeholder="Сумма">
             <button class="btn primary" onclick="execService()">Оплатить</button>
             <button class="btn" onclick="closeModals()">Отмена</button>
@@ -136,10 +148,9 @@
 
     <div id="modal-credit" class="modal">
         <div class="modal-content">
-            <h3>Заявка на кредит</h3>
-            <p class="small">Доступно до 500 000 ₽</p>
+            <h3>Кредит</h3>
             <input type="number" id="credit-sum" placeholder="Сумма">
-            <button class="btn primary" onclick="execCredit()">Получить моментально</button>
+            <button class="btn primary" onclick="execCredit()">Зачислить</button>
             <button class="btn" onclick="closeModals()">Отмена</button>
         </div>
     </div>
@@ -154,8 +165,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script> 
 
     <script>
-        // КОНФИГ
-        const botToken = "ВАШ_ТОКЕН_БОТА"; 
+        const botToken = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE"; 
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app",
@@ -169,7 +179,6 @@
         let pin = "";
         let tgCode = "";
 
-        // СЛУШАТЕЛЬ ДАННЫХ
         dbRef.on('value', snap => {
             const data = snap.val();
             db = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
@@ -179,74 +188,126 @@
             }
         });
 
-        // ЛОГИКА ВХОДА
+        // ИСПРАВЛЕННЫЙ ПОИСК
         function findClient() {
-            const v = loginInp.value.toLowerCase();
-            const found = db.filter(u => u.name.toLowerCase().includes(v) || u.phone.includes(v));
-            variants.innerHTML = "";
+            const v = document.getElementById('loginInp').value.trim().toLowerCase();
+            const container = document.getElementById('variants');
+            container.innerHTML = "";
+            
+            if(!v) { alert("Введите данные"); return; }
+
+            const found = db.filter(u => 
+                (u.name && u.name.toLowerCase().includes(v)) || 
+                (u.phone && u.phone.toString().includes(v))
+            );
+
+            if(found.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:red'>Ничего не найдено</p>";
+                return;
+            }
+
             found.forEach(u => {
                 const d = document.createElement('div');
-                d.className = "card"; d.innerText = u.name;
-                d.onclick = () => { curUser = u; navTo('screen-pin'); pinUser.innerText = u.name; };
-                variants.appendChild(d);
+                d.className = "card";
+                d.style.cursor = "pointer";
+                d.innerHTML = `<b>${u.name}</b><br><small>${u.phone}</small>`;
+                d.onclick = () => { 
+                    curUser = u; 
+                    pin = ""; 
+                    updateDots(); 
+                    document.getElementById('pinUser').innerText = u.name;
+                    navTo('screen-pin'); 
+                };
+                container.appendChild(d);
             });
         }
 
+        // КЛАВИАТУРА ПИН-КОДА
         function buildKeypad() {
-            for(let i=1; i<=9; i++) {
+            const kp = document.getElementById('keypad');
+            kp.innerHTML = "";
+            const keys = [1,2,3,4,5,6,7,8,9,"C",0,"←"];
+            keys.forEach(k => {
                 const b = document.createElement('button');
-                b.className = 'btn secondary'; b.innerText = i;
-                b.onclick = () => { if(pin.length < 4) { pin += i; updateDots(); if(pin.length === 4) checkPin(); } };
-                keypad.appendChild(b);
-            }
+                b.className = 'btn secondary';
+                b.style.margin = "0";
+                b.innerText = k;
+                b.onclick = () => {
+                    if(k === "C") pin = "";
+                    else if(k === "←") pin = pin.slice(0, -1);
+                    else if(pin.length < 4) pin += k;
+                    updateDots();
+                    if(pin.length === 4) checkPin();
+                };
+                kp.appendChild(b);
+            });
         }
-        function updateDots() { pinDots.innerText = "●".repeat(pin.length) + "○".repeat(4-pin.length); }
+
+        function updateDots() {
+            document.getElementById('pinDots').innerText = "● ".repeat(pin.length) + "○ ".repeat(4 - pin.length);
+        }
 
         function checkPin() {
             if(pin === curUser.clientPin) {
                 tgCode = Math.floor(1000 + Math.random()*9000);
-                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${curUser.tgId}&text=Ваш код: ${tgCode}`);
+                fetch(`https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${curUser.tgId}&text=Код входа: ${tgCode}`);
                 navTo('screen-tg');
-            } else { alert("Неверно"); pin = ""; updateDots(); }
+            } else {
+                alert("Неверный ПИН-код");
+                pin = "";
+                updateDots();
+            }
         }
 
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+
+        function execReg() {
+            const n = document.getElementById('reg-name').value;
+            const p = document.getElementById('reg-phone').value;
+            const t = document.getElementById('reg-tg').value;
+            const pi = document.getElementById('reg-pin-val').value;
+            
+            if(!n || !p || !t || !pi) return alert("Заполните все поля");
+
+            firebase.database().ref('applications').push({
+                name: n, phone: p, tgId: t, clientPin: pi, balance: 0, history: []
+            }).then(() => {
+                alert("Заявка отправлена!");
+                closeModals();
+            });
+        }
+
+        // ПРОЧИЕ ФУНКЦИИ
         function verifyTg() {
-            if(tgInput.value == tgCode) navTo('screen-home');
-            else alert("Код не совпадает");
+            if(document.getElementById('tgInput').value == tgCode) navTo('screen-home');
+            else alert("Ошибка кода");
         }
 
-        // ОСНОВНЫЕ ФУНКЦИИ
         function updateUI() {
-            homeUser.innerText = `Привет, ${curUser.name}`;
-            hBal.innerText = `${curUser.balance.toLocaleString()} ₽`;
-            history.innerHTML = "<h3>История</h3>";
-            (curUser.history || []).reverse().forEach(h => {
-                history.innerHTML += `<div class="card small"><b>${h.t}</b><br><span style="color:${h.a>0?'green':'red'}">${h.a} ₽</span></div>`;
+            document.getElementById('homeUser').innerText = `Привет, ${curUser.name}`;
+            document.getElementById('hBal').innerText = `${curUser.balance.toLocaleString()} ₽`;
+            const hist = document.getElementById('history');
+            hist.innerHTML = "<h3>История</h3>";
+            (curUser.history || []).slice().reverse().forEach(h => {
+                hist.innerHTML += `<div class="card small"><b>${h.t}</b><br><span style="color:${h.a>0?'#34c759':'#ff3b30'}">${h.a} ₽</span></div>`;
             });
             renderChat();
         }
 
-        function openTransfer() {
-            const sel = document.getElementById('transfer-target');
-            sel.innerHTML = db.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
-            document.getElementById('modal-transfer').style.display='flex';
-        }
-
         function execTransfer() {
-            const amount = parseInt(document.getElementById('transfer-amount').value);
-            const targetKey = document.getElementById('transfer-target').value;
-            const comment = document.getElementById('transfer-comment').value;
-            const targetUser = db.find(u => u.fbKey === targetKey);
-
-            if(amount > curUser.balance) return alert("Мало денег");
-
-            const updates = {};
-            updates['/clients/'+curUser.fbKey+'/balance'] = curUser.balance - amount;
-            updates['/clients/'+curUser.fbKey+'/history'] = [...(curUser.history||[]), {t: `Перевод ${targetUser.name}: ${comment}`, a: -amount}];
-            updates['/clients/'+targetKey+'/balance'] = (targetUser.balance||0) + amount;
-            updates['/clients/'+targetKey+'/history'] = [...(targetUser.history||[]), {t: `Приход от ${curUser.name}`, a: amount}];
-
-            firebase.database().ref().update(updates);
+            const amt = parseInt(document.getElementById('transfer-amount').value);
+            const tar = document.getElementById('transfer-target').value;
+            const com = document.getElementById('transfer-comment').value;
+            const target = db.find(u => u.fbKey === tar);
+            if(amt > curUser.balance) return alert("Недостаточно средств");
+            
+            const up = {};
+            up[`/clients/${curUser.fbKey}/balance`] = curUser.balance - amt;
+            up[`/clients/${curUser.fbKey}/history`] = [...(curUser.history||[]), {t: `Перевод ${target.name}: ${com}`, a: -amt}];
+            up[`/clients/${tar}/balance`] = (target.balance||0) + amt;
+            up[`/clients/${tar}/history`] = [...(target.history||[]), {t: `Приход от ${curUser.name}`, a: amt}];
+            
+            firebase.database().ref().update(up);
             closeModals();
         }
 
@@ -254,67 +315,66 @@
             const type = document.getElementById('service-type').value;
             const sel = document.getElementById('service-name');
             sel.style.display = 'block';
-            const list = {
-                mobile: ['МТС', 'Билайн', 'Мегафон', 'Теле2', 'Yota', 'Тинькофф Мобайл'],
-                transport: ['Тройка (Москва)', 'Подорожник (СПб)', 'Единая Карта Петербуржца', 'Стрелка'],
-                internet: ['Ростелеком', 'Дом.ру', 'МТС Хоум', 'Билайн Интернет', 'ТТК']
+            const data = {
+                mobile: ['МТС', 'Билайн', 'Мегафон', 'Теле2'],
+                transport: ['Тройка', 'Подорожник', 'ЕКП'],
+                internet: ['Ростелеком', 'Дом.ру', 'МТС Хоум']
             };
-            sel.innerHTML = (list[type] || []).map(s => `<option>${s}</option>`).join('');
+            sel.innerHTML = (data[type] || []).map(s => `<option>${s}</option>`).join('');
         }
 
         function execService() {
-            const sum = parseInt(document.getElementById('service-sum').value);
-            const sName = document.getElementById('service-name').value;
-            if(sum > curUser.balance) return alert("Недостаточно средств");
-            
-            firebase.database().ref('clients/'+curUser.fbKey).update({
-                balance: curUser.balance - sum,
-                history: [...(curUser.history||[]), {t: `Оплата: ${sName}`, a: -sum}]
+            const s = parseInt(document.getElementById('service-sum').value);
+            if(s > curUser.balance) return alert("Мало денег");
+            firebase.database().ref(`clients/${curUser.fbKey}`).update({
+                balance: curUser.balance - s,
+                history: [...(curUser.history||[]), {t: `Оплата ${document.getElementById('service-name').value}`, a: -s}]
             });
             closeModals();
         }
 
         function execCredit() {
-            const sum = parseInt(document.getElementById('credit-sum').value);
-            firebase.database().ref('clients/'+curUser.fbKey).update({
-                balance: curUser.balance + sum,
-                history: [...(curUser.history||[]), {t: `Зачисление кредита`, a: sum}]
+            const s = parseInt(document.getElementById('credit-sum').value);
+            firebase.database().ref(`clients/${curUser.fbKey}`).update({
+                balance: curUser.balance + s,
+                history: [...(curUser.history||[]), {t: `Кредит`, a: s}]
             });
             closeModals();
         }
 
-        // ЧАТ И ТЕМА
         function sendChat() {
-            const txt = chatInput.value;
-            if(!txt) return;
-            firebase.database().ref('clients/'+curUser.fbKey+'/messages').push({sender:'user', text: txt});
-            chatInput.value = "";
-        }
-        function renderChat() {
-            const cont = document.getElementById('chat-container');
-            cont.innerHTML = "";
-            Object.values(curUser.messages || {}).forEach(m => {
-                cont.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
-            });
-            cont.scrollTop = cont.scrollHeight;
+            const t = document.getElementById('chatInput').value;
+            if(!t) return;
+            firebase.database().ref(`clients/${curUser.fbKey}/messages`).push({sender:'user', text: t});
+            document.getElementById('chatInput').value = "";
         }
 
-        function applyTheme(t) { 
-            document.body.className = t; 
-            localStorage.setItem('app_theme', t); 
+        function renderChat() {
+            const c = document.getElementById('chat-container');
+            c.innerHTML = "";
+            Object.values(curUser.messages || {}).forEach(m => {
+                c.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
+            });
+            c.scrollTop = c.scrollHeight;
         }
 
         function navTo(id, el) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            document.getElementById('main-nav').style.display = id.includes('home') || id.includes('chat') || id.includes('settings') ? 'flex' : 'none';
+            document.getElementById('main-nav').style.display = ['screen-home', 'screen-chat', 'screen-settings'].includes(id) ? 'flex' : 'none';
             if(el) {
                 document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
                 el.classList.add('active');
             }
         }
 
+        function applyTheme(t) { document.body.className = t; localStorage.setItem('app_theme', t); }
         function closeModals() { document.querySelectorAll('.modal').forEach(m => m.style.display='none'); }
+        function openTransfer() {
+            const s = document.getElementById('transfer-target');
+            s.innerHTML = db.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+            document.getElementById('modal-transfer').style.display='flex';
+        }
         function openServices() { document.getElementById('modal-services').style.display='flex'; }
         function openCredit() { document.getElementById('modal-credit').style.display='flex'; }
 
