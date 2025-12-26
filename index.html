@@ -460,25 +460,36 @@
 
         // ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ АККАУНТА (ЗАЯВКИ)
         function submitReg() {
-            const type = document.getElementById('reg-type').value;
-            const name = document.getElementById('reg-name').value;
-            const phone = document.getElementById('reg-phone').value;
-            const pin = document.getElementById('reg-pin').value;
-            
-            if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
-            
-            const newUser = {
-                name: name,
-                phone: phone,
-                clientPin: pin,
-                orgType: type === 'ip' ? 'ИП' : 'Клиент',
-                balance: 0,
-                spentMonth: 0,
-                bonuses: 0,
-                frozen: false,
-                history: [{t: "Открытие счета", a: 0}],
-                messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
-            };
+    const type = document.getElementById('reg-type').value;
+    const name = document.getElementById('reg-name').value;
+    const phone = document.getElementById('reg-phone').value;
+    const pin = document.getElementById('reg-pin').value;
+    
+    if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
+    
+    const newUser = {
+        name: name,
+        phone: phone,
+        clientPin: pin,
+        orgType: type === 'ip' ? 'ИП' : 'Клиент',
+        balance: 0,
+        spentMonth: 0,
+        bonuses: 0,
+        frozen: false,
+        history: [{t: "Открытие счета", a: 0}],
+        messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
+    };
+
+    // МЕНЯЕМ ПУТЬ: отправляем в 'applications' вместо 'clients'
+    firebase.database().ref('applications').push(newUser)
+        .then(() => {
+            alert("Заявка отправлена! Ожидайте подтверждения администратором.");
+            closeReg();
+        })
+        .catch((e) => {
+            alert("Ошибка при отправке: " + e.message);
+        });
+}
 
             // Отправляем данные именно в вашу базу
             dbRef.push(newUser)
