@@ -15,76 +15,213 @@
         :root {  
             --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e;  
             --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; --tab-bg: #ffffff; 
-            --grad: linear-gradient(180deg, #3d3d3d 0%, #000000 100%);
-            --yellow: #ffdd2d;
         } 
         body.dark { 
             --bg: #000000; --card: #1c1c1e; --text: #ffffff; --secondary: #8e8e93; --tab-bg: #121212; 
         } 
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; } 
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; } 
-          
+         
+        #blocked-view {  
+            display: none; padding: 40px; text-align: center; background: var(--card);  
+            height: 100vh; flex-direction: column; justify-content: center;  
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 10000;  
+        } 
+        .lock-icon { font-size: 80px; margin-bottom: 20px; } 
+
+        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); } 
+        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; } 
+        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; } 
         .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; } 
         .screen.active { display: block; animation: fadeIn 0.3s ease; } 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } 
-        
-        #screen-details { padding: 0; background: var(--grad); color: white; z-index: 2000; }
-        .details-header { padding: 40px 20px 20px; position: relative; }
-        .back-btn { font-size: 24px; margin-bottom: 20px; cursor: pointer; }
-        .details-main-card { 
-            background: white; border-radius: 30px 30px 0 0; 
-            padding: 30px 20px; min-height: 70vh; color: black;
-        }
-        .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .action-item { 
-            background: #f2f3f7; padding: 15px; border-radius: 20px; 
-            text-align: center; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer;
-        }
-        .action-item.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
-        
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; } 
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; } 
         .small { color: var(--secondary); font-size: 13px; } 
-        .btn { width: 100%; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; } 
-        .primary { background: var(--yellow); color: #000; } 
-        
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); } 
-        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; } 
-        .tab-item.active { color: var(--accent); } 
-        .tab-icon { font-size: 24px; margin-bottom: 4px; } 
+         
+        .ip-badge { 
+            display: none; 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            background: #000; 
+            color: #fff; 
+            padding: 4px 10px; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 800; 
+            letter-spacing: 1px; 
+        } 
 
+        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; } 
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; } 
+        .primary { background: #ffdd2d; color: #000; } 
+        .secondary { background: #e8f0ff; color: #007aff; } 
+        .danger { background: var(--red); color: white; } 
         .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; } 
         .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; } 
         .dot.filled { background: var(--text); border-color: var(--text); } 
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; } 
-        .key { height: 70px; font-size: 26px; border: none; background: none; color: var(--text); } 
-        
-        #chat-container { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; }
-        .msg { padding: 12px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
-        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
-        .msg.support { align-self: flex-start; background: #e9e9eb; color: black; border-bottom-left-radius: 4px; }
-        
+        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); } 
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); } 
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; } 
+        .history-amount { font-weight: 700; font-size: 15px; } 
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); } 
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; } 
+        .tab-item.active { color: var(--accent); } 
+        .tab-icon { font-size: 24px; margin-bottom: 4px; } 
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); } 
-        .modal-content { background: var(--card); width: 95%; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 28px; } 
-        input { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 10px; background: var(--bg); color: var(--text); font-size: 16px; }
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; } 
+        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; } 
+        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; } 
+        .check-names { margin: 20px 0; } 
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; } 
 
-        .progress-bar { height: 8px; border-radius: 4px; background: #eee; margin-top: 10px; display: flex; overflow: hidden; }
-        .frozen-label { background: var(--red); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; margin-bottom: 5px; display: none; }
+        /* Стили для новых элементов */
+        .reg-link { margin-top: 15px; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer; display: inline-block; }
+        .type-tabs { display: flex; background: #eee; border-radius: 12px; padding: 3px; margin-bottom: 15px; }
+        body.dark .type-tabs { background: #333; }
+        .type-tab { flex: 1; padding: 10px; font-size: 13px; border-radius: 10px; cursor: pointer; color: var(--secondary); }
+        .type-tab.active { background: white; color: black; font-weight: bold; }
+        body.dark .type-tab.active { background: #555; color: white; }
+
+        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; } 
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; } 
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; } 
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; } 
+        body.dark .msg.admin { background: #3a3a3c; color: #fff; } 
+        .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+
+        .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
+        body.dark .login-tabs { background: #3a3a3c; }
+        .login-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--secondary); }
+        .login-tab.active { background: #fff; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body.dark .login-tab.active { background: #1c1c1e; color: #fff; }
     </style> 
 </head> 
-<body onload="init()"> 
+<body> 
 
-    <div id="screen-name" class="screen active"> 
-        <h1 style="margin-top:60px">Вход</h1> 
-        <div class="card"> 
-            <input type="text" id="loginInp" placeholder="Имя или телефон" oninput="findClient()"> 
-            <div id="variants"></div> 
-            <div style="margin-top:15px; text-align:center; color:var(--accent); font-weight:600; cursor:pointer;" onclick="openReg()">Создать аккаунт</div> 
+    <button class="refresh-btn" onclick="hardReset()">🔄</button> 
+
+    <div id="blocked-view"> 
+        <div class="lock-icon">🔒</div> 
+        <h1 style="color: var(--red);">Аккаунт заблокирован</h1> 
+        <p style="color: var(--secondary);">Ваш доступ ограничен. Пожалуйста, обратитесь в поддержку.</p> 
+        <button class="btn secondary" style="max-width:200px; margin: 20px auto;" onclick="hardReset()">Вернуться ко входу</button> 
+    </div> 
+
+    <div id="install-view"> 
+        <div class="logo-box">👤</div> 
+        <h1>Активация доступа</h1> 
+        <p>Нажмите «Поделиться», затем «На экран Домой».</p> 
+    </div> 
+
+    <div id="reg-modal" class="modal">
+        <div class="modal-content">
+            <div id="reg-step-1">
+                <h3 style="margin-top:0">Создать аккаунт</h3>
+                <p class="small" style="margin-bottom:15px">Для того, чтобы создать аккаунт, заполните поля ниже.</p>
+                
+                <div class="type-tabs">
+                    <div class="type-tab active" id="rt-client" onclick="setRegType('Клиент')">Клиент</div>
+                    <div class="type-tab" id="rt-ip" onclick="setRegType('ИП')">ИП</div>
+                </div>
+
+                <div id="fields-client">
+                    <input type="text" id="reg-name" placeholder="Ваше Имя">
+                </div>
+                <div id="fields-ip" style="display:none">
+                    <input type="text" id="reg-company" placeholder="Название компании">
+                    <input type="text" id="reg-inn" placeholder="ИНН">
+                </div>
+                
+                <input type="tel" id="reg-phone" placeholder="Ваш Телефон">
+                <input type="password" id="reg-pin" placeholder="Ваш Пин-Код для входа" maxlength="4">
+
+                <button class="btn primary" style="width:100%" onclick="submitReg()">Создать</button>
+                <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeReg()">Отмена</button>
+            </div>
+
+            <div id="reg-step-2" style="display:none">
+                <div class="check-icon" style="background:var(--accent)">⌛</div>
+                <h2>Отлично!</h2>
+                <p class="small">Ваш аккаунт будет создан через 3-5 минут.</p>
+                <button class="btn primary" style="width:100%; margin-top:15px" onclick="closeReg()">Понятно</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="transfer-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Перевод</h2> 
+            <select id="transfer-target"></select> 
+            <input type="number" id="transfer-amount" placeholder="0 ₽"> 
+            <input type="text" id="transfer-message" placeholder="Сообщение получателю"> 
+            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
         </div> 
+    </div> 
+
+    <div id="service-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 id="service-title" style="margin-top:0">Оплата</h2> 
+            <select id="service-provider" onchange="toggleServiceFields()"></select> 
+            <input type="text" id="service-account" placeholder="Номер счета / Телефона"> 
+            <input type="number" id="service-sum" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="processServicePayment()">Оплатить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeServiceModal()">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="piggy-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Новая копилка</h2> 
+            <input type="text" id="piggy-name" placeholder="Название (например, на мечту)"> 
+            <input type="number" id="piggy-target" placeholder="Цель (₽)"> 
+            <button class="btn primary" style="width:100%" onclick="createPiggy()">Создать</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closePiggyModal()">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="credit-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Заявка на кредит</h2> 
+            <p class="small" style="margin-bottom:20px">Укажите желаемую сумму кредитного лимита</p> 
+            <input type="number" id="credit-amount" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="requestCredit()">Отправить заявку</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="document.getElementById('credit-modal').style.display='none'">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="success-modal" class="modal"> 
+        <div class="modal-content"> 
+            <div class="check-icon">✓</div> 
+            <div class="check-sum" id="check-amount">0 ₽</div> 
+            <div id="check-names" style="margin: 20px 0;"></div> 
+            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button> 
+        </div> 
+    </div> 
+
+    <div id="screen-name" class="screen"> 
+        <h1 style="margin-top:60px">Вход</h1> 
+         
+        <div class="login-tabs"> 
+            <div class="login-tab active" id="tab-client" onclick="switchLoginTab('Клиент')">Клиенты</div> 
+            <div class="login-tab" id="tab-ip" onclick="switchLoginTab('ИП')">ИП</div> 
+        </div> 
+
+        <div class="card" style="text-align:center"> 
+            <input type="text" id="loginInp" placeholder="Имя или телефон"> 
+            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Продолжить</button> 
+            <div class="reg-link" onclick="openReg()">Создать аккаунт</div>
+            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div> 
+        </div> 
+        <div id="variants"></div> 
     </div> 
 
     <div id="screen-pin" class="screen"> 
         <div style="text-align:center; margin-top:80px;"> 
+            <div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div> 
             <h2 id="pinUser"></h2> 
             <div class="dots" id="pinDots"> 
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div> 
@@ -95,152 +232,267 @@
 
     <div id="screen-home" class="screen"> 
         <h1 id="homeUser" style="margin-top:10px"></h1> 
-        <div class="card" onclick="navTo('screen-details')" style="cursor:pointer"> 
-            <div id="frozen-status-home" class="frozen-label">ЗАБЛОКИРОВАНО</div>
-            <div style="display:flex; justify-content:space-between; align-items:flex-start">
-                <div>
-                    <div class="small">Личный счет</div> 
-                    <div class="balance" id="hBal">0 ₽</div> 
-                </div>
-                <div style="text-align: right;">
-                    <div style="color:var(--accent); font-weight: 600; font-size: 14px;">Бонусы: <span id="bonus-val">0</span></div>
-                    <div class="small" style="margin-top: 4px;">Подробнее ></div>
-                </div>
-            </div>
+        <div class="card"> 
+            <div class="small">Всего средств</div> 
+            <div class="balance" id="hBal">0 ₽</div> 
+            <div class="small" id="hSpend">Траты за период: 0 ₽</div> 
+        </div> 
+        <div id="accounts-container"></div> 
+         
+        <div class="card" onclick="document.getElementById('credit-modal').style.display='flex'"> 
+            <div style="display:flex; align-items:center; gap:15px"> 
+                <div style="font-size:24px">💳</div> 
+                <div> 
+                    <div style="font-weight:600">Взять кредит</div> 
+                    <div class="small">Решение за 1 минуту</div> 
+                </div> 
+            </div> 
         </div> 
 
-        <div class="card">
-            <div class="small">Трат в декабре</div>
-            <div style="font-size: 18px; font-weight: 600; margin: 5px 0;">2 745 ₽</div>
-            <div class="progress-bar">
-                <div style="width: 65%; background: #ff9500;"></div>
-                <div style="width: 20%; background: #5ac8fa;"></div>
-            </div>
-        </div>
-        <button class="btn primary" onclick="alert('Заявка отправлена')">Взять кредит за 1 минуту</button>
+        <div class="card"> 
+            <div style="font-weight:700; margin-bottom:15px">Платежи и сервисы</div> 
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;"> 
+                <div onclick="openService('mobile')" style="text-align:center;"> 
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">📱</div> 
+                    <div style="font-size:10px; margin-top:5px;">Связь</div> 
+                </div> 
+                <div onclick="openService('transport')" style="text-align:center;"> 
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🚌</div> 
+                    <div style="font-size:10px; margin-top:5px;">Транспорт</div> 
+                </div> 
+                <div onclick="openService('internet')" style="text-align:center;"> 
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🌐</div> 
+                    <div style="font-size:10px; margin-top:5px;">Интернет</div> 
+                </div> 
+            </div> 
+        </div> 
     </div> 
 
-    <div id="screen-details" class="screen">
-        <div class="details-header">
-            <div class="back-btn" onclick="navTo('screen-home')">✕</div>
-            <div id="frozen-status-det" class="frozen-label" style="display:inline-block; margin-bottom: 10px;">ОГРАНИЧЕНО</div>
-            <div id="detName" style="font-size: 20px; font-weight: 600;">Личный счет</div>
-            <div class="balance" id="detBal" style="font-size: 36px; margin-top:10px">0 ₽</div>
-            <div style="margin-top:15px"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Mir-logo.svg" width="50" style="filter: brightness(0) invert(1);"></div>
-        </div>
-        <div class="details-main-card">
-            <div class="action-grid">
-                <div class="action-item" id="btn-qr" onclick="alert('Камера временно недоступна')">📷 Оплата QR</div>
-                <div class="action-item" id="btn-tr" onclick="alert('Переводы временно недоступны')">💸 Перевести</div>
-            </div>
-            <div style="margin-bottom:25px">
-                <div class="small" style="margin-bottom:10px; font-weight: bold;">ИСТОРИЯ ОПЕРАЦИЙ</div>
-                <div id="detHistory"></div>
-            </div>
-            <div class="card" style="border: 1px solid #ffebeb; background: #fffcfc;">
-                <div style="display:flex; justify-content:space-between; align-items:center">
-                    <div>
-                        <div id="lock-title" style="font-weight:600; color:var(--red)">Заблокировать карту</div>
-                        <div id="lock-desc" class="small">В случае утери или кражи</div>
-                    </div>
-                    <button id="lock-toggle-btn" class="btn" style="width:40px; height:40px; background:var(--red); color:white; border-radius:12px; padding:0" onclick="toggleFreeze()">✕</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div id="screen-piggy" class="screen"> 
+        <h1>Копилки</h1> 
+        <button class="btn primary" style="margin-bottom: 20px;" onclick="showPiggyModal()">+ Создать</button> 
+        <div id="piggy-container"></div> 
+    </div> 
 
-    <div id="screen-support" class="screen">
-        <h1>Поддержка</h1>
-        <div class="card" style="padding:0; overflow:hidden">
-            <div id="chat-container"></div>
-            <div style="display:flex; gap:10px; padding:15px; background: var(--card); border-top: 1px solid #eee;">
-                <input type="text" id="chatInp" placeholder="Сообщение...">
-                <button class="btn primary" style="width:60px; padding:0" onclick="sendChat()">➤</button>
-            </div>
-        </div>
-    </div>
+    <div id="screen-chat" class="screen"> 
+        <h1>Поддержка</h1> 
+        <div class="card" style="padding: 15px;"> 
+            <div id="chat-container"></div> 
+            <div class="chat-input-area"> 
+                <input type="text" id="chatInput" placeholder="Ваш вопрос..." style="margin-bottom: 0;"> 
+                <button class="btn primary" style="flex: 0 0 60px; height: 54px;" onclick="sendChatMsg()">➤</button> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div id="screen-settings" class="screen"> 
+        <h1>Настройки</h1> 
+        <div class="card"> 
+            <p class="small">Тема</p> 
+            <select id="themeSelect" onchange="applyTheme(this.value)"> 
+                <option value="light">Светлая</option> 
+                <option value="dark">Темная</option> 
+            </select> 
+        </div> 
+        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button> 
+        <footer id="version-label"></footer> 
+    </div> 
+
+    <div id="screen-card" class="screen"> 
+        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
+        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
+            <div id="ipBadge" class="ip-badge">ИП</div> 
+            <div class="small" style="color:#aaa">Текущий баланс</div> 
+            <div class="balance" id="cBal">0 ₽</div> 
+            <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
+        </div> 
+        <div class="btn-row"> 
+            <button class="btn secondary" onclick="alert('Сервис недоступен')">QR-оплата</button> 
+            <button class="btn primary" onclick="showTransfer()">Перевести</button> 
+        </div> 
+        <h3 style="margin-left:10px">История операций</h3> 
+        <div class="card" id="historyList"></div> 
+    </div> 
 
     <div class="tab-bar" id="main-nav" style="display: none;"> 
         <div class="tab-item active" onclick="navTo('screen-home', this)"> 
             <span class="tab-icon">🏠</span><span>Главная</span> 
         </div> 
-        <div class="tab-item" onclick="navTo('screen-support', this)"> 
+        <div class="tab-item" onclick="navTo('screen-piggy', this)"> 
+            <span class="tab-icon">🐷</span><span>Копилки</span> 
+        </div> 
+        <div class="tab-item" onclick="navTo('screen-chat', this)"> 
             <span class="tab-icon">💬</span><span>Чат</span> 
         </div> 
-        <div class="tab-item" onclick="toggleTheme()"> 
-            <span class="tab-icon">⚙️</span><span>Тема</span> 
+        <div class="tab-item" onclick="navTo('screen-settings', this)"> 
+            <span class="tab-icon">⚙️</span><span>Настройки</span> 
         </div> 
     </div> 
-
-    <div id="reg-modal" class="modal">
-        <div class="modal-content">
-            <h3>Регистрация</h3>
-            <input type="text" id="reg-name" placeholder="Имя">
-            <input type="tel" id="reg-phone" placeholder="Телефон">
-            <input type="password" id="reg-pin" placeholder="ПИН" maxlength="4">
-            <button class="btn primary" onclick="submitReg()">Создать</button>
-            <button onclick="closeReg()" style="background:none; border:none; margin-top:10px; width:100%">Отмена</button>
-        </div>
-    </div>
 
     <script> 
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
+            authDomain: "webapp-b7149.firebaseapp.com", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
             projectId: "webapp-b7149", 
+            storageBucket: "webapp-b7149.firebasestorage.app", 
+            messagingSenderId: "1034835242406", 
+            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367" 
         }; 
 
         firebase.initializeApp(firebaseConfig); 
         const dbRef = firebase.database().ref('clients'); 
+        const appRef = firebase.database().ref('applications'); // Новая ветка для заявок
 
         let db = []; 
         let curUser = null; 
         let enteredPin = ""; 
+        let activeLoginTab = 'Клиент'; 
+        let currentRegType = 'Клиент';
 
-        function init() { 
-            buildKeypad(); 
-            dbRef.on('value', (snap) => {
-                const data = snap.val();
-                db = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
-                if(curUser) {
-                    curUser = db.find(u => u.fbKey === curUser.fbKey);
-                    updateUI();
-                    loadChat();
-                }
+        const services = {
+            mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
+            transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
+            internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
+        };
+
+        dbRef.on('value', (snapshot) => { 
+            const data = snapshot.val(); 
+            db = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : []; 
+            if (curUser) { 
+                const freshData = db.find(u => u.fbKey === curUser.fbKey); 
+                if (freshData) { 
+                    curUser = freshData; 
+                    document.getElementById('blocked-view').style.display = curUser.frozen ? 'flex' : 'none'; 
+                    updateUI(); 
+                } 
+            } 
+        }); 
+
+        /* --- ЛОГИКА РЕГИСТРАЦИИ --- */
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+        function closeReg() { 
+            document.getElementById('reg-modal').style.display = 'none'; 
+            document.getElementById('reg-step-1').style.display = 'block';
+            document.getElementById('reg-step-2').style.display = 'none';
+        }
+        function setRegType(type) {
+            currentRegType = type;
+            document.getElementById('rt-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('rt-ip').classList.toggle('active', type === 'ИП');
+            document.getElementById('fields-client').style.display = type === 'Клиент' ? 'block' : 'none';
+            document.getElementById('fields-ip').style.display = type === 'ИП' ? 'block' : 'none';
+        }
+        function submitReg() {
+            const name = currentRegType === 'Клиент' ? document.getElementById('reg-name').value : document.getElementById('reg-company').value;
+            const phone = document.getElementById('reg-phone').value;
+            const pin = document.getElementById('reg-pin').value;
+            const inn = document.getElementById('reg-inn').value;
+
+            if(!name || !phone || !pin) return alert("Заполните все поля");
+            
+            appRef.push({
+                name, phone, clientPin: pin, inn: inn || '',
+                orgType: currentRegType,
+                balance: 0, bonuses: 0, creditLimit: 0, spentMonth: 0,
+                status: 'pending', time: Date.now()
+            }).then(() => {
+                document.getElementById('reg-step-1').style.display = 'none';
+                document.getElementById('reg-step-2').style.display = 'block';
             });
+        }
+        /* --- КОНЕЦ ЛОГИКИ РЕГИСТРАЦИИ --- */
+
+        function switchLoginTab(type) {
+            activeLoginTab = type;
+            document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
+            document.getElementById('loginInp').placeholder = type === 'Клиент' ? 'Имя или телефон' : 'Название компании или ИНН';
+            findClient();
+        }
+
+        function updateUI() { 
+            if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
         } 
 
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-        }
+        function hardReset() { location.reload(); } 
 
-        function findClient() {
-            const v = document.getElementById('loginInp').value.trim().toLowerCase();
-            const variants = document.getElementById('variants');
-            variants.innerHTML = "";
-            if(v.length < 2) return;
-            const filtered = db.filter(u => (u.name && u.name.toLowerCase().includes(v)) || (u.phone && u.phone.includes(v)));
-            filtered.forEach(u => {
-                const div = document.createElement('div');
-                div.className = 'card'; div.style.padding = '15px'; div.innerText = u.name;
-                div.onclick = () => { curUser = u; enteredPin = ""; updateDots(); document.getElementById('pinUser').innerText = u.name; navTo('screen-pin'); };
-                variants.appendChild(div);
+        function init() { 
+            document.getElementById('version-label').innerText = "Версия системы: 10.1 Stable"; 
+            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches; 
+            if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) { 
+                document.getElementById('install-view').style.display = 'block'; 
+            } else { 
+                navTo('screen-name'); 
+                buildKeypad(); 
+            } 
+            applyTheme(localStorage.getItem('app_theme') || 'light'); 
+        } 
+
+        function navTo(id, el) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            if(el) { 
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
+                el.classList.add('active'); 
+            } 
+            const nav = document.getElementById('main-nav'); 
+            nav.style.display = ['screen-home', 'screen-piggy', 'screen-settings', 'screen-chat', 'screen-card'].includes(id) ? 'flex' : 'none'; 
+             
+            if(id === 'screen-home' || id === 'screen-card') showHome(); 
+            if(id === 'screen-chat') renderChat(); 
+        } 
+
+        function findClient() { 
+            const v = loginInp.value.trim().toLowerCase(); 
+            error.innerText = ""; variants.innerHTML = ""; 
+            if(!v) return; 
+            const matches = db.filter(c => {
+                const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
+                const nameMatch = (c.name && c.name.toLowerCase().includes(v));
+                const phoneMatch = (c.phone && c.phone.includes(v));
+                return isCorrectType && (nameMatch || phoneMatch);
             });
-        }
+            if (matches.length === 0) { error.innerText = "Ничего не найдено"; return; } 
+            matches.forEach(c => { 
+                const d = document.createElement("div"); 
+                d.className = "card"; d.style.marginBottom = "8px"; 
+                d.innerText = `${c.name} ${c.phone ? '('+c.phone+')' : ''}`; 
+                d.onclick = () => selectUser(c);  
+                variants.appendChild(d); 
+            }); 
+        } 
+
+        function selectUser(c) { 
+            curUser = c; enteredPin = "";  
+            pinUser.innerText = curUser.name; 
+            updateDots(); navTo('screen-pin'); 
+        } 
 
         function buildKeypad() { 
-            const keypad = document.getElementById('keypad');
-            keypad.innerHTML = "";
-            [1,2,3,4,5,6,7,8,9,'',0,'←'].forEach(k => { 
+            const keys = [1,2,3,4,5,6,7,8,9,'',0,'←']; 
+            keypad.innerHTML = ''; 
+            keys.forEach(k => { 
                 const b = document.createElement('button'); 
                 b.className = 'key'; b.innerText = k; 
+                if(k === '') b.style.visibility = 'hidden'; 
                 b.onclick = () => { 
                     if(k === '←') enteredPin = enteredPin.slice(0, -1); 
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k; 
                     updateDots(); 
                     if(enteredPin.length === 4) { 
-                        if(enteredPin === String(curUser.clientPin)) navTo('screen-home'); 
-                        else { alert("Неверный ПИН"); enteredPin = ""; updateDots(); }
+                        if(enteredPin === curUser.clientPin) { 
+                            if (curUser.frozen) { 
+                                document.getElementById('blocked-view').style.display = 'flex'; 
+                            } else { 
+                                navTo('screen-home'); 
+                            } 
+                        } else { 
+                            enteredPin = ""; updateDots(); 
+                            alert("Неверный ПИН-код"); 
+                        } 
                     } 
                 }; 
                 keypad.appendChild(b); 
@@ -248,99 +500,111 @@
         } 
 
         function updateDots() { 
-            const d = document.getElementById('pinDots').children; 
+            const d = pinDots.children; 
             for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length); 
         } 
 
-        function updateUI() {
-            if(!curUser) return;
-            const balStr = Number(curUser.balance || 0).toLocaleString() + " ₽";
-            document.getElementById('hBal').innerText = balStr;
-            document.getElementById('detBal').innerText = balStr;
-            document.getElementById('homeUser').innerText = curUser.name;
-            document.getElementById('bonus-val').innerText = curUser.bonuses || 0;
+        function showHome() { 
+            if (!curUser) return; 
+            homeUser.innerText = activeLoginTab === 'ИП' ? curUser.name : `Здравствуйте, ${curUser.name}`; 
+            const totalBalance = (Number(curUser.balance) || 0) + (Number(curUser.creditLimit) || 0); 
+            hBal.innerText = totalBalance.toLocaleString() + " ₽"; 
+            hSpend.innerText = `Траты: ${(Number(curUser.spentMonth) || 0).toLocaleString()} ₽`; 
+            const badge = document.getElementById('ipBadge'); 
+            badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
 
-            const isFrozen = curUser.frozen === true;
-            document.getElementById('frozen-status-home').style.display = isFrozen ? 'block' : 'none';
-            document.getElementById('frozen-status-det').style.display = isFrozen ? 'inline-block' : 'none';
+            let html = `<div class="card" onclick="navTo('screen-card')"> 
+                <div class="small">Личный счет</div> 
+                <div style="font-size:20px; font-weight:600; margin-top:8px;">${(Number(curUser.balance) || 0).toLocaleString()} ₽</div> 
+                <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
+            </div>`; 
+            if(curUser.creditLimit && Number(curUser.creditLimit) > 0) { 
+                html += `<div class="card"><span style="color:var(--credit); font-size:12px; font-weight:600;">Кредитный лимит</span> 
+                <div style="font-size:20px; font-weight:600;">${Number(curUser.creditLimit).toLocaleString()} ₽</div></div>`; 
+            } 
+            document.getElementById('accounts-container').innerHTML = html; 
+            cBal.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+            cBonus.innerText = "Бонусы: " + (Number(curUser.bonuses) || 0).toLocaleString(); 
+            const hList = document.getElementById('historyList'); 
+            hList.innerHTML = ""; 
+            if(curUser.history && Array.isArray(curUser.history)) { 
+                curUser.history.slice().reverse().forEach(h => { 
+                    hList.innerHTML += `<div class="history-item"> 
+                        <div>
+                            <div style="font-weight:600;">${h.t}</div>
+                            ${h.msg ? `<div class="small" style="color:var(--accent); font-style:italic;">"${h.msg}"</div>` : ''}
+                        </div>
+                        <span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span> 
+                    </div>`; 
+                }); 
+            } else { 
+                hList.innerHTML = "<div class='small' style='text-align:center; padding:10px;'>Истории пока нет</div>"; 
+            } 
+        } 
+
+        function processTransfer() { 
+            const amount = Number(document.getElementById('transfer-amount').value); 
+            const targetKey = document.getElementById('transfer-target').value; 
+            const message = document.getElementById('transfer-message').value.trim(); 
+
+            if(amount <= 0 || amount > curUser.balance) { alert("Недостаточно средств"); return; } 
             
-            const lockBtn = document.getElementById('lock-toggle-btn');
-            const lockTitle = document.getElementById('lock-title');
+            const targetUser = db.find(u => u.fbKey === targetKey); 
+            const newCurBal = curUser.balance - amount; 
+            const newTarBal = (Number(targetUser.balance) || 0) + amount; 
             
-            if(isFrozen) {
-                lockBtn.style.background = 'var(--secondary)'; lockBtn.innerText = '🔒';
-                lockTitle.innerText = "Карта заблокирована";
-                document.getElementById('btn-qr').classList.add('disabled');
-                document.getElementById('btn-tr').classList.add('disabled');
-            } else {
-                lockBtn.style.background = 'var(--red)'; lockBtn.innerText = '✕';
-                lockTitle.innerText = "Заблокировать карту";
-                document.getElementById('btn-qr').classList.remove('disabled');
-                document.getElementById('btn-tr').classList.remove('disabled');
-            }
+            const curHistory = curUser.history || []; 
+            const tarHistory = targetUser.history || []; 
             
-            const hDiv = document.getElementById('detHistory');
-            hDiv.innerHTML = "";
-            (curUser.history || []).slice().reverse().forEach(h => {
-                hDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:16px 0; border-bottom:1px solid #f0f0f0;">
-                    <div><div style="font-weight:500">${h.title}</div><div class="small">Сегодня</div></div>
-                    <b style="color:${h.amount < 0 ? 'var(--red)' : 'var(--credit)'}">${h.amount > 0 ? '+' : ''}${h.amount.toLocaleString()} ₽</b>
-                </div>`;
+            curHistory.push({t: `Перевод: ${targetUser.name}`, a: -amount, msg: message}); 
+            tarHistory.push({t: `Входящий: ${curUser.name}`, a: amount, msg: message}); 
+            
+            const updates = {}; 
+            updates['/clients/' + curUser.fbKey + '/balance'] = newCurBal; 
+            updates['/clients/' + curUser.fbKey + '/history'] = curHistory; 
+            updates['/clients/' + targetKey + '/balance'] = newTarBal; 
+            updates['/clients/' + targetKey + '/history'] = tarHistory; 
+            
+            firebase.database().ref().update(updates).then(() => { 
+                document.getElementById('transfer-modal').style.display = 'none'; 
+                document.getElementById('check-amount').innerText = amount.toLocaleString() + " ₽"; 
+                document.getElementById('check-names').innerText = `${curUser.name} → ${targetUser.name}`; 
+                document.getElementById('success-modal').style.display = 'flex'; 
+            }); 
+        } 
+
+        function renderChat() { 
+            const container = document.getElementById('chat-container'); 
+            let chatHtml = `<div class="msg admin">Здравствуйте! Как я могу вам помочь?</div>`; 
+            if (curUser && curUser.chat) { 
+                const messages = Array.isArray(curUser.chat) ? curUser.chat : Object.values(curUser.chat);
+                messages.forEach(msg => { 
+                    const roleClass = (msg.role === 'user') ? 'user' : 'admin';
+                    chatHtml += `<div class="msg ${roleClass}">${msg.text}</div>`; 
+                }); 
+            } 
+            container.innerHTML = chatHtml; 
+            container.scrollTop = container.scrollHeight; 
+        } 
+
+        function sendChatMsg() { 
+            const input = document.getElementById('chatInput'); 
+            const text = input.value.trim(); 
+            if (!text || !curUser) return; 
+            let currentChat = curUser.chat ? (Array.isArray(curUser.chat) ? [...curUser.chat] : Object.values(curUser.chat)) : [];
+            currentChat.push({ role: 'user', text: text, time: Date.now() });
+            firebase.database().ref('clients/' + curUser.fbKey).update({ chat: currentChat }).then(() => {
+                input.value = ""; renderChat();
             });
-        }
+        } 
 
-        function toggleFreeze() {
-            if (curUser.frozen) {
-                alert("Для разблокировки обратитесь в ближайшее отделение банка или в чат поддержки.");
-                return;
-            }
-            if(confirm("Вы уверены, что хотите заблокировать карту? Самостоятельная разблокировка будет невозможна.")) {
-                dbRef.child(curUser.fbKey).update({ frozen: true });
-            }
-        }
-
-        function navTo(id, el) { 
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(el) {
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-                el.classList.add('active');
-            }
-            const isAuth = id !== 'screen-name' && id !== 'screen-pin';
-            document.getElementById('main-nav').style.display = isAuth ? 'flex' : 'none';
-        }
-
-        function sendChat() {
-            const txt = document.getElementById('chatInp').value.trim();
-            if(!txt || !curUser) return;
-            const chat = curUser.chat || [];
-            chat.push({sender: 'user', text: txt});
-            // Исправлен путь к обновлению чата
-            firebase.database().ref('clients/' + curUser.fbKey).update({chat: chat});
-            document.getElementById('chatInp').value = "";
-        }
-
-        function loadChat() {
-            const cont = document.getElementById('chat-container');
-            if(!cont || !curUser) return;
-            cont.innerHTML = (curUser.chat || []).map(m => `<div class="msg ${m.sender}">${m.text}</div>`).join('');
-            cont.scrollTop = cont.scrollHeight;
-        }
-
-        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
-        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
+        function applyTheme(t) { document.body.className = t; localStorage.setItem('app_theme', t); } 
+        function logout() { curUser = null; navTo('screen-name'); } 
+        function closeSuccess() { document.getElementById('success-modal').style.display = 'none'; showHome(); } 
+        function closeTransfer() { document.getElementById('transfer-modal').style.display = 'none'; }
         
-        function submitReg() {
-            const name = document.getElementById('reg-name').value;
-            const phone = document.getElementById('reg-phone').value;
-            const pin = document.getElementById('reg-pin').value;
-            if(!name || !phone || !pin) return alert("Заполните все поля");
-            dbRef.push({
-                name, phone, clientPin: pin, 
-                balance: 5000, bonuses: 5, frozen: false, 
-                history: [{title: "Подарок при регистрации", amount: 5000}]
-            }).then(() => { alert("Аккаунт создан!"); closeReg(); });
-        }
-    </script> 
-</body> 
+        window.onload = init; 
+        document.getElementById('loginInp').addEventListener('input', findClient);
+    </script>
+</body>
 </html>
