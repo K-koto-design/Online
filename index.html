@@ -21,83 +21,160 @@
         } 
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; } 
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; } 
-         
+        
         .btn:disabled { opacity: 0.5; background: #ccc !important; color: #888 !important; cursor: not-allowed; } 
+        .lock-badge { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 5px; } 
+
         .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }  
+        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }  
+        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }  
         .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }  
         .screen.active { display: block; animation: fadeIn 0.3s ease; }  
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }  
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; }  
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }  
-        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }  
+        .small { color: var(--secondary); font-size: 13px; }  
+          
+        .ip-badge {  
+            display: none;  
+            position: absolute;  
+            top: 20px;  
+            right: 20px;  
+            background: #000;  
+            color: #fff;  
+            padding: 4px 10px;  
+            border-radius: 8px;  
+            font-size: 12px;  
+            font-weight: 800;  
+            letter-spacing: 1px;  
+        }  
+
+        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }  
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }  
+        .primary { background: #ffdd2d; color: #000; }  
+        .secondary { background: #e8f0ff; color: #007aff; }  
+        .danger { background: var(--red); color: white; }  
+        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }  
+        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }  
+        .dot.filled { background: var(--text); border-color: var(--text); }  
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }  
+        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }  
         input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }  
-        .btn { width: 100%; padding: 18px; border-radius: 18px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; margin-bottom: 10px; }
-        .primary { background: #ffdd2d; color: #000; }
-        .secondary { background: #e8f0ff; color: #007aff; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }  
+        .history-amount { font-weight: 700; font-size: 15px; }  
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }  
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }  
+        .tab-item.active { color: var(--accent); }  
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }  
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }  
-        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; } 
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }  
+        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }  
+        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }  
+        .check-names { margin: 20px 0; }  
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }  
+
+        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }  
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; }  
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }  
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }  
+        body.dark .msg.admin { background: #3a3a3c; color: #fff; }  
+        .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+
         .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
         body.dark .login-tabs { background: #3a3a3c; }
         .login-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--secondary); }
-        .login-tab.active { background: #fff; color: #000; }
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; }
-        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }
-        .tab-item.active { color: var(--accent); }
-        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
-        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }
-        .dot.filled { background: var(--text); border-color: var(--text); }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }
-        .key { height: 70px; font-size: 26px; border: none; background: none; color: var(--text); cursor: pointer; }
+        .login-tab.active { background: #fff; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body.dark .login-tab.active { background: #1c1c1e; color: #fff; }
     </style> 
 </head> 
 <body> 
 
     <button class="refresh-btn" onclick="hardReset()">🔄</button> 
 
+    <div id="install-view"> 
+        <div class="logo-box">👤</div> 
+        <h1>Активация доступа</h1> 
+        <p>Нажмите «Поделиться», затем «На экран Домой».</p> 
+    </div> 
+
     <div id="reg-modal" class="modal">
         <div class="modal-content">
             <h2 style="margin-top:0">Регистрация</h2>
-            <select id="reg_type" onchange="toggleRegFields()">
+            <select id="reg-type" onchange="toggleRegFields()">
                 <option value="client">Я Клиент</option>
                 <option value="ip">Я ИП</option>
             </select>
-            <input type="text" id="reg_name" placeholder="Ваше имя">
-            <input type="text" id="reg_phone" placeholder="Ваш телефон">
-            <div id="ip_fields" style="display:none">
-                <input type="text" id="reg_company" placeholder="Название компании">
+            <div id="reg-fields">
+                <input type="text" id="reg-name" placeholder="Ваше имя">
+                <input type="text" id="reg-phone" placeholder="Ваш телефон">
+                <div id="ip-fields" style="display:none">
+                    <input type="text" id="reg-company" placeholder="Название компании">
+                    <input type="text" id="reg-inn" placeholder="ИНН">
+                </div>
+                <input type="password" id="reg-pin" placeholder="Пин-код для входа (4 цифры)" maxlength="4">
             </div>
-            <input type="number" id="reg_tg_id" placeholder="Ваш Telegram ID">
-            <input type="password" id="reg_pin" placeholder="Пин-код (4 цифры)" maxlength="4">
-            <button class="btn primary" onclick="submitReg()">Создать аккаунт</button>
-            <button class="btn" style="background:none; color:var(--secondary)" onclick="closeReg()">Отмена</button>
+            <button class="btn primary" style="width:100%" onclick="submitReg()">Создать аккаунт</button>
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeReg()">Отмена</button>
         </div>
     </div>
 
-    <div id="screen-name" class="screen active"> 
+    <div id="transfer-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Перевод</h2> 
+            <select id="transfer-target"></select> 
+            <input type="number" id="transfer-amount" placeholder="0 ₽"> 
+            <input type="text" id="transfer-message" placeholder="Сообщение получателю"> 
+            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="service-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 id="service-title" style="margin-top:0">Оплата</h2> 
+            <select id="service-provider" onchange="toggleServiceFields()"></select> 
+            <input type="text" id="service-account" placeholder="Номер счета / Телефона"> 
+            <input type="number" id="service-sum" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="processServicePayment()">Оплатить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeServiceModal()">Отмена</button> 
+        </div> 
+    </div>
+
+    <div id="credit-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Заявка на кредит</h2> 
+            <p class="small" style="margin-bottom:20px">Укажите желаемую сумму кредитного лимита</p>
+            <input type="number" id="credit-amount" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="alert('Заявка отправлена на рассмотрение')">Отправить заявку</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="document.getElementById('credit-modal').style.display='none'">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="success-modal" class="modal"> 
+        <div class="modal-content"> 
+            <div class="check-icon">✓</div> 
+            <div class="check-sum" id="check-amount">0 ₽</div> 
+            <div id="check-names" style="margin: 20px 0;"></div> 
+            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button> 
+        </div> 
+    </div> 
+
+    <div id="screen-name" class="screen"> 
         <h1 style="margin-top:60px">Вход</h1> 
+         
         <div class="login-tabs">
             <div class="login-tab active" id="tab-client" onclick="switchLoginTab('Клиент')">Клиенты</div>
             <div class="login-tab" id="tab-ip" onclick="switchLoginTab('ИП')">ИП</div>
         </div>
+
         <div class="card"> 
             <input type="text" id="loginInp" placeholder="Имя или номер телефона" oninput="findClient()"> 
-            <div id="variants"></div> 
+            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Найти аккаунт</button> 
+            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div> 
         </div> 
+        <div id="variants"></div> 
         <p style="text-align:center; color:var(--accent); cursor:pointer; font-weight:600" onclick="openReg()">Создать аккаунт</p>
     </div> 
-
-    <div id="screen-tg-verify" class="screen">
-        <div style="text-align:center; margin-top:80px;">
-            <div class="logo-box">🆔</div>
-            <h2 id="tgVerifyUser">Подтверждение</h2>
-            <p style="color:var(--secondary); font-size:14px">Введите ваш Telegram ID</p>
-            <div class="card">
-                <input type="number" id="tgIdLoginInp" placeholder="Ваш ID">
-                <button class="btn primary" onclick="verifyTgId()">Продолжить</button>
-            </div>
-            <button class="btn" style="background:none; color:var(--secondary)" onclick="navTo('screen-name')">Назад</button>
-        </div>
-    </div>
 
     <div id="screen-pin" class="screen"> 
         <div style="text-align:center; margin-top:80px;"> 
@@ -106,23 +183,108 @@
             <div class="dots" id="pinDots"> 
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div> 
             </div> 
-            <div id="keypad_box" class="keypad"></div> 
+            <div class="keypad" id="keypad"></div> 
         </div> 
-    </div>
+    </div> 
 
     <div id="screen-home" class="screen"> 
         <h1 id="homeUser" style="margin-top:10px"></h1> 
         <div class="card"> 
-            <div style="color:var(--secondary); font-size:13px">Всего средств</div> 
+            <div class="small">Всего средств</div> 
             <div class="balance" id="hBal">0 ₽</div> 
+            <div id="hLockStatus"></div> <div class="small" id="hSpend">Траты за период: 0 ₽</div> 
+        </div> 
+        <div id="accounts-container"></div> 
+         
+        <div class="card" onclick="document.getElementById('credit-modal').style.display='flex'">
+            <div style="display:flex; align-items:center; gap:15px">
+                <div style="font-size:24px">💳</div>
+                <div>
+                    <div style="font-weight:600">Взять кредит</div>
+                    <div class="small">Решение за 1 минуту</div>
+                </div>
+            </div>
         </div>
-        <div id="accounts-container"></div>
-    </div>
+
+        <div class="card">
+            <div style="font-weight:700; margin-bottom:15px">Платежи и сервисы</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <div onclick="openService('mobile')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">📱</div>
+                    <div style="font-size:10px; margin-top:5px;">Связь</div>
+                </div>
+                <div onclick="openService('transport')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🚌</div>
+                    <div style="font-size:10px; margin-top:5px;">Транспорт</div>
+                </div>
+                <div onclick="openService('internet')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🌐</div>
+                    <div style="font-size:10px; margin-top:5px;">Интернет</div>
+                </div>
+            </div>
+        </div>
+    </div> 
+
+    <div id="screen-chat" class="screen"> 
+        <h1>Поддержка</h1> 
+        <div class="card" style="padding: 15px;"> 
+            <div id="chat-container"></div> 
+            <div class="chat-input-area"> 
+                <input type="text" id="chatInput" placeholder="Ваш вопрос..." style="margin-bottom: 0;"> 
+                <button class="btn primary" style="flex: 0 0 60px; height: 54px;" onclick="sendChatMsg()">➤</button> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div id="screen-settings" class="screen"> 
+        <h1>Настройки</h1> 
+        <div class="card"> 
+            <p class="small">Тема</p> 
+            <select id="themeSelect" onchange="applyTheme(this.value)"> 
+                <option value="light">Светлая</option> 
+                <option value="dark">Темная</option> 
+            </select> 
+        </div> 
+        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button> 
+        <footer id="version-label"></footer> 
+    </div> 
+
+    <div id="screen-card" class="screen"> 
+        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
+        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
+            <div id="ipBadge" class="ip-badge">ИП</div> 
+            <div class="small" style="color:#aaa">Текущий баланс</div> 
+            <div class="balance" id="cBal">0 ₽</div> 
+            <div id="cLockStatus"></div> <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
+        </div> 
+        <div class="btn-row"> 
+            <button class="btn secondary action-btn" onclick="alert('Сервис временно недоступен')">QR-оплата</button> 
+            <button class="btn primary action-btn" onclick="showTransfer()">Перевести</button> 
+        </div> 
+
+        <div id="block-card-section">
+            <h3 style="margin-left:10px">Управление картой</h3>
+            <div class="card">
+                <p class="small">В случае утери или кражи вы можете мгновенно заблокировать карту.</p>
+                <button id="lock-btn" class="btn danger" style="width:100%" onclick="lockCard()">Заблокировать карту</button>
+            </div>
+        </div>
+
+        <h3 style="margin-left:10px">История операций</h3> 
+        <div class="card" id="historyList"></div> 
+    </div> 
 
     <div class="tab-bar" id="main-nav" style="display: none;"> 
-        <div class="tab-item active" onclick="navTo('screen-home', this)"><span>🏠</span><span>Главная</span></div> 
-        <div class="tab-item" onclick="logout()"><span>🚪</span><span>Выход</span></div> 
-    </div>
+        <div class="tab-item active" id="nav-home" onclick="navTo('screen-home', this)"> 
+            <span class="tab-icon">🏠</span><span>Главная</span> 
+        </div> 
+        <div class="tab-item" id="nav-chat" onclick="navTo('screen-chat', this)"> 
+            <span class="tab-icon">💬</span><span>Чат</span> 
+        </div> 
+        <div class="tab-item" id="nav-settings" onclick="navTo('screen-settings', this)"> 
+            <span class="tab-icon">⚙️</span><span>Настройки</span> 
+        </div> 
+    </div> 
 
     <script> 
         const firebaseConfig = { 
@@ -140,130 +302,302 @@
 
         let db = []; 
         let curUser = null; 
-        let selectedUser = null; 
         let enteredPin = ""; 
         let activeLoginTab = 'Клиент'; 
 
-        dbRef.on('value', (s) => { 
-            const d = s.val(); 
-            db = d ? Object.keys(d).map(k => ({...d[k], fbKey: k})) : []; 
-            if(curUser) updateUI();
+        const services = {
+            mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
+            transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
+            internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
+        };
+
+        dbRef.on('value', (snapshot) => { 
+            const data = snapshot.val(); 
+            db = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : []; 
+            if (curUser) { 
+                const freshData = db.find(u => u.fbKey === curUser.fbKey); 
+                if (freshData) { 
+                    curUser = freshData; 
+                    updateUI(); 
+                } 
+            } 
         }); 
 
-        function switchLoginTab(t) { 
-            activeLoginTab = t; 
-            document.getElementById('tab-client').classList.toggle('active', t === 'Клиент');
-            document.getElementById('tab-ip').classList.toggle('active', t === 'ИП');
-            findClient();
+        function updateUI() { 
+            if (!curUser) return;
+            const isFrozen = curUser.frozen === true;
+            const lockHTML = isFrozen ? `<div class="lock-badge">🔒 Карта заблокирована</div>` : '';
+            
+            const hLS = document.getElementById('hLockStatus');
+            const cLS = document.getElementById('cLockStatus');
+            if(hLS) hLS.innerHTML = lockHTML;
+            if(cLS) cLS.innerHTML = lockHTML;
+            
+            document.querySelectorAll('.action-btn').forEach(btn => btn.disabled = isFrozen);
+            const mainLockBtn = document.getElementById('lock-btn');
+            if(mainLockBtn) {
+                mainLockBtn.innerText = isFrozen ? "Карта заблокирована" : "Заблокировать карту";
+                mainLockBtn.disabled = isFrozen;
+            }
+
+            if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
+        } 
+
+        function sendChatMsg() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !curUser) return;
+            const newMessage = { text: text, sender: 'user', timestamp: Date.now() };
+            firebase.database().ref(`clients/${curUser.fbKey}/messages`).push(newMessage).then(() => {
+                input.value = "";
+                renderChat();
+            });
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chat-container');
+            if (!curUser || !container) return;
+            const msgs = curUser.messages ? Object.values(curUser.messages) : [];
+            container.innerHTML = msgs.length ? "" : "<p class='small' style='text-align:center'>История сообщений пуста.</p>";
+            msgs.forEach(m => {
+                const d = document.createElement('div');
+                d.className = `msg ${m.sender === 'admin' ? 'admin' : 'user'}`;
+                d.innerText = m.text;
+                container.appendChild(d);
+            });
+            container.scrollTop = container.scrollHeight;
         }
 
         function findClient() { 
-            const v = document.getElementById('loginInp').value.trim().toLowerCase(); 
-            const container = document.getElementById('variants');
-            container.innerHTML = ""; 
+            const v = loginInp.value.trim().toLowerCase(); 
+            error.innerText = ""; variants.innerHTML = ""; 
             if(!v) return; 
-
-            db.filter(c => {
+            const matches = db.filter(c => {
                 const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
-                return isCorrectType && (c.name?.toLowerCase().includes(v) || c.phone?.includes(v));
-            }).forEach(c => { 
+                const nameMatch = c.name?.toLowerCase().includes(v);
+                const phoneMatch = c.phone?.toString().includes(v);
+                return isCorrectType && (nameMatch || phoneMatch);
+            });
+            matches.forEach(c => { 
                 const d = document.createElement("div"); 
-                d.className = "card"; 
-                d.style.cursor = "pointer";
-                d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone}</small>`; 
-                d.onclick = () => { 
-                    selectedUser = c;
-                    document.getElementById('tgVerifyUser').innerText = c.name;
-                    navTo('screen-tg-verify');
-                }; 
-                container.appendChild(d); 
+                d.className = "card"; d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone || ''}</small>`; 
+                d.onclick = () => { curUser = c; enteredPin = ""; pinUser.innerText = c.name; navTo('screen-pin'); };  
+                variants.appendChild(d); 
             }); 
         } 
 
-        function verifyTgId() {
-            const val = document.getElementById('tgIdLoginInp').value;
-            if(String(val) === String(selectedUser.telegram_id)) {
-                curUser = selectedUser;
-                enteredPin = "";
-                document.getElementById('pinUser').innerText = curUser.name;
-                navTo('screen-pin');
-            } else {
-                alert("Неверный Telegram ID!");
-            }
-        }
-
         function buildKeypad() { 
-            const keypad = document.getElementById('keypad_box');
+            const keypadElement = document.getElementById('keypad');
             const keys = [1,2,3,4,5,6,7,8,9,'',0,'←']; 
-            keypad.innerHTML = "";
+            keypadElement.innerHTML = "";
             keys.forEach(k => { 
                 const b = document.createElement('button'); 
                 b.className = 'key'; b.innerText = k; 
                 b.onclick = () => { 
                     if(k === '←') enteredPin = enteredPin.slice(0, -1); 
                     else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k; 
-                    
-                    const dots = document.getElementById('pinDots').children;
-                    for(let i=0; i<4; i++) dots[i].classList.toggle('filled', i < enteredPin.length);
-                    
+                    const d = pinDots.children;
+                    for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
                     if(enteredPin.length === 4) { 
-                        if(enteredPin === String(curUser.clientPin)) {
-                            navTo('screen-home');
-                            updateUI();
-                        } else { 
-                            enteredPin = ""; 
-                            alert("Неверный ПИН"); 
-                            for(let i=0; i<4; i++) dots[i].classList.remove('filled');
-                        } 
+                        if(enteredPin === curUser.clientPin) navTo('screen-home'); 
+                        else { enteredPin = ""; alert("Неверный ПИН"); } 
                     } 
                 }; 
-                keypad.appendChild(b); 
+                keypadElement.appendChild(b); 
             }); 
         } 
 
-        function submitReg() {
-            const name = document.getElementById('reg_name').value;
-            const phone = document.getElementById('reg_phone').value;
-            const tgid = document.getElementById('reg_tg_id').value;
-            const pin = document.getElementById('reg_pin').value;
-            const type = document.getElementById('reg_type').value;
+        function showHome() { 
+            if (!curUser) return; 
+            homeUser.innerText = `Здравствуйте, ${curUser.name}`; 
+            hBal.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+            hSpend.innerText = `Траты: ${(Number(curUser.spentMonth) || 0).toLocaleString()} ₽`; 
+            
+            const badge = document.getElementById('ipBadge');
+            if(badge) badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
 
-            if(!name || !phone || !tgid || pin.length < 4) return alert("Заполните все поля корректно");
-
-            const newUser = {
-                name, phone, telegram_id: tgid, clientPin: pin,
-                orgType: type === 'ip' ? 'ИП' : 'Клиент',
-                balance: 0, frozen: false,
-                history: [{t: "Открытие счета", a: 0}]
-            };
-
-            firebase.database().ref('applications').push(newUser).then(() => {
-                alert("Заявка отправлена!");
-                closeReg();
-            });
-        }
-
-        function updateUI() {
-            document.getElementById('homeUser').innerText = `Привет, ${curUser.name}`;
-            document.getElementById('hBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
-        }
+            document.getElementById('accounts-container').innerHTML = `
+                <div class="card" onclick="navTo('screen-card')"> 
+                    <div class="small">Личный счет</div> 
+                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${(Number(curUser.balance) || 0).toLocaleString()} ₽</div> 
+                    <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
+                </div>`; 
+            
+            const cBalEl = document.getElementById('cBal');
+            const cBonusEl = document.getElementById('cBonus');
+            if(cBalEl) cBalEl.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+            if(cBonusEl) cBonusEl.innerText = "Бонусы: " + (Number(curUser.bonuses) || 0).toLocaleString(); 
+             
+            const hList = document.getElementById('historyList'); 
+            if(hList) {
+                hList.innerHTML = ""; 
+                if(curUser.history) { 
+                    curUser.history.slice().reverse().forEach(h => { 
+                        hList.innerHTML += `<div class="history-item"> 
+                            <div><div style="font-weight:600;">${h.t}</div></div>
+                            <span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span> 
+                        </div>`; 
+                    }); 
+                } 
+            }
+        } 
 
         function navTo(id, el) { 
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
             document.getElementById(id).classList.add('active'); 
-            document.getElementById('main-nav').style.display = (id === 'screen-home') ? 'flex' : 'none'; 
+            if(el) { 
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
+                el.classList.add('active'); 
+            } 
+            const nav = document.getElementById('main-nav'); 
+            nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card'].includes(id) ? 'flex' : 'none'; 
+            if(id === 'screen-home' || id === 'screen-card') showHome(); 
+            if(id === 'screen-chat') renderChat(); 
         } 
 
-        function toggleRegFields() {
-            document.getElementById('ip_fields').style.display = document.getElementById('reg_type').value === 'ip' ? 'block' : 'none';
+        function submitReg() {
+            const type = document.getElementById('reg-type').value;
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const pin = document.getElementById('reg-pin').value;
+            
+            if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
+            
+            const newUser = {
+                name: name,
+                phone: phone,
+                clientPin: pin,
+                orgType: type === 'ip' ? 'ИП' : 'Клиент',
+                balance: 0,
+                spentMonth: 0,
+                bonuses: 0,
+                frozen: false,
+                history: [{t: "Открытие счета", a: 0}],
+                messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
+            };
+
+            firebase.database().ref('applications').push(newUser)
+                .then(() => {
+                    alert("Заявка успешно отправлена! Ожидайте подтверждения.");
+                    closeReg();
+                })
+                .catch((e) => {
+                    alert("Ошибка: " + e.message);
+                });
         }
 
-        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
-        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
-        function hardReset() { location.reload(); }
-        function logout() { location.reload(); }
+        /* ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕРЕВОДА */
+        function processTransfer() {
+            const targetKey = document.getElementById('transfer-target').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            const message = document.getElementById('transfer-message').value || "Перевод";
 
-        buildKeypad();
+            if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+
+            const targetUser = db.find(u => u.fbKey === targetKey);
+            if (!targetUser) return alert("Получатель не найден");
+
+            // Обновляем баланс отправителя
+            const senderUpdate = {
+                balance: curUser.balance - amount,
+                spentMonth: (curUser.spentMonth || 0) + amount,
+                history: [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }]
+            };
+
+            // Обновляем баланс получателя
+            const receiverUpdate = {
+                balance: (targetUser.balance || 0) + amount,
+                history: [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }]
+            };
+
+            const updates = {};
+            updates['/clients/' + curUser.fbKey] = { ...curUser, ...senderUpdate };
+            updates['/clients/' + targetKey] = { ...targetUser, ...receiverUpdate };
+
+            firebase.database().ref().update(updates).then(() => {
+                closeTransfer();
+                document.getElementById('check-amount').innerText = amount + " ₽";
+                document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            }).catch(e => alert("Ошибка перевода: " + e.message));
+        }
+
+        /* ФУНКЦИЯ ОПЛАТЫ СЕРВИСОВ */
+        function processServicePayment() {
+            const sum = parseFloat(document.getElementById('service-sum').value);
+            const provider = document.getElementById('service-provider').value;
+            const account = document.getElementById('service-account').value;
+
+            if (isNaN(sum) || sum <= 0 || !account) return alert("Заполните все поля");
+            if (sum > curUser.balance) return alert("Недостаточно средств");
+
+            const newUpdate = {
+                balance: curUser.balance - sum,
+                spentMonth: (curUser.spentMonth || 0) + sum,
+                history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
+            };
+
+            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                closeServiceModal();
+                document.getElementById('check-amount').innerText = sum + " ₽";
+                document.getElementById('check-names').innerText = `Оплата ${provider}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            }).catch(e => alert("Ошибка: " + e.message));
+        }
+
+        function switchLoginTab(type) {
+            activeLoginTab = type;
+            document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
+            findClient();
+        }
+
+        function toggleRegFields() {
+            const isIp = document.getElementById('reg-type').value === 'ip';
+            document.getElementById('ip-fields').style.display = isIp ? 'block' : 'none';
+        }
+
+        function openService(type) {
+            if(curUser.frozen) return alert("Карта заблокирована");
+            const data = services[type];
+            document.getElementById('service-title').innerText = data.title;
+            const select = document.getElementById('service-provider');
+            select.innerHTML = data.providers.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('service-account').placeholder = type === 'mobile' ? 'Номер телефона' : 'Номер счета';
+            document.getElementById('service-modal').style.display = 'flex';
+        }
+
+        function showTransfer() { 
+            if(curUser.frozen) return alert("Карта заблокирована");
+            const select = document.getElementById('transfer-target'); 
+            const others = db.filter(u => u.fbKey !== curUser.fbKey); 
+            select.innerHTML = others.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join(''); 
+            document.getElementById('transfer-modal').style.display = 'flex'; 
+        } 
+
+        function lockCard() {
+            if(curUser.frozen) return;
+            if(confirm("Заблокировать карту? Это действие нельзя отменить самостоятельно.")) {
+                firebase.database().ref('clients/' + curUser.fbKey).update({ frozen: true });
+            }
+        }
+
+        function applyTheme(t) { document.body.className = t; localStorage.setItem('app_theme', t); }
+        function logout() { curUser = null; location.reload(); }
+        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+        function closeTransfer() { document.getElementById('transfer-modal').style.display='none'; }
+        function closeSuccess() { document.getElementById('success-modal').style.display='none'; }
+        function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
+        function hardReset() { location.reload(); } 
+
+        document.getElementById('version-label').innerText = "Версия системы: 11.0 Stable"; 
+        buildKeypad(); 
+        applyTheme(localStorage.getItem('app_theme') || 'light'); 
+        navTo('screen-name'); 
     </script> 
 </body> 
 </html>
