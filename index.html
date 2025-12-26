@@ -64,8 +64,6 @@
         body.dark .type-tab.active { background: #555; color: white; }
 
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }
-
-        /* Styles for new features */
         #chat-container { height: 300px; overflow-y: auto; background: #f9f9f9; border-radius: 15px; padding: 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
         body.dark #chat-container { background: #2c2c2e; }
         .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; max-width: 80%; line-height: 1.4; }
@@ -129,32 +127,13 @@
         <button class="btn" style="width:100%; background:none" onclick="hideModals()">Отмена</button>
     </div></div>
 
-    <div id="modal-pay" class="modal"><div class="modal-content">
-        <h3>Оплата услуг</h3>
-        <select id="pay-service"><option>Мобильная связь</option><option>Интернет</option><option>ЖКХ</option></select>
-        <input type="number" id="pay-amount" placeholder="Сумма ₽">
-        <button class="btn primary" style="width:100%" onclick="executePay()">Оплатить</button>
-        <button class="btn" style="width:100%; background:none" onclick="hideModals()">Отмена</button>
-    </div></div>
-
-    <div id="modal-credit" class="modal"><div class="modal-content">
-        <h3>Заявка на кредит</h3>
-        <input type="number" id="credit-amount" placeholder="Сумма кредита">
-        <button class="btn primary" style="width:100%" onclick="executeCredit()">Подать заявку</button>
-        <button class="btn" style="width:100%; background:none" onclick="hideModals()">Отмена</button>
-    </div></div>
-
-    <div id="modal-piggy" class="modal"><div class="modal-content">
-        <h3>Новая копилка</h3>
-        <input type="text" id="piggy-name" placeholder="На что копим?">
-        <input type="number" id="piggy-target" placeholder="Цель (сумма)">
-        <button class="btn primary" style="width:100%" onclick="executePiggy()">Создать</button>
-        <button class="btn" style="width:100%; background:none" onclick="hideModals()">Отмена</button>
-    </div></div>
-
     <div id="screen-name" class="screen"> 
         <h1 style="margin-top:60px">Вход</h1> 
         <div class="card" style="text-align:center"> 
+            <div class="type-tabs">
+                <div class="type-tab active" id="lt-client" onclick="setLoginType('Физическое лицо')">Физ. лицо</div>
+                <div class="type-tab" id="lt-ip" onclick="setLoginType('ИП')">ИП</div>
+            </div>
             <input type="text" id="loginInp" placeholder="Имя или телефон" oninput="findClient()"> 
             <div id="variants"></div> 
             <div style="margin-top:15px; color:var(--accent); font-weight:600; cursor:pointer;" onclick="openReg()">Создать аккаунт</div> 
@@ -169,6 +148,7 @@
                 <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div> 
             </div> 
             <div class="keypad" id="keypad"></div> 
+            <button class="btn" style="margin-top:20px; background:none; color:var(--accent)" onclick="navTo('screen-name')">Назад</button>
         </div> 
     </div> 
 
@@ -181,22 +161,17 @@
         
         <div class="btn-row">
             <button class="btn primary" onclick="showModal('modal-transfer')">Перевод</button>
-            <button class="btn secondary" onclick="showModal('modal-pay')">Оплата</button>
-        </div>
-        <div class="btn-row">
-            <button class="btn secondary" onclick="showModal('modal-credit')">Кредит</button>
-            <button class="btn secondary" onclick="navTo('screen-support')">Чат</button>
+            <button class="btn secondary" onclick="navTo('screen-support')">Поддержка</button>
         </div>
 
         <div id="accounts-container">
             <h3>История операций</h3>
-            <div class="card" id="history-list"></div>
+            <div class="card" id="history-list" style="max-height: 300px; overflow-y: auto;"></div>
         </div> 
     </div> 
 
     <div id="screen-piggy-list" class="screen">
         <h1>Копилки</h1>
-        <button class="btn primary" style="width:100%; margin-bottom:20px" onclick="showModal('modal-piggy')">+ Создать цель</button>
         <div id="piggy-container"></div>
     </div>
 
@@ -205,7 +180,7 @@
         <div class="card">
             <div id="chat-container"></div>
             <div style="display:flex; gap:10px">
-                <input type="text" id="chat-input" placeholder="Ваш вопрос..." style="margin:0">
+                <input type="text" id="chat-input" placeholder="Сообщение..." style="margin:0">
                 <button class="btn primary" style="flex:0; padding:0 20px" onclick="sendMessage()">➤</button>
             </div>
         </div>
@@ -243,16 +218,11 @@
         let curUser = null; 
         let enteredPin = ""; 
         let currentRegType = 'Физическое лицо';
+        let currentLoginType = 'Физическое лицо';
 
         function init() { 
-            const isPWA = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches; 
-            if (/iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase()) && !isPWA) { 
-                document.getElementById('install-view').style.display = 'block'; 
-            } else { 
-                navTo('screen-name'); 
-                buildKeypad(); 
-            } 
-
+            navTo('screen-name'); 
+            buildKeypad(); 
             dbRef.on('value', (snap) => {
                 const data = snap.val();
                 db = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
@@ -263,15 +233,15 @@
             });
         } 
 
-        // Регистрация
-        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
-        function closeReg() { 
-            document.getElementById('reg-modal').style.display = 'none'; 
-            document.getElementById('reg-step-1').style.display = 'block';
-            document.getElementById('reg-step-2').style.display = 'none';
-            document.getElementById('reg-submit-btn').disabled = false;
+        // Логика переключения типа при ВХОДЕ
+        function setLoginType(type) {
+            currentLoginType = type;
+            document.getElementById('lt-client').classList.toggle('active', type === 'Физическое лицо');
+            document.getElementById('lt-ip').classList.toggle('active', type === 'ИП');
+            findClient(); // Обновить список при смене таба
         }
 
+        // Логика переключения при РЕГИСТРАЦИИ
         function setRegType(type) {
             currentRegType = type;
             document.getElementById('rt-client').classList.toggle('active', type === 'Физическое лицо');
@@ -280,36 +250,29 @@
             document.getElementById('fields-ip').style.display = type === 'ИП' ? 'block' : 'none';
         }
 
-        function submitReg() {
-            const btn = document.getElementById('reg-submit-btn');
-            const phone = document.getElementById('reg-phone').value.trim();
-            const pin = document.getElementById('reg-pin').value.trim();
-            let name = (currentRegType === 'Физическое лицо') ? 
-                document.getElementById('reg-name').value.trim() : 
-                document.getElementById('reg-company').value.trim();
-
-            if (!name || !phone || pin.length < 4) return alert("Заполните поля");
-
-            btn.disabled = true;
-            appRef.push({
-                name: name, phone: phone, clientPin: pin, orgType: currentRegType,
-                balance: 0, frozen: false, status: "pending", timestamp: Date.now()
-            }).then(() => {
-                document.getElementById('reg-step-1').style.display = 'none';
-                document.getElementById('reg-step-2').style.display = 'block';
-            });
-        }
-
-        // Вход
         function findClient() {
             const v = document.getElementById('loginInp').value.trim().toLowerCase();
             const variants = document.getElementById('variants');
             variants.innerHTML = "";
-            if(v.length < 2) return;
-            db.filter(u => u.name.toLowerCase().includes(v) || u.phone.includes(v)).forEach(u => {
+            if(v.length < 1) return;
+
+            // Фильтруем по типу организации и по имени/телефону
+            const filtered = db.filter(u => u.orgType === currentLoginType && (u.name.toLowerCase().includes(v) || u.phone.includes(v)));
+            
+            filtered.forEach(u => {
                 const div = document.createElement('div');
-                div.className = 'card'; div.style.padding = '10px'; div.innerText = u.name;
-                div.onclick = () => { curUser = u; document.getElementById('pinUser').innerText = u.name; navTo('screen-pin'); };
+                div.className = 'card'; 
+                div.style.padding = '12px'; 
+                div.style.margin = '8px 0';
+                div.style.cursor = 'pointer';
+                div.innerHTML = `<b>${u.name}</b><br><small>${u.phone}</small>`;
+                div.onclick = () => { 
+                    curUser = u; 
+                    document.getElementById('pinUser').innerText = u.name; 
+                    enteredPin = ""; 
+                    updateDots();
+                    navTo('screen-pin'); 
+                };
                 variants.appendChild(div);
             });
         }
@@ -326,7 +289,7 @@
                     updateDots(); 
                     if(enteredPin.length === 4) { 
                         if(enteredPin === curUser.clientPin) navTo('screen-home'); 
-                        else { alert("Неверный ПИН"); enteredPin = ""; updateDots(); }
+                        else { alert("Неверный ПИН-код"); enteredPin = ""; updateDots(); }
                     } 
                 }; 
                 keypad.appendChild(b); 
@@ -338,40 +301,45 @@
             for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length); 
         } 
 
-        // Обновление UI функций
+        function submitReg() {
+            const btn = document.getElementById('reg-submit-btn');
+            const phone = document.getElementById('reg-phone').value.trim();
+            const pin = document.getElementById('reg-pin').value.trim();
+            let name = (currentRegType === 'Физическое лицо') ? 
+                document.getElementById('reg-name').value.trim() : 
+                document.getElementById('reg-company').value.trim();
+
+            if (!name || !phone || pin.length < 4) return alert("Заполните все поля");
+            btn.disabled = true;
+            appRef.push({
+                name: name, phone: phone, clientPin: pin, orgType: currentRegType,
+                balance: 0, frozen: false, status: "pending", timestamp: Date.now()
+            }).then(() => {
+                document.getElementById('reg-step-1').style.display = 'none';
+                document.getElementById('reg-step-2').style.display = 'block';
+            });
+        }
+
         function updateUI() {
             if(!curUser) return;
             document.getElementById('blocked-view').style.display = curUser.frozen ? 'flex' : 'none';
             document.getElementById('homeUser').innerText = curUser.name;
             document.getElementById('hBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
 
-            // История
             const hList = document.getElementById('history-list'); hList.innerHTML = "";
-            (curUser.history || []).slice(-10).reverse().forEach(h => {
+            (curUser.history || []).slice(-20).reverse().forEach(h => {
                 hList.innerHTML += `<div class="history-item"><span>${h.title}</span><span style="color:${h.amount < 0 ? 'red':'green'}">${h.amount} ₽</span></div>`;
             });
 
-            // Копилки
-            const pList = document.getElementById('piggy-container'); pList.innerHTML = "";
-            (curUser.piggies || []).forEach((p, i) => {
-                const perc = Math.min((p.current / p.target) * 100, 100);
-                pList.innerHTML += `<div class="card">
-                    <b>${p.name}</b> <span class="small">${p.current} / ${p.target} ₽</span>
-                    <div class="pb-bg"><div class="pb-fill" style="width:${perc}%"></div></div>
-                    <button class="btn secondary" onclick="depositPiggy(${i})">Пополнить</button>
-                </div>`;
-            });
-
-            // Список для переводов
-            const sel = document.getElementById('transfer-to'); sel.innerHTML = '<option value="">Выберите получателя</option>';
+            const sel = document.getElementById('transfer-to'); 
+            sel.innerHTML = '<option value="">Выберите получателя</option>';
             db.filter(u => u.fbKey !== curUser.fbKey).forEach(u => sel.innerHTML += `<option value="${u.fbKey}">${u.name}</option>`);
         }
 
-        // Логика функций
         function executeTransfer() {
             const toId = document.getElementById('transfer-to').value;
             const amt = Number(document.getElementById('transfer-amount').value);
-            if(!toId || amt <= 0 || amt > curUser.balance) return alert("Недостаточно средств или не выбран получатель");
+            if(!toId || amt <= 0 || amt > curUser.balance) return alert("Ошибка суммы или получателя");
 
             const toUser = db.find(u => u.fbKey === toId);
             const h1 = curUser.history || []; h1.push({title: 'Перевод: ' + toUser.name, amount: -amt});
@@ -379,40 +347,7 @@
 
             dbRef.child(curUser.fbKey).update({balance: curUser.balance - amt, history: h1});
             dbRef.child(toId).update({balance: (toUser.balance || 0) + amt, history: h2});
-            hideModals(); alert("Перевод выполнен");
-        }
-
-        function executePay() {
-            const srv = document.getElementById('pay-service').value;
-            const amt = Number(document.getElementById('pay-amount').value);
-            if(amt <= 0 || amt > curUser.balance) return alert("Ошибка суммы");
-
-            const h = curUser.history || []; h.push({title: srv, amount: -amt});
-            dbRef.child(curUser.fbKey).update({balance: curUser.balance - amt, history: h});
-            hideModals(); alert("Оплачено");
-        }
-
-        function executePiggy() {
-            const name = document.getElementById('piggy-name').value;
-            const target = Number(document.getElementById('piggy-target').value);
-            const p = curUser.piggies || []; p.push({name, target, current: 0});
-            dbRef.child(curUser.fbKey).update({piggies: p});
-            hideModals();
-        }
-
-        function depositPiggy(i) {
-            const amt = Number(prompt("Сумма пополнения копилки:"));
-            if(amt > 0 && amt <= curUser.balance) {
-                curUser.piggies[i].current += amt;
-                const h = curUser.history || []; h.push({title: 'В копилку: ' + curUser.piggies[i].name, amount: -amt});
-                dbRef.child(curUser.fbKey).update({balance: curUser.balance - amt, piggies: curUser.piggies, history: h});
-            }
-        }
-
-        function executeCredit() {
-            const amt = document.getElementById('credit-amount').value;
-            firebase.database().ref('credit_requests').push({userId: curUser.fbKey, name: curUser.name, amount: amt, status: 'pending'});
-            hideModals(); alert("Заявка отправлена");
+            hideModals(); alert("Успешно отправлено");
         }
 
         function sendMessage() {
@@ -445,6 +380,8 @@
             if(id === 'screen-support') loadChat();
         }
 
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; location.reload(); }
         function showModal(id) { document.getElementById(id).style.display = 'flex'; }
         function hideModals() { document.querySelectorAll('.modal').forEach(m => m.style.display = 'none'); }
     </script> 
