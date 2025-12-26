@@ -22,62 +22,62 @@
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; } 
         body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; } 
         
-        .btn:disabled { opacity: 0.5; background: #ccc !important; color: #888 !important; cursor: not-allowed; }
-        .lock-badge { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 5px; }
+        .btn:disabled { opacity: 0.5; background: #ccc !important; color: #888 !important; cursor: not-allowed; } 
+        .lock-badge { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 5px; } 
 
-        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); } 
-        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; } 
-        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; } 
-        .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; } 
-        .screen.active { display: block; animation: fadeIn 0.3s ease; } 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } 
-        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; } 
-        .balance { font-size: 32px; font-weight: 700; margin: 5px 0; } 
-        .small { color: var(--secondary); font-size: 13px; } 
+        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }  
+        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }  
+        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }  
+        .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }  
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }  
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }  
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; }  
+        .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }  
+        .small { color: var(--secondary); font-size: 13px; }  
           
-        .ip-badge { 
-            display: none; 
-            position: absolute; 
-            top: 20px; 
-            right: 20px; 
-            background: #000; 
-            color: #fff; 
-            padding: 4px 10px; 
-            border-radius: 8px; 
-            font-size: 12px; 
-            font-weight: 800; 
-            letter-spacing: 1px; 
-        } 
+        .ip-badge {  
+            display: none;  
+            position: absolute;  
+            top: 20px;  
+            right: 20px;  
+            background: #000;  
+            color: #fff;  
+            padding: 4px 10px;  
+            border-radius: 8px;  
+            font-size: 12px;  
+            font-weight: 800;  
+            letter-spacing: 1px;  
+        }  
 
-        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; } 
-        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; } 
-        .primary { background: #ffdd2d; color: #000; } 
-        .secondary { background: #e8f0ff; color: #007aff; } 
-        .danger { background: var(--red); color: white; } 
-        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; } 
-        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; } 
-        .dot.filled { background: var(--text); border-color: var(--text); } 
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; } 
-        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); } 
-        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); } 
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; } 
-        .history-amount { font-weight: 700; font-size: 15px; } 
-        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); } 
-        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; } 
-        .tab-item.active { color: var(--accent); } 
-        .tab-icon { font-size: 24px; margin-bottom: 4px; } 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); } 
-        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; } 
-        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; } 
-        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; } 
-        .check-names { margin: 20px 0; } 
-        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; } 
+        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }  
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }  
+        .primary { background: #ffdd2d; color: #000; }  
+        .secondary { background: #e8f0ff; color: #007aff; }  
+        .danger { background: var(--red); color: white; }  
+        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }  
+        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }  
+        .dot.filled { background: var(--text); border-color: var(--text); }  
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }  
+        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }  
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }  
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }  
+        .history-amount { font-weight: 700; font-size: 15px; }  
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }  
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }  
+        .tab-item.active { color: var(--accent); }  
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }  
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }  
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }  
+        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }  
+        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }  
+        .check-names { margin: 20px 0; }  
+        footer { text-align: center; padding: 20px; color: var(--secondary); font-size: 11px; }  
 
-        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; } 
-        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; } 
-        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; } 
-        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; } 
-        body.dark .msg.admin { background: #3a3a3c; color: #fff; } 
+        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }  
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; }  
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }  
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }  
+        body.dark .msg.admin { background: #3a3a3c; color: #fff; }  
         .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 
         .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
@@ -370,7 +370,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // Вход по номеру или имени
         function findClient() { 
             const v = loginInp.value.trim().toLowerCase(); 
             error.innerText = ""; variants.innerHTML = ""; 
@@ -458,45 +457,33 @@
             if(id === 'screen-chat') renderChat(); 
         } 
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ СОЗДАНИЯ АККАУНТА (ЗАЯВКИ)
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ: ТЕПЕРЬ ШЛЕТ В APPLICATIONS
         function submitReg() {
-    const type = document.getElementById('reg-type').value;
-    const name = document.getElementById('reg-name').value;
-    const phone = document.getElementById('reg-phone').value;
-    const pin = document.getElementById('reg-pin').value;
-    
-    if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
-    
-    const newUser = {
-        name: name,
-        phone: phone,
-        clientPin: pin,
-        orgType: type === 'ip' ? 'ИП' : 'Клиент',
-        balance: 0,
-        spentMonth: 0,
-        bonuses: 0,
-        frozen: false,
-        history: [{t: "Открытие счета", a: 0}],
-        messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
-    };
+            const type = document.getElementById('reg-type').value;
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const pin = document.getElementById('reg-pin').value;
+            
+            if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
+            
+            const newUser = {
+                name: name,
+                phone: phone,
+                clientPin: pin,
+                orgType: type === 'ip' ? 'ИП' : 'Клиент',
+                balance: 0,
+                spentMonth: 0,
+                bonuses: 0,
+                frozen: false,
+                history: [{t: "Открытие счета", a: 0}],
+                messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
+            };
 
-    // МЕНЯЕМ ПУТЬ: отправляем в 'applications' вместо 'clients'
-    firebase.database().ref('applications').push(newUser)
-        .then(() => {
-            alert("Заявка отправлена! Ожидайте подтверждения администратором.");
-            closeReg();
-        })
-        .catch((e) => {
-            alert("Ошибка при отправке: " + e.message);
-        });
-}
-
-            // Отправляем данные именно в вашу базу
-            dbRef.push(newUser)
+            // МЕНЯЕМ ПУТЬ НА APPLICATIONS ДЛЯ АДМИНКИ MAX STAFF
+            firebase.database().ref('applications').push(newUser)
                 .then(() => {
-                    alert("Заявка на создание аккаунта успешно отправлена!");
+                    alert("Заявка на создание аккаунта успешно отправлена! Ожидайте подтверждения.");
                     closeReg();
-                    location.reload(); // Перезагружаем для обновления списка
                 })
                 .catch((e) => {
                     alert("Ошибка при отправке: " + e.message);
@@ -549,7 +536,6 @@
         function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
         function hardReset() { location.reload(); } 
 
-        // Инициализация
         document.getElementById('version-label').innerText = "Версия системы: 11.0 Stable"; 
         buildKeypad(); 
         applyTheme(localStorage.getItem('app_theme') || 'light'); 
