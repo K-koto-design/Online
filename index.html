@@ -16,6 +16,7 @@
             --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e;  
             --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; --tab-bg: #ffffff; 
             --grad: linear-gradient(180deg, #3d3d3d 0%, #000000 100%);
+            --yellow: #ffdd2d;
         } 
         body.dark { 
             --bg: #000000; --card: #1c1c1e; --text: #ffffff; --secondary: #8e8e93; --tab-bg: #121212; 
@@ -39,15 +40,13 @@
             background: #f2f3f7; padding: 15px; border-radius: 20px; 
             text-align: center; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer;
         }
-        .stat-card { background: white; border-radius: 20px; padding: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border: 1px solid #f0f0f0; }
-        .progress-bar { height: 8px; border-radius: 4px; background: #eee; margin-top: 10px; display: flex; overflow: hidden; }
+        .action-item.disabled { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
         
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; } 
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; } 
         .small { color: var(--secondary); font-size: 13px; } 
         .btn { width: 100%; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; } 
-        .primary { background: #ffdd2d; color: #000; } 
-        .secondary { background: #e8f0ff; color: #007aff; } 
+        .primary { background: var(--yellow); color: #000; } 
         
         .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 75px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); } 
         .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; } 
@@ -60,19 +59,26 @@
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; } 
         .key { height: 70px; font-size: 26px; border: none; background: none; color: var(--text); } 
         
-        #chat-container { height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; }
-        .msg { padding: 12px; border-radius: 18px; max-width: 80%; font-size: 14px; }
-        .msg.user { align-self: flex-end; background: var(--accent); color: white; }
-        .msg.support { align-self: flex-start; background: var(--bg); color: var(--text); }
+        #chat-container { height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px; }
+        .msg { padding: 12px; border-radius: 18px; max-width: 80%; font-size: 14px; line-height: 1.4; }
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .msg.support { align-self: flex-start; background: #e9e9eb; color: black; border-bottom-left-radius: 4px; }
         
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); } 
-        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; } 
-        input { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 10px; background: var(--card); color: var(--text); }
+        .modal-content { background: var(--card); width: 95%; max-height: 90vh; overflow-y: auto; padding: 25px; border-radius: 28px; } 
+        input { width: 100%; padding: 15px; border-radius: 15px; border: 1px solid #ddd; margin-bottom: 10px; background: var(--bg); color: var(--text); font-size: 16px; }
+
+        .transfer-option { display: flex; align-items: center; gap: 15px; padding: 15px; background: #f8f8f8; border-radius: 15px; margin-bottom: 10px; cursor: pointer; }
+        .bank-icon { width: 40px; height: 40px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+        
+        .progress-bar { height: 8px; border-radius: 4px; background: #eee; margin-top: 10px; display: flex; overflow: hidden; }
+        
+        .frozen-badge { background: var(--red); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; margin-bottom: 5px; display: none; }
     </style> 
 </head> 
 <body onload="init()"> 
 
-    <div id="screen-name" class="screen"> 
+    <div id="screen-name" class="screen active"> 
         <h1 style="margin-top:60px">Вход</h1> 
         <div class="card"> 
             <input type="text" id="loginInp" placeholder="Имя или телефон" oninput="findClient()"> 
@@ -93,81 +99,91 @@
 
     <div id="screen-home" class="screen"> 
         <h1 id="homeUser" style="margin-top:10px"></h1> 
+        
         <div class="card" onclick="navTo('screen-details')" style="cursor:pointer"> 
-            <div style="display:flex; justify-content:space-between; align-items:center">
+            <div id="frozen-tag-home" class="frozen-badge">КАРТА ЗАБЛОКИРОВАНА</div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start">
                 <div>
                     <div class="small">Личный счет</div> 
                     <div class="balance" id="hBal">0 ₽</div> 
                 </div>
-                <div style="color:var(--accent)">Подробнее ></div>
+                <div style="text-align: right;">
+                    <div style="color:var(--accent); font-weight: 600; margin-bottom: 4px;">Бонусы: <span id="bonus-val">5</span></div>
+                    <div class="small">Подробнее ></div>
+                </div>
             </div>
         </div> 
 
         <div class="card">
             <div class="small">Трат в декабре</div>
-            <div style="font-size: 18px; font-weight: 600; margin: 5px 0;" id="spend-sum">2 745 ₽</div>
+            <div style="font-size: 18px; font-weight: 600; margin: 5px 0;">2 745 ₽</div>
             <div class="progress-bar">
                 <div style="width: 60%; background: #ff9500;"></div>
                 <div style="width: 25%; background: #5ac8fa;"></div>
                 <div style="width: 15%; background: #ffcc00;"></div>
             </div>
         </div>
+
         <button class="btn primary" onclick="alert('Заявка отправлена')">Взять кредит за 1 минуту</button>
     </div> 
 
     <div id="screen-details" class="screen">
         <div class="details-header">
             <div class="back-btn" onclick="navTo('screen-home')">✕</div>
+            <div id="frozen-tag-det" class="frozen-badge" style="margin-bottom:10px">ОГРАНИЧЕНИЕ ПО КАРТЕ</div>
             <div id="detName" style="font-size: 20px; font-weight: 600;">Личный счет</div>
             <div class="balance" id="detBal" style="font-size: 36px; margin-top:10px">0 ₽</div>
             <div style="margin-top:15px"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Mir-logo.svg" width="50" style="filter: brightness(0) invert(1);"></div>
         </div>
         <div class="details-main-card">
             <div class="action-grid">
-                <div class="action-item" onclick="alert('Камера для QR временно недоступна')">📷 Оплата QR</div>
-                <div class="action-item" onclick="makeTransferByName()">💸 Перевести</div>
+                <div class="action-item" id="btn-qr" onclick="alert('Камера временно недоступна')">📷 Оплата QR</div>
+                <div class="action-item" id="btn-transfer" onclick="openTransferModal()">💸 Перевести</div>
             </div>
 
             <div style="margin-bottom:25px">
                 <div class="small" style="margin-bottom:10px; font-weight: bold;">ИСТОРИЯ ОПЕРАЦИЙ</div>
                 <div id="detHistory"></div>
             </div>
-
-            <div class="stat-card">
-                <div style="display:flex; justify-content:space-between">
-                    <span style="font-weight:600">Аналитика по счету</span>
-                </div>
-                <div class="small" style="margin: 8px 0">Трат в декабре: 2 745 ₽</div>
-                <div class="progress-bar">
-                    <div style="width: 40%; background: #ffcc00;"></div>
-                    <div style="width: 30%; background: #5ac8fa;"></div>
+            
+            <div class="card" id="lock-card-block" style="border: 1px solid #ffebeb; background: #fffcfc;">
+                <div style="display:flex; justify-content:space-between; align-items:center">
+                    <div>
+                        <div id="lock-text-title" style="font-weight:600; color:var(--red)">Заблокировать карту</div>
+                        <div id="lock-text-desc" class="small">В случае утери или кражи</div>
+                    </div>
+                    <button id="lock-main-btn" class="btn" style="width:40px; height:40px; background:var(--red); color:white; border-radius:12px; padding:0" onclick="toggleFreeze()">✕</button>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div id="screen-piggy" class="screen">
-        <h1>Копилки</h1>
-        <button class="btn primary" style="margin-bottom:20px" onclick="addPiggy()">+ Создать копилку</button>
-        <div id="piggy-list"></div>
     </div>
 
     <div id="screen-support" class="screen">
         <h1>Поддержка</h1>
-        <div class="card" style="padding:10px">
+        <div class="card" style="padding:0; overflow:hidden">
             <div id="chat-container"></div>
-            <div style="display:flex; gap:10px; padding:10px">
+            <div style="display:flex; gap:10px; padding:15px; background: var(--card); border-top: 1px solid #eee;">
                 <input type="text" id="chatInp" placeholder="Сообщение..." style="margin:0">
-                <button class="btn primary" style="width:80px" onclick="sendChat()">➤</button>
+                <button class="btn primary" style="width:60px; padding:0" onclick="sendChat()">➤</button>
             </div>
         </div>
     </div>
 
-    <div id="screen-settings" class="screen">
-        <h1>Настройки</h1>
-        <div class="card">
-            <button class="btn secondary" onclick="toggleTheme()">Сменить тему 🌓</button>
-            <button class="btn primary" style="background:var(--red); color:white; margin-top:10px" onclick="location.reload()">Выход</button>
+    <div id="transfer-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0">Перевод</h2>
+            <input type="tel" id="tr-phone" placeholder="+7 900 000-00-00">
+            <div id="frequent-recipients">
+                <div class="transfer-option" onclick="selectRecipient('Артем Ф.', '+79117961522')">
+                    <div class="bank-icon" style="background:#4cd964; color:white">S</div>
+                    <div>
+                        <div style="font-weight:600">Артем Ф.</div>
+                        <div class="small">Сбербанк</div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn primary" style="margin-top:20px" onclick="processTransfer()">Перевести</button>
+            <button class="btn" style="background:none" onclick="closeModal('transfer-modal')">Отмена</button>
         </div>
     </div>
 
@@ -175,14 +191,11 @@
         <div class="tab-item active" onclick="navTo('screen-home', this)"> 
             <span class="tab-icon">🏠</span><span>Главная</span> 
         </div> 
-        <div class="tab-item" onclick="navTo('screen-piggy', this)"> 
-            <span class="tab-icon">🐷</span><span>Копилки</span> 
-        </div> 
         <div class="tab-item" onclick="navTo('screen-support', this)"> 
             <span class="tab-icon">💬</span><span>Чат</span> 
         </div> 
-        <div class="tab-item" onclick="navTo('screen-settings', this)"> 
-            <span class="tab-icon">⚙️</span><span>Настройки</span> 
+        <div class="tab-item" onclick="location.reload()"> 
+            <span class="tab-icon">⚙️</span><span>Выход</span> 
         </div> 
     </div> 
 
@@ -191,9 +204,9 @@
             <h3>Регистрация</h3>
             <input type="text" id="reg-name" placeholder="Имя">
             <input type="tel" id="reg-phone" placeholder="Телефон">
-            <input type="password" id="reg-pin" placeholder="ПИН (4 цифры)" maxlength="4">
+            <input type="password" id="reg-pin" placeholder="ПИН" maxlength="4">
             <button class="btn primary" onclick="submitReg()">Создать</button>
-            <button onclick="closeReg()" style="background:none; border:none; margin-top:10px">Отмена</button>
+            <button onclick="closeReg()" style="background:none; border:none; margin-top:10px; width:100%">Отмена</button>
         </div>
     </div>
 
@@ -206,14 +219,12 @@
 
         firebase.initializeApp(firebaseConfig); 
         const dbRef = firebase.database().ref('clients'); 
-        const appRef = firebase.database().ref('applications'); 
 
         let db = []; 
         let curUser = null; 
         let enteredPin = ""; 
 
         function init() { 
-            navTo('screen-name'); 
             buildKeypad(); 
             dbRef.on('value', (snap) => {
                 const data = snap.val();
@@ -221,9 +232,9 @@
                 if(curUser) {
                     curUser = db.find(u => u.fbKey === curUser.fbKey);
                     updateUI();
+                    loadChat();
                 }
             });
-            if(localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
         } 
 
         function navTo(id, el) { 
@@ -235,8 +246,6 @@
             }
             const isAuth = id !== 'screen-name' && id !== 'screen-pin';
             document.getElementById('main-nav').style.display = isAuth ? 'flex' : 'none';
-            if(id === 'screen-support') loadChat();
-            if(id === 'screen-home' || id === 'screen-details') updateUI();
         }
 
         function findClient() {
@@ -246,7 +255,7 @@
             if(v.length < 2) return;
             db.filter(u => u.name.toLowerCase().includes(v)).forEach(u => {
                 const div = document.createElement('div');
-                div.className = 'card'; div.style.padding = '10px'; div.innerText = u.name;
+                div.className = 'card'; div.style.padding = '15px'; div.innerText = u.name;
                 div.onclick = () => { curUser = u; document.getElementById('pinUser').innerText = u.name; navTo('screen-pin'); };
                 variants.appendChild(div);
             });
@@ -263,7 +272,7 @@
                     updateDots(); 
                     if(enteredPin.length === 4) { 
                         if(enteredPin === curUser.clientPin) navTo('screen-home'); 
-                        else { alert("Ошибка"); enteredPin = ""; updateDots(); }
+                        else { alert("Неверный ПИН"); enteredPin = ""; updateDots(); }
                     } 
                 }; 
                 keypad.appendChild(b); 
@@ -281,54 +290,82 @@
             document.getElementById('hBal').innerText = balStr;
             document.getElementById('detBal').innerText = balStr;
             document.getElementById('homeUser').innerText = curUser.name;
+            document.getElementById('bonus-val').innerText = curUser.bonuses || 5;
+
+            // Логика блокировки (frozen)
+            const isFrozen = curUser.frozen === true;
+            document.getElementById('frozen-tag-home').style.display = isFrozen ? 'inline-block' : 'none';
+            document.getElementById('frozen-tag-det').style.display = isFrozen ? 'inline-block' : 'none';
+            
+            // Дизайн кнопки блокировки
+            const lockBtn = document.getElementById('lock-main-btn');
+            const lockTitle = document.getElementById('lock-text-title');
+            const lockDesc = document.getElementById('lock-text-desc');
+            const lockCard = document.getElementById('lock-card-block');
+
+            if(isFrozen) {
+                lockBtn.style.background = '#34c759';
+                lockBtn.innerText = '✓';
+                lockTitle.innerText = "Разблокировать карту";
+                lockTitle.style.color = 'var(--credit)';
+                lockDesc.innerText = "Операции снова станут доступны";
+                lockCard.style.background = '#f7fff8';
+                lockCard.style.borderColor = '#e0f5e3';
+                document.getElementById('btn-qr').classList.add('disabled');
+                document.getElementById('btn-transfer').classList.add('disabled');
+            } else {
+                lockBtn.style.background = 'var(--red)';
+                lockBtn.innerText = '✕';
+                lockTitle.innerText = "Заблокировать карту";
+                lockTitle.style.color = 'var(--red)';
+                lockDesc.innerText = "В случае утери или кражи";
+                lockCard.style.background = '#fffcfc';
+                lockCard.style.borderColor = '#ffebeb';
+                document.getElementById('btn-qr').classList.remove('disabled');
+                document.getElementById('btn-transfer').classList.remove('disabled');
+            }
             
             const hDiv = document.getElementById('detHistory');
             hDiv.innerHTML = "";
-            (curUser.history || []).reverse().slice(0, 15).forEach(h => {
-                hDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:12px 0; border-bottom:1px solid #f0f0f0; font-size:14px">
-                    <span>${h.title}</span><b style="color:${h.amount < 0 ? 'var(--red)' : 'var(--credit)'}">${h.amount > 0 ? '+' : ''}${h.amount} ₽</b>
+            (curUser.history || []).slice().reverse().forEach(h => {
+                hDiv.innerHTML += `<div style="display:flex; justify-content:space-between; padding:16px 0; border-bottom:1px solid #f0f0f0;">
+                    <div><div style="font-weight:500">${h.title}</div><div class="small">Сегодня</div></div>
+                    <b style="color:${h.amount < 0 ? 'var(--red)' : 'var(--credit)'}">${h.amount > 0 ? '+' : ''}${h.amount.toLocaleString()} ₽</b>
                 </div>`;
             });
-
-            const pDiv = document.getElementById('piggy-list');
-            pDiv.innerHTML = "";
-            (curUser.piggies || []).forEach(p => {
-                pDiv.innerHTML += `<div class="card"><b>${p.name}</b><div class="balance" style="font-size:20px">${p.amount} ₽</div></div>`;
-            });
         }
 
-        function makeTransferByName() {
-            const targetName = prompt("Введите имя получателя:");
-            if(!targetName) return;
-            
-            const recipient = db.find(u => u.name.toLowerCase() === targetName.toLowerCase().trim());
-            if(!recipient) return alert("Получатель не найден");
-            if(recipient.fbKey === curUser.fbKey) return alert("Нельзя перевести себе");
+        function toggleFreeze() {
+            const newState = !curUser.frozen;
+            dbRef.child(curUser.fbKey).update({ frozen: newState });
+        }
 
-            const amt = parseFloat(prompt("Сумма перевода:"));
-            if(isNaN(amt) || amt <= 0) return alert("Некорректная сумма");
-            if(amt > curUser.balance) return alert("Недостаточно средств");
+        function openTransferModal() { 
+            if(curUser.frozen) return alert("Карта заблокирована!");
+            document.getElementById('transfer-modal').style.display = 'flex'; 
+        }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function selectRecipient(name, phone) { document.getElementById('tr-phone').value = phone; }
+
+        async function processTransfer() {
+            if(curUser.frozen) return alert("Карта заблокирована!");
+            const phone = document.getElementById('tr-phone').value.replace(/\D/g, '');
+            const recipient = db.find(u => u.phone && u.phone.replace(/\D/g, '') === phone);
+            if(!recipient) return alert("Получатель не найден");
+            const amount = parseFloat(prompt("Сумма:"));
+            if(isNaN(amount) || amount <= 0 || amount > curUser.balance) return alert("Ошибка суммы");
 
             const updates = {};
-            const senderHist = curUser.history || [];
-            senderHist.push({title: `Перевод пользователю ${recipient.name}`, amount: -amt, time: Date.now()});
-            
-            const recHist = recipient.history || [];
-            recHist.push({title: `Входящий перевод от ${curUser.name}`, amount: amt, time: Date.now()});
+            const sHist = curUser.history || []; sHist.push({title: `Перевод ${recipient.name}`, amount: -amount});
+            const rHist = recipient.history || []; rHist.push({title: `От ${curUser.name}`, amount: amount});
+            updates[`${curUser.fbKey}/balance`] = curUser.balance - amount;
+            updates[`${curUser.fbKey}/history`] = sHist;
+            updates[`${recipient.fbKey}/balance`] = (recipient.balance || 0) + amount;
+            updates[`${recipient.fbKey}/history`] = rHist;
 
-            updates[`clients/${curUser.fbKey}/balance`] = curUser.balance - amt;
-            updates[`clients/${curUser.fbKey}/history`] = senderHist;
-            updates[`clients/${recipient.fbKey}/balance`] = (recipient.balance || 0) + amt;
-            updates[`clients/${recipient.fbKey}/history`] = recHist;
-
-            firebase.database().ref().update(updates).then(() => {
-                alert("Перевод успешно выполнен!");
-            }).catch(e => alert("Ошибка при переводе"));
-        }
-
-        function toggleTheme() {
-            document.body.classList.toggle('dark');
-            localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+            await dbRef.update(updates);
+            alert("Успешно!");
+            closeModal('transfer-modal');
         }
 
         function sendChat() {
@@ -338,24 +375,13 @@
             chat.push({sender: 'user', text: txt});
             dbRef.child(curUser.fbKey).update({chat});
             document.getElementById('chatInp').value = "";
-            loadChat();
         }
 
         function loadChat() {
             const cont = document.getElementById('chat-container');
-            cont.innerHTML = "";
-            (curUser.chat || []).forEach(m => {
-                cont.innerHTML += `<div class="msg ${m.sender}">${m.text}</div>`;
-            });
+            if(!cont || !curUser) return;
+            cont.innerHTML = (curUser.chat || []).map(m => `<div class="msg ${m.sender}">${m.text}</div>`).join('');
             cont.scrollTop = cont.scrollHeight;
-        }
-
-        function addPiggy() {
-            const name = prompt("Название:");
-            if(!name) return;
-            const piggies = curUser.piggies || [];
-            piggies.push({name, amount: 0});
-            dbRef.child(curUser.fbKey).update({piggies});
         }
 
         function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
@@ -364,10 +390,8 @@
             const name = document.getElementById('reg-name').value;
             const phone = document.getElementById('reg-phone').value;
             const pin = document.getElementById('reg-pin').value;
-            if(!name || !phone || pin.length < 4) return alert("Заполните все поля");
-            appRef.push({name, phone, clientPin: pin, balance: 1000, history: [{title: "Бонус при регистрации", amount: 1000, time: Date.now()}]}).then(() => {
-                alert("Заявка на создание аккаунта принята!");
-                closeReg();
+            dbRef.push({name, phone, clientPin: pin, balance: 5000, bonuses: 5, frozen: false, history: [{title: "Бонус", amount: 5000}]}).then(() => {
+                alert("Готово!"); closeReg();
             });
         }
     </script> 
