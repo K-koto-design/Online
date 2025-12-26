@@ -40,7 +40,7 @@
             background: #f2f3f7; padding: 15px; border-radius: 20px; 
             text-align: center; color: var(--accent); font-size: 14px; font-weight: 600; cursor: pointer;
         }
-        .action-item.disabled { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
+        .action-item.disabled { opacity: 0.5; pointer-events: none; filter: grayscale(1); }
         
         .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; } 
         .balance { font-size: 32px; font-weight: 700; margin: 5px 0; } 
@@ -71,9 +71,9 @@
         .transfer-option { display: flex; align-items: center; gap: 15px; padding: 15px; background: #f8f8f8; border-radius: 15px; margin-bottom: 10px; cursor: pointer; }
         .bank-icon { width: 40px; height: 40px; border-radius: 50%; background: #ddd; display: flex; align-items: center; justify-content: center; font-size: 18px; }
         
+        /* Прогресс-бар для трат */
         .progress-bar { height: 8px; border-radius: 4px; background: #eee; margin-top: 10px; display: flex; overflow: hidden; }
-        
-        .frozen-badge { background: var(--red); color: white; padding: 4px 8px; border-radius: 8px; font-size: 10px; margin-bottom: 5px; display: none; }
+        .frozen-label { background: var(--red); color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; margin-bottom: 5px; display: none; }
     </style> 
 </head> 
 <body onload="init()"> 
@@ -101,15 +101,15 @@
         <h1 id="homeUser" style="margin-top:10px"></h1> 
         
         <div class="card" onclick="navTo('screen-details')" style="cursor:pointer"> 
-            <div id="frozen-tag-home" class="frozen-badge">КАРТА ЗАБЛОКИРОВАНА</div>
+            <div id="frozen-status-home" class="frozen-label">ЗАБЛОКИРОВАНО</div>
             <div style="display:flex; justify-content:space-between; align-items:flex-start">
                 <div>
                     <div class="small">Личный счет</div> 
                     <div class="balance" id="hBal">0 ₽</div> 
                 </div>
                 <div style="text-align: right;">
-                    <div style="color:var(--accent); font-weight: 600; margin-bottom: 4px;">Бонусы: <span id="bonus-val">5</span></div>
-                    <div class="small">Подробнее ></div>
+                    <div style="color:var(--accent); font-weight: 600; font-size: 14px;">Бонусы: <span id="bonus-val">5</span></div>
+                    <div class="small" style="margin-top: 4px;">Подробнее ></div>
                 </div>
             </div>
         </div> 
@@ -118,9 +118,8 @@
             <div class="small">Трат в декабре</div>
             <div style="font-size: 18px; font-weight: 600; margin: 5px 0;">2 745 ₽</div>
             <div class="progress-bar">
-                <div style="width: 60%; background: #ff9500;"></div>
-                <div style="width: 25%; background: #5ac8fa;"></div>
-                <div style="width: 15%; background: #ffcc00;"></div>
+                <div style="width: 65%; background: #ff9500;"></div>
+                <div style="width: 20%; background: #5ac8fa;"></div>
             </div>
         </div>
 
@@ -130,7 +129,7 @@
     <div id="screen-details" class="screen">
         <div class="details-header">
             <div class="back-btn" onclick="navTo('screen-home')">✕</div>
-            <div id="frozen-tag-det" class="frozen-badge" style="margin-bottom:10px">ОГРАНИЧЕНИЕ ПО КАРТЕ</div>
+            <div id="frozen-status-det" class="frozen-label" style="display:inline-block; margin-bottom: 10px;">ОГРАНИЧЕНО</div>
             <div id="detName" style="font-size: 20px; font-weight: 600;">Личный счет</div>
             <div class="balance" id="detBal" style="font-size: 36px; margin-top:10px">0 ₽</div>
             <div style="margin-top:15px"><img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Mir-logo.svg" width="50" style="filter: brightness(0) invert(1);"></div>
@@ -138,7 +137,7 @@
         <div class="details-main-card">
             <div class="action-grid">
                 <div class="action-item" id="btn-qr" onclick="alert('Камера временно недоступна')">📷 Оплата QR</div>
-                <div class="action-item" id="btn-transfer" onclick="openTransferModal()">💸 Перевести</div>
+                <div class="action-item" id="btn-tr" onclick="openTransferModal()">💸 Перевести</div>
             </div>
 
             <div style="margin-bottom:25px">
@@ -146,13 +145,13 @@
                 <div id="detHistory"></div>
             </div>
             
-            <div class="card" id="lock-card-block" style="border: 1px solid #ffebeb; background: #fffcfc;">
+            <div class="card" style="border: 1px solid #ffebeb; background: #fffcfc;">
                 <div style="display:flex; justify-content:space-between; align-items:center">
                     <div>
-                        <div id="lock-text-title" style="font-weight:600; color:var(--red)">Заблокировать карту</div>
-                        <div id="lock-text-desc" class="small">В случае утери или кражи</div>
+                        <div id="lock-title" style="font-weight:600; color:var(--red)">Заблокировать карту</div>
+                        <div id="lock-desc" class="small">В случае утери или кражи</div>
                     </div>
-                    <button id="lock-main-btn" class="btn" style="width:40px; height:40px; background:var(--red); color:white; border-radius:12px; padding:0" onclick="toggleFreeze()">✕</button>
+                    <button id="lock-toggle-btn" class="btn" style="width:40px; height:40px; background:var(--red); color:white; border-radius:12px; padding:0" onclick="toggleFreeze()">✕</button>
                 </div>
             </div>
         </div>
@@ -292,37 +291,24 @@
             document.getElementById('homeUser').innerText = curUser.name;
             document.getElementById('bonus-val').innerText = curUser.bonuses || 5;
 
-            // Логика блокировки (frozen)
+            // Логика Frozen (Блокировка)
             const isFrozen = curUser.frozen === true;
-            document.getElementById('frozen-tag-home').style.display = isFrozen ? 'inline-block' : 'none';
-            document.getElementById('frozen-tag-det').style.display = isFrozen ? 'inline-block' : 'none';
+            document.getElementById('frozen-status-home').style.display = isFrozen ? 'block' : 'none';
+            document.getElementById('frozen-status-det').style.display = isFrozen ? 'inline-block' : 'none';
             
-            // Дизайн кнопки блокировки
-            const lockBtn = document.getElementById('lock-main-btn');
-            const lockTitle = document.getElementById('lock-text-title');
-            const lockDesc = document.getElementById('lock-text-desc');
-            const lockCard = document.getElementById('lock-card-block');
-
+            const lockBtn = document.getElementById('lock-toggle-btn');
+            const lockTitle = document.getElementById('lock-title');
+            
             if(isFrozen) {
-                lockBtn.style.background = '#34c759';
-                lockBtn.innerText = '✓';
+                lockBtn.style.background = 'var(--credit)'; lockBtn.innerText = '✓';
                 lockTitle.innerText = "Разблокировать карту";
-                lockTitle.style.color = 'var(--credit)';
-                lockDesc.innerText = "Операции снова станут доступны";
-                lockCard.style.background = '#f7fff8';
-                lockCard.style.borderColor = '#e0f5e3';
                 document.getElementById('btn-qr').classList.add('disabled');
-                document.getElementById('btn-transfer').classList.add('disabled');
+                document.getElementById('btn-tr').classList.add('disabled');
             } else {
-                lockBtn.style.background = 'var(--red)';
-                lockBtn.innerText = '✕';
+                lockBtn.style.background = 'var(--red)'; lockBtn.innerText = '✕';
                 lockTitle.innerText = "Заблокировать карту";
-                lockTitle.style.color = 'var(--red)';
-                lockDesc.innerText = "В случае утери или кражи";
-                lockCard.style.background = '#fffcfc';
-                lockCard.style.borderColor = '#ffebeb';
                 document.getElementById('btn-qr').classList.remove('disabled');
-                document.getElementById('btn-transfer').classList.remove('disabled');
+                document.getElementById('btn-tr').classList.remove('disabled');
             }
             
             const hDiv = document.getElementById('detHistory');
@@ -348,7 +334,7 @@
         function selectRecipient(name, phone) { document.getElementById('tr-phone').value = phone; }
 
         async function processTransfer() {
-            if(curUser.frozen) return alert("Карта заблокирована!");
+            if(curUser.frozen) return;
             const phone = document.getElementById('tr-phone').value.replace(/\D/g, '');
             const recipient = db.find(u => u.phone && u.phone.replace(/\D/g, '') === phone);
             if(!recipient) return alert("Получатель не найден");
