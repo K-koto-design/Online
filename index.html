@@ -225,6 +225,33 @@
         </div>
     </div> 
 
+    <div id="screen-exchange" class="screen"> 
+        <h1>Обмен валюты</h1> 
+        <div class="card">
+            <div class="small">Ваш баланс</div>
+            <div class="balance" id="ex-balance">0 ₽</div>
+        </div>
+        
+        <div class="card">
+            <label class="small">Выберите валюту</label>
+            <select id="currency-select" onchange="calcExchange()">
+                <option value="92.5">Доллар США ($)</option>
+                <option value="101.2">Евро (€)</option>
+                <option value="28.4">Белорусский рубль (Br)</option>
+            </select>
+            
+            <label class="small">Сумма в рублях (₽)</label>
+            <input type="number" id="ex-amount" placeholder="Сколько отдаете" oninput="calcExchange()">
+            
+            <div style="margin: 20px 0; text-align: center;">
+                <div class="small">Вы получите примерно:</div>
+                <div id="ex-result" style="font-size: 28px; font-weight: 800; color: var(--accent); margin-top:10px;">0</div>
+            </div>
+            
+            <button class="btn primary action-btn" onclick="processExchange()">Обменять</button>
+        </div>
+    </div>
+
     <div id="screen-chat" class="screen"> 
         <h1>Поддержка</h1> 
         <div class="card" style="padding: 15px;"> 
@@ -277,6 +304,9 @@
     <div class="tab-bar" id="main-nav" style="display: none;"> 
         <div class="tab-item active" id="nav-home" onclick="navTo('screen-home', this)"> 
             <span class="tab-icon">🏠</span><span>Главная</span> 
+        </div> 
+        <div class="tab-item" id="nav-exchange" onclick="navTo('screen-exchange', this)"> 
+            <span class="tab-icon">💱</span><span>Обмен</span> 
         </div> 
         <div class="tab-item" id="nav-chat" onclick="navTo('screen-chat', this)"> 
             <span class="tab-icon">💬</span><span>Чат</span> 
@@ -340,10 +370,43 @@
                 mainLockBtn.disabled = isFrozen;
             }
 
+            if (document.getElementById('ex-balance')) {
+                document.getElementById('ex-balance').innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽";
+            }
+
             if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
             if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
         } 
+
+        function calcExchange() {
+            const rate = parseFloat(document.getElementById('currency-select').value);
+            const amount = parseFloat(document.getElementById('ex-amount').value) || 0;
+            const res = (amount / rate).toFixed(2);
+            const symbols = { "92.5": "$", "101.2": "€", "28.4": "Br" };
+            document.getElementById('ex-result').innerText = res + " " + symbols[rate];
+        }
+
+        function processExchange() {
+            const amount = parseFloat(document.getElementById('ex-amount').value);
+            if (!amount || amount <= 0) return alert("Введите сумму");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+
+            const rate = document.getElementById('currency-select').value;
+            const names = { "92.5": "USD", "101.2": "EUR", "28.4": "BYN" };
+            const resValue = (amount / rate).toFixed(2);
+
+            const newUpdate = {
+                balance: curUser.balance - amount,
+                spentMonth: (curUser.spentMonth || 0) + amount,
+                history: [...(curUser.history || []), { t: `Обмен на ${names[rate]} (${resValue})`, a: -amount }]
+            };
+
+            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                document.getElementById('ex-amount').value = "";
+                alert(`Успешно обменяно! Вы получили ${resValue} ${names[rate]}`);
+            });
+        }
 
         function sendChatMsg() {
             const input = document.getElementById('chatInput');
@@ -452,7 +515,7 @@
                 el.classList.add('active'); 
             } 
             const nav = document.getElementById('main-nav'); 
-            nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card'].includes(id) ? 'flex' : 'none'; 
+            nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card', 'screen-exchange'].includes(id) ? 'flex' : 'none'; 
             if(id === 'screen-home' || id === 'screen-card') showHome(); 
             if(id === 'screen-chat') renderChat(); 
         } 
@@ -488,7 +551,6 @@
                 });
         }
 
-        /* ИСПРАВЛЕННАЯ ФУНКЦИЯ ПЕРЕВОДА */
         function processTransfer() {
             const targetKey = document.getElementById('transfer-target').value;
             const amount = parseFloat(document.getElementById('transfer-amount').value);
@@ -500,14 +562,12 @@
             const targetUser = db.find(u => u.fbKey === targetKey);
             if (!targetUser) return alert("Получатель не найден");
 
-            // Обновляем баланс отправителя
             const senderUpdate = {
                 balance: curUser.balance - amount,
                 spentMonth: (curUser.spentMonth || 0) + amount,
                 history: [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }]
             };
 
-            // Обновляем баланс получателя
             const receiverUpdate = {
                 balance: (targetUser.balance || 0) + amount,
                 history: [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }]
@@ -525,7 +585,6 @@
             }).catch(e => alert("Ошибка перевода: " + e.message));
         }
 
-        /* ФУНКЦИЯ ОПЛАТЫ СЕРВИСОВ */
         function processServicePayment() {
             const sum = parseFloat(document.getElementById('service-sum').value);
             const provider = document.getElementById('service-provider').value;
@@ -594,7 +653,7 @@
         function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
         function hardReset() { location.reload(); } 
 
-        document.getElementById('version-label').innerText = "Версия системы: 11.0 Stable"; 
+        document.getElementById('version-label').innerText = "Версия системы: 12.0 Stable"; 
         buildKeypad(); 
         applyTheme(localStorage.getItem('app_theme') || 'light'); 
         navTo('screen-name'); 
