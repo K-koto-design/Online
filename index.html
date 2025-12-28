@@ -26,27 +26,15 @@
             --white: #ffffff;
             --gold: #f1c40f;
             --gray: #f1f3f5;
+            --red: #ff4757;
         }
 
-        html, body { 
-            margin: 0; 
-            padding: 0; 
-            width: 100%; 
-            height: 100%; 
-            overflow: hidden; 
-            background: var(--bg-dark); 
-        }
-
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg-dark); }
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
 
         .screen { 
-            display: none; 
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; 
-            height: 100%; 
-            overflow-y: auto; 
-            background: var(--white);
+            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; height: 100%; overflow-y: auto; background: var(--white);
             animation: fadeIn 0.2s ease; 
         }
         
@@ -57,17 +45,11 @@
 
         .header-section {
             background: linear-gradient(180deg, var(--bg-dark), var(--liquid));
-            padding: 60px 0 35px 0;
-            border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px;
-            color: var(--text-white);
-            position: relative;
+            padding: 60px 0 35px 0; border-bottom-left-radius: 40px;
+            border-bottom-right-radius: 40px; color: var(--text-white); position: relative;
         }
 
-        .main-scroll {
-            display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 10px 20px;
-            scroll-snap-type: x mandatory; align-items: stretch;
-        }
+        .main-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 10px 20px; scroll-snap-type: x mandatory; }
         .main-scroll::-webkit-scrollbar { display: none; }
 
         .narrow-btn {
@@ -78,8 +60,7 @@
         }
 
         .tall-card {
-            min-width: 135px; height: 180px;
-            background: var(--glass); border: 1px solid var(--glass-border);
+            min-width: 135px; height: 180px; background: var(--glass); border: 1px solid var(--glass-border);
             border-radius: 22px; padding: 18px; display: flex; flex-direction: column;
             justify-content: space-between; scroll-snap-align: start; cursor: pointer; color: white;
         }
@@ -90,8 +71,6 @@
         .info-box b { font-size: 20px; display: block; margin-top: 5px; }
 
         .card-view-top { padding: 40px 20px; text-align: center; border-bottom: 8px solid var(--gray); }
-        .bonus-tag { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 6px 15px; border-radius: 12px; font-weight: 700; margin-top: 10px; }
-
         .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 25px 20px; }
         .act-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; cursor: pointer; color: #555; text-align: center; }
         .act-ico { width: 52px; height: 52px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
@@ -110,7 +89,6 @@
             <input type="text" id="loginId" placeholder="Имя или Номер">
             <input type="password" id="loginPin" placeholder="ПИН-код">
             <button class="btn" onclick="handleAuth()" style="background: var(--accent); color: #000;">Войти</button>
-            <p style="text-align:center; opacity:0.5; margin-top:20px;" onclick="location.reload()">Обновить ↻</p>
         </div>
     </div>
 
@@ -132,46 +110,42 @@
                     <span style="font-size: 10px; font-weight: 800; color: var(--gold);">CREDIT CARD</span>
                     <div>
                         <div id="creditBalUI" style="font-size: 18px; font-weight: 800;">0 ₽</div>
-                        <div style="font-size: 10px; opacity: 0.5;">•••• 5500</div>
+                        <div id="creditDebtLabel" style="font-size: 9px; color: var(--gold);">Долг: 0 ₽</div>
                     </div>
                 </div>
             </div>
         </div>
         <div class="white-content">
-            <div class="info-box">
-                <span style="color:#777; font-size:12px;">Траты в декабре</span>
-                <b id="monthlySpends">12 400.00 ₽</b>
-            </div>
-            <div class="info-box" onclick="navTo('screen-loan')" style="background: #fff8e1; border-color: #ffe082;">
-                <span style="color:#777; font-size:12px;">Доступный лимит</span>
+            <div class="info-box"><span style="color:#777; font-size:12px;">Баланс USD</span><b id="usdBal">0.00 $</b></div>
+            <div class="info-box" id="loanBox" onclick="navTo('screen-loan')" style="background: #fff8e1; border-color: #ffe082;">
+                <span style="color:#777; font-size:12px;">Лимит кредита</span>
                 <b style="color: #f57c00;">Взять кредит ➜</b>
             </div>
         </div>
     </div>
 
     <div id="screen-card-view" class="screen">
-        <div style="padding: 20px; display: flex; align-items: center; gap: 15px; background: var(--white); border-bottom: 1px solid #eee;">
+        <div style="padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee;">
             <div onclick="navTo('screen-home')" style="font-size: 24px;">←</div>
             <b id="viewTitle" style="font-size: 18px;">Карта</b>
         </div>
         <div class="card-view-top">
             <div id="viewBal" style="font-size: 38px; font-weight: 800;">0 ₽</div>
-            <div class="bonus-tag">⭐ <span id="viewBonus">0</span> Спасибо</div>
+            <div id="viewSubInfo" style="font-size: 14px; color: #888; margin-top:5px;"></div>
         </div>
         <div class="actions-grid">
-            <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевести</div>
-            <div class="act-item" onclick="openDeposit()"><div class="act-ico">📥</div>Пополнить</div>
-            <div class="act-item" onclick="window.location.href='https://sbp.nspk.ru/'"><div class="act-ico">📷</div>QR-код</div>
-            <div class="act-item" onclick="alert('Обмен валют: USD 90.5 | EUR 98.2')"><div class="act-ico">💱</div>Обмен</div>
+            <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевод</div>
+            <div id="cardMainAction" class="act-item"><div class="act-ico">📥</div>Действие</div>
+            <div class="act-item" onclick="navTo('screen-exchange')"><div class="act-ico">💱</div>Обмен</div>
+            <div class="act-item" onclick="freezeCard()"><div class="act-ico" style="color:var(--red)">🔒</div>Блок</div>
         </div>
-        <div style="padding: 10px 20px;"><h3>История операций</h3></div>
+        <div style="padding: 10px 20px;"><h3 id="historyTitle">История</h3></div>
         <div id="viewHistory"></div>
     </div>
 
     <div id="screen-transfer" class="screen">
         <div style="padding: 20px;">
             <h2 onclick="navTo('screen-home')">← Перевод</h2>
-            <p>Кому переводим:</p>
             <select id="receiverSelect"></select>
             <input type="number" id="transferSum" placeholder="Сумма (₽)">
             <input type="text" id="transferComment" placeholder="Комментарий">
@@ -182,8 +156,17 @@
     <div id="screen-loan" class="screen">
         <div style="padding: 20px;">
             <h2 onclick="navTo('screen-home')">← Кредит</h2>
-            <input type="number" id="loanSum" placeholder="Желаемая сумма (₽)">
+            <input type="number" id="loanSum" placeholder="Сумма лимита (₽)">
             <button class="btn" onclick="takeLoan()" style="background: var(--gold); color: black;">Оформить кредитку</button>
+        </div>
+    </div>
+
+    <div id="screen-exchange" class="screen">
+        <div style="padding: 20px;">
+            <h2 onclick="navTo('screen-home')">← Обмен валюты</h2>
+            <p>Курс: 1$ = 90.00 ₽</p>
+            <input type="number" id="exSum" placeholder="Сколько USD купить?">
+            <button class="btn" onclick="executeExchange()">Купить USD</button>
         </div>
     </div>
 
@@ -192,33 +175,16 @@
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             authDomain: "webapp-b7149.firebaseapp.com", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
-            projectId: "webapp-b7149", 
-            storageBucket: "webapp-b7149.firebasestorage.app", 
-            messagingSenderId: "1034835242406", 
-            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367" 
+            projectId: "webapp-b7149"
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let users = []; let curUser = null;
 
-        const manifest = {
-            "name": "K-Online Bank",
-            "short_name": "K-Online",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#020b0d",
-            "theme_color": "#020b0d",
-            "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/584/584011.png", "sizes": "512x512", "type": "image/png" }]
-        };
-        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'})));
-
         function navTo(id) {
-            document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
-            const activeScreen = document.getElementById(id);
-            activeScreen.style.display = 'block';
-            activeScreen.classList.add('active');
-            activeScreen.scrollTop = 0;
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'block';
         }
 
         db.ref('clients').on('value', snap => {
@@ -226,6 +192,7 @@
             users = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
             if(curUser) {
                 curUser = users.find(u => u.fbKey === curUser.fbKey);
+                if(curUser.frozen) { alert("Карта заблокирована безвозвратно"); location.reload(); }
                 updateMainUI();
             }
         });
@@ -235,91 +202,134 @@
             const pin = document.getElementById('loginPin').value.trim();
             const user = users.find(u => (u.name === id || u.phone === id) && u.clientPin === pin);
             if(user) {
+                if(user.frozen) return alert("Ваш аккаунт заблокирован банком");
                 curUser = user;
                 document.getElementById('helloName').innerText = "Привет, " + curUser.name;
                 updateMainUI();
                 navTo('screen-home');
-            } else { alert("Ошибка входа"); }
+            } else alert("Ошибка входа");
         }
 
         function updateMainUI() {
-            document.getElementById('userBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
+            const bal = curUser.balance || 0;
+            const cBal = curUser.creditBalance || 0;
+            const cLimit = curUser.credit_limit || 0;
+            const debt = cLimit - cBal;
+
+            document.getElementById('userBal').innerText = bal.toLocaleString() + " ₽";
+            document.getElementById('usdBal').innerText = (curUser.usd || 0).toFixed(2) + " $";
+
             if(curUser.hasCredit) {
                 document.getElementById('creditCardUI').style.display = "flex";
-                document.getElementById('creditBalUI').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
+                document.getElementById('creditBalUI').innerText = cBal.toLocaleString() + " ₽";
+                document.getElementById('creditDebtLabel').innerText = "Долг: " + debt.toLocaleString() + " ₽";
+                document.getElementById('loanBox').style.display = "none";
+            } else {
+                document.getElementById('creditCardUI').style.display = "none";
+                document.getElementById('loanBox').style.display = "block";
             }
         }
 
         function openCardView(type) {
             const isCredit = type === 'credit';
-            document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
-            document.getElementById('viewBal').innerText = (isCredit ? (curUser.creditBalance || 0) : (curUser.balance || 0)).toLocaleString() + " ₽";
-            document.getElementById('viewBonus').innerText = curUser.bonus || 0;
+            const actionBtn = document.getElementById('cardMainAction');
             
+            document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
+            
+            if(isCredit) {
+                const debt = (curUser.credit_limit || 0) - (curUser.creditBalance || 0);
+                document.getElementById('viewBal').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
+                document.getElementById('viewSubInfo').innerText = "Осталось платить: " + debt.toLocaleString() + " ₽";
+                
+                if(debt > 0) {
+                    actionBtn.innerHTML = '<div class="act-ico">💰</div>Погасить';
+                    actionBtn.onclick = repayCredit;
+                } else {
+                    actionBtn.innerHTML = '<div class="act-ico">❌</div>Закрыть';
+                    actionBtn.onclick = closeCredit;
+                }
+            } else {
+                document.getElementById('viewBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
+                document.getElementById('viewSubInfo').innerText = "Активна";
+                actionBtn.innerHTML = '<div class="act-ico">📥</div>Пополнить';
+                actionBtn.onclick = () => alert("Для пополнения используйте перевод или терминал");
+            }
+
             const hBox = document.getElementById('viewHistory');
             hBox.innerHTML = curUser.history ? Object.values(curUser.history).reverse().map(h => `
                 <div class="h-item">
-                    <div><b>${h.title || 'Операция'}</b><br><small style="color:#888">${h.comm || ''}</small></div>
+                    <div><b>${h.title || 'Операция'}</b><br><small>${h.comm || ''}</small></div>
                     <b style="color:${h.sum > 0 ? 'green' : 'black'}">${h.sum} ₽</b>
                 </div>
             `).join('') : "<p style='text-align:center; color:#999;'>Операций нет</p>";
             navTo('screen-card-view');
         }
 
-        function openTransfer() {
-            const sel = document.getElementById('receiverSelect');
-            sel.innerHTML = users.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
-            navTo('screen-transfer');
-        }
-
         function executeTransfer() {
             const targetKey = document.getElementById('receiverSelect').value;
             const sum = parseInt(document.getElementById('transferSum').value);
-            const comm = document.getElementById('transferComment').value || "";
             const target = users.find(u => u.fbKey === targetKey);
-            
-            if(!sum || sum > (curUser.balance || 0)) return alert("Ошибка суммы");
-            
-            // Запись отправителю
-            db.ref(`clients/${curUser.fbKey}/balance`).set(curUser.balance - sum);
-            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + (target.name || "Клиент"), sum: -sum, comm: comm });
-            
-            // Запись получателю
-            db.ref(`clients/${target.fbKey}/balance`).set((target.balance || 0) + sum);
-            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + (curUser.name || "Клиент"), sum: sum, comm: comm });
+            if(!sum || sum > curUser.balance) return alert("Недостаточно средств");
+
+            db.ref(`clients/${curUser.fbKey}`).update({ balance: curUser.balance - sum });
+            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + (target.name || "Клиент"), sum: -sum });
+            db.ref(`clients/${target.fbKey}`).update({ balance: (target.balance || 0) + sum });
+            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + (curUser.name || "Клиент"), sum: sum });
 
             alert("Успешно!"); navTo('screen-home');
-        }
-
-        function openDeposit() {
-            if(!curUser.hasCredit) return alert("У вас нет кредитной карты для пополнения");
-            const sum = prompt("Введите сумму пополнения с кредитного лимита:");
-            const val = parseInt(sum);
-            if(val && val > 0 && val <= curUser.creditBalance) {
-                db.ref(`clients/${curUser.fbKey}`).update({
-                    balance: (curUser.balance || 0) + val,
-                    creditBalance: curUser.creditBalance - val
-                });
-                db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Пополнение баланса", sum: val, comm: "С кредитного лимита" });
-                alert("Баланс пополнен!");
-                navTo('screen-home');
-            } else {
-                alert("Недостаточно лимита или неверная сумма");
-            }
         }
 
         function takeLoan() {
             const sum = parseInt(document.getElementById('loanSum').value);
             if(!sum) return;
-            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: sum });
-            alert("Кредитка оформлена!"); navTo('screen-home');
+            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: sum, credit_limit: sum });
+            alert("Кредитка открыта!"); navTo('screen-home');
         }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
-                navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'text/javascript'})));
-            });
+        function repayCredit() {
+            const debt = curUser.credit_limit - curUser.creditBalance;
+            const sum = prompt("Сумма погашения (с баланса):", debt);
+            const val = parseInt(sum);
+            if(val > 0 && val <= curUser.balance) {
+                db.ref(`clients/${curUser.fbKey}`).update({
+                    balance: curUser.balance - val,
+                    creditBalance: curUser.creditBalance + val
+                });
+                alert("Долг частично погашен");
+            } else alert("Ошибка суммы");
+        }
+
+        function closeCredit() {
+            if(confirm("Закрыть кредитную карту?")) {
+                db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: false, credit_limit: 0, creditBalance: 0 });
+                navTo('screen-home');
+            }
+        }
+
+        function executeExchange() {
+            const sumUsd = parseFloat(document.getElementById('exSum').value);
+            const cost = sumUsd * 90;
+            if(sumUsd > 0 && curUser.balance >= cost) {
+                db.ref(`clients/${curUser.fbKey}`).update({
+                    balance: curUser.balance - cost,
+                    usd: (curUser.usd || 0) + sumUsd
+                });
+                db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Покупка USD", sum: -cost, comm: `Куплено ${sumUsd}$` });
+                alert("Валюта куплена!"); navTo('screen-home');
+            } else alert("Недостаточно рублей");
+        }
+
+        function freezeCard() {
+            if(confirm("ВНИМАНИЕ: Блокировка карты необратима. Вы больше не сможете войти в приложение. Продолжить?")) {
+                db.ref(`clients/${curUser.fbKey}`).update({ frozen: true });
+                location.reload();
+            }
+        }
+
+        function openTransfer() {
+            const sel = document.getElementById('receiverSelect');
+            sel.innerHTML = users.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+            navTo('screen-transfer');
         }
     </script>
 </body>
