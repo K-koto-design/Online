@@ -28,7 +28,6 @@
             --gray: #f1f3f5;
         }
 
-        /* Исправление скролла: тело документа не должно скроллиться */
         html, body { 
             margin: 0; 
             padding: 0; 
@@ -40,7 +39,6 @@
 
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
 
-        /* Экраны теперь занимают всю высоту и имеют свой скролл */
         .screen { 
             display: none; 
             position: absolute;
@@ -49,16 +47,14 @@
             height: 100%; 
             overflow-y: auto; 
             background: var(--white);
-            animation: fadeIn 0.3s ease; 
+            animation: fadeIn 0.2s ease; 
         }
         
-        /* Экран авторизации остается темным */
         #screen-auth { background: var(--bg-dark); color: white; display: flex; align-items: center; }
         .screen.active { display: block; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* ВЕРХНЯЯ ЗОНА */
         .header-section {
             background: linear-gradient(180deg, var(--bg-dark), var(--liquid));
             padding: 60px 0 35px 0;
@@ -97,7 +93,7 @@
         .bonus-tag { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 6px 15px; border-radius: 12px; font-weight: 700; margin-top: 10px; }
 
         .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 25px 20px; }
-        .act-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; cursor: pointer; color: #555; }
+        .act-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; cursor: pointer; color: #555; text-align: center; }
         .act-ico { width: 52px; height: 52px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 
         input, select { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid #ddd; background: #f8f9fa; margin-bottom: 15px; font-size: 16px; outline: none; }
@@ -123,7 +119,7 @@
             <div style="position:absolute; top:50px; right:20px; font-size:22px;" onclick="location.reload()">↻</div>
             <h3 id="helloName" style="margin: 0 20px 25px;">Привет!</h3>
             <div class="main-scroll">
-                <div class="narrow-btn">💱</div>
+                <div class="narrow-btn" onclick="window.location.href='https://sbp.nspk.ru/'">📷</div>
                 <div class="narrow-btn" onclick="openTransfer()">💵</div>
                 <div class="tall-card" onclick="openCardView('debit')">
                     <span style="font-size: 10px; font-weight: 800; opacity: 0.6;">MIR DEBIT</span>
@@ -165,8 +161,8 @@
         <div class="actions-grid">
             <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевести</div>
             <div class="act-item" onclick="openDeposit()"><div class="act-ico">📥</div>Пополнить</div>
-            <div class="act-item" onclick="alert('Сканер QR готов')"><div class="act-ico">📷</div>QR-код</div>
-            <div class="act-item" onclick="alert('Услуги временно недоступны')"><div class="act-ico">📱</div>Услуги</div>
+            <div class="act-item" onclick="window.location.href='https://sbp.nspk.ru/'"><div class="act-ico">📷</div>QR-код</div>
+            <div class="act-item" onclick="alert('Обмен валют: USD 90.5 | EUR 98.2')"><div class="act-ico">💱</div>Обмен</div>
         </div>
         <div style="padding: 10px 20px;"><h3>История операций</h3></div>
         <div id="viewHistory"></div>
@@ -192,7 +188,6 @@
     </div>
 
     <script>
-        // Инициализация Firebase (Ваш конфиг)
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             authDomain: "webapp-b7149.firebaseapp.com", 
@@ -207,7 +202,6 @@
 
         let users = []; let curUser = null;
 
-        // PWA Manifest Generation
         const manifest = {
             "name": "K-Online Bank",
             "short_name": "K-Online",
@@ -217,21 +211,14 @@
             "theme_color": "#020b0d",
             "icons": [{ "src": "https://cdn-icons-png.flaticon.com/512/584/584011.png", "sizes": "512x512", "type": "image/png" }]
         };
-        const stringManifest = JSON.stringify(manifest);
-        const blob = new Blob([stringManifest], {type: 'application/json'});
-        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(blob));
+        document.getElementById('pwa-manifest').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifest)], {type: 'application/json'})));
 
-        // Навигация
         function navTo(id) {
-            const screens = document.querySelectorAll('.screen');
-            screens.forEach(s => {
-                s.style.display = 'none'; // Полностью убираем неактивные
-                s.classList.remove('active');
-            });
+            document.querySelectorAll('.screen').forEach(s => { s.style.display = 'none'; s.classList.remove('active'); });
             const activeScreen = document.getElementById(id);
             activeScreen.style.display = 'block';
             activeScreen.classList.add('active');
-            activeScreen.scrollTop = 0; // Сброс скролла при переходе
+            activeScreen.scrollTop = 0;
         }
 
         db.ref('clients').on('value', snap => {
@@ -266,13 +253,13 @@
         function openCardView(type) {
             const isCredit = type === 'credit';
             document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
-            document.getElementById('viewBal').innerText = (isCredit ? curUser.creditBalance : curUser.balance).toLocaleString() + " ₽";
+            document.getElementById('viewBal').innerText = (isCredit ? (curUser.creditBalance || 0) : (curUser.balance || 0)).toLocaleString() + " ₽";
             document.getElementById('viewBonus').innerText = curUser.bonus || 0;
             
             const hBox = document.getElementById('viewHistory');
             hBox.innerHTML = curUser.history ? Object.values(curUser.history).reverse().map(h => `
                 <div class="h-item">
-                    <div><b>${h.title}</b><br><small style="color:#888">${h.comm || ''}</small></div>
+                    <div><b>${h.title || 'Операция'}</b><br><small style="color:#888">${h.comm || ''}</small></div>
                     <b style="color:${h.sum > 0 ? 'green' : 'black'}">${h.sum} ₽</b>
                 </div>
             `).join('') : "<p style='text-align:center; color:#999;'>Операций нет</p>";
@@ -288,11 +275,37 @@
         function executeTransfer() {
             const targetKey = document.getElementById('receiverSelect').value;
             const sum = parseInt(document.getElementById('transferSum').value);
+            const comm = document.getElementById('transferComment').value || "";
             const target = users.find(u => u.fbKey === targetKey);
-            if(!sum || sum > curUser.balance) return alert("Ошибка суммы");
+            
+            if(!sum || sum > (curUser.balance || 0)) return alert("Ошибка суммы");
+            
+            // Запись отправителю
             db.ref(`clients/${curUser.fbKey}/balance`).set(curUser.balance - sum);
+            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + (target.name || "Клиент"), sum: -sum, comm: comm });
+            
+            // Запись получателю
             db.ref(`clients/${target.fbKey}/balance`).set((target.balance || 0) + sum);
+            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + (curUser.name || "Клиент"), sum: sum, comm: comm });
+
             alert("Успешно!"); navTo('screen-home');
+        }
+
+        function openDeposit() {
+            if(!curUser.hasCredit) return alert("У вас нет кредитной карты для пополнения");
+            const sum = prompt("Введите сумму пополнения с кредитного лимита:");
+            const val = parseInt(sum);
+            if(val && val > 0 && val <= curUser.creditBalance) {
+                db.ref(`clients/${curUser.fbKey}`).update({
+                    balance: (curUser.balance || 0) + val,
+                    creditBalance: curUser.creditBalance - val
+                });
+                db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Пополнение баланса", sum: val, comm: "С кредитного лимита" });
+                alert("Баланс пополнен!");
+                navTo('screen-home');
+            } else {
+                alert("Недостаточно лимита или неверная сумма");
+            }
         }
 
         function takeLoan() {
@@ -302,12 +315,10 @@
             alert("Кредитка оформлена!"); navTo('screen-home');
         }
 
-        // Service Worker для PWA (Offline поддержка)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 const swCode = `self.addEventListener('fetch', function(e) { e.respondWith(fetch(e.request)); });`;
-                const blob = new Blob([swCode], {type: 'text/javascript'});
-                navigator.serviceWorker.register(URL.createObjectURL(blob));
+                navigator.serviceWorker.register(URL.createObjectURL(new Blob([swCode], {type: 'text/javascript'})));
             });
         }
     </script>
