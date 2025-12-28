@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>K-Bank Ultimate</title>
+    <title>K-Online | Dark Green Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -10,175 +10,169 @@
 
     <style>
         :root {
-            --dark-green: #0b3d33;
-            --mid-green: #144d41;
-            --sber-main: #21a038;
+            --bg-dark: #020b0d;
+            --liquid: #0b3d33;
+            --accent: #00ff88;
+            --glass: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-white: #ffffff;
+            --text-dark: #2d3436;
             --white: #ffffff;
-            --gray: #f4f5f7;
-            --text: #2d3436;
+            --gold: #f1c40f;
+            --gray: #f1f3f5;
         }
 
         * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--white); color: var(--text); overflow-x: hidden; }
+        body { margin: 0; background: var(--white); color: var(--text-dark); min-height: 100vh; overflow-x: hidden; }
 
-        /* HEADER SECTION */
-        .header-container {
-            background: linear-gradient(180deg, var(--dark-green), var(--mid-green));
+        .screen { display: none; min-height: 100vh; animation: fadeIn 0.3s ease; }
+        .screen.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* ВЕРХНЯЯ ЗОНА */
+        .header-section {
+            background: linear-gradient(180deg, var(--bg-dark), var(--liquid));
             padding: 50px 0 35px 0;
             border-bottom-left-radius: 40px;
             border-bottom-right-radius: 40px;
-            color: white;
+            color: var(--text-white);
             position: relative;
         }
 
-        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 0 25px; margin-bottom: 25px; }
-        .reload-btn { font-size: 22px; cursor: pointer; opacity: 0.8; }
-
-        /* ГЛАВНЫЙ СКРОЛЛ (Кнопки + Карты) */
+        /* ГЛАВНЫЙ СКРОЛЛ */
         .main-scroll {
-            display: flex; gap: 12px; overflow-x: auto; padding: 0 25px 20px 25px;
+            display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 10px 20px;
             scroll-snap-type: x mandatory; align-items: stretch;
         }
         .main-scroll::-webkit-scrollbar { display: none; }
 
-        .side-btn {
+        .narrow-btn {
             min-width: 45px; width: 45px; height: 180px;
-            background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.2);
+            background: var(--glass); border: 1px solid var(--glass-border);
             border-radius: 18px; display: flex; align-items: center; justify-content: center;
-            font-size: 20px; cursor: pointer; backdrop-filter: blur(10px);
+            font-size: 22px; cursor: pointer; backdrop-filter: blur(10px); color: white;
         }
 
         .tall-card {
-            min-width: 130px; height: 180px;
-            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+            min-width: 135px; height: 180px;
+            background: var(--glass); border: 1px solid var(--glass-border);
             border-radius: 22px; padding: 18px; display: flex; flex-direction: column;
-            justify-content: space-between; scroll-snap-align: start; cursor: pointer;
+            justify-content: space-between; scroll-snap-align: start; cursor: pointer; color: white;
         }
-        .tall-card.credit { border-color: #f1c40f; background: linear-gradient(135deg, rgba(241,196,15,0.1), rgba(255,255,255,0.05)); }
+        .tall-card.credit { border-color: var(--gold); }
 
-        /* БЕЛЫЙ ЛИСТ (CONTENT) */
-        .content-area { padding: 30px 25px; display: flex; flex-direction: column; gap: 15px; }
+        /* БЕЛЫЙ ЛИСТ */
+        .white-content { padding: 30px 20px; display: flex; flex-direction: column; gap: 15px; }
+        .info-box { background: var(--gray); padding: 20px; border-radius: 24px; border: 1px solid #e9ecef; }
+        .info-box b { font-size: 20px; display: block; margin-top: 5px; }
+
+        /* ИНТЕРФЕЙС ЭКРАНА КАРТЫ (НЕ МОДАЛЬНЫЙ) */
+        .card-view-top { padding: 40px 20px; text-align: center; border-bottom: 8px solid var(--gray); }
+        .bonus-tag { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 6px 15px; border-radius: 12px; font-weight: 700; margin-top: 10px; }
+
+        .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 25px 20px; }
+        .act-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; cursor: pointer; color: #555; }
+        .act-ico { width: 52px; height: 52px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
+
+        /* COMMON */
+        input, select { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid #ddd; background: #f8f9fa; margin-bottom: 15px; font-size: 16px; outline: none; }
+        .btn { background: var(--liquid); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 700; cursor: pointer; }
         
-        .info-card {
-            background: var(--gray); padding: 20px; border-radius: 24px;
-            display: flex; flex-direction: column; gap: 5px; cursor: pointer;
-        }
-        .info-card b { font-size: 18px; color: var(--text); }
-        .info-card span { font-size: 12px; color: #777; }
-
-        /* МОДАЛЬНЫЕ ОКНА */
-        .screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: var(--white); z-index: 1000; overflow-y: auto; }
-        .screen.active { display: block; animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .card-view-header { padding: 40px 20px; text-align: center; }
-        .bonus-badge { display: inline-block; background: #e8f5e9; color: #1b5e20; padding: 5px 12px; border-radius: 12px; font-weight: 700; margin-top: 10px; }
+        #screen-auth { background: var(--bg-dark); color: white; display: flex; align-items: center; }
+        .glass-auth { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; margin: 20px; width: 100%; }
         
-        .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 20px; border-top: 1px solid #eee; }
-        .action-item { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; cursor: pointer; }
-        .action-ico { width: 50px; height: 50px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-
-        input, select { width: 100%; padding: 16px; border-radius: 14px; border: 1px solid #ddd; background: var(--gray); margin-bottom: 15px; font-size: 16px; outline: none; }
-        .btn-green { background: var(--sber-main); color: white; border: none; padding: 18px; border-radius: 16px; width: 100%; font-weight: 700; cursor: pointer; }
-
-        #screen-auth { z-index: 2000; background: var(--dark-green); display: flex; align-items: center; }
+        .h-item { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f1f1; }
     </style>
 </head>
 <body>
 
     <div id="screen-auth" class="screen active">
-        <div style="padding: 25px; width: 100%; color: white;">
-            <h1 style="text-align: center; margin-bottom: 40px;">K-Bank</h1>
+        <div class="glass-auth">
+            <h1 style="text-align:center;">K-Online</h1>
             <input type="text" id="loginId" placeholder="Имя или Номер">
             <input type="password" id="loginPin" placeholder="ПИН-код">
-            <button class="btn-green" onclick="handleAuth()">Войти</button>
-            <p style="text-align:center; opacity:0.5; margin-top:30px;" onclick="location.reload()">Обновить систему ↻</p>
+            <button class="btn" onclick="handleAuth()" style="background: var(--accent); color: #000;">Войти</button>
+            <p style="text-align:center; opacity:0.5; margin-top:20px;" onclick="location.reload()">Обновить ↻</p>
         </div>
     </div>
 
-    <div id="screen-home" style="display: none;">
-        <div class="header-container">
-            <div class="top-bar">
-                <h3 id="userName" style="margin:0;">Привет!</h3>
-                <div class="reload-btn" onclick="location.reload()">↻</div>
-            </div>
-
+    <div id="screen-home" class="screen">
+        <div class="header-section">
+            <div style="position:absolute; top:50px; right:20px; font-size:22px;" onclick="location.reload()">↻</div>
+            <h3 id="helloName" style="margin: 0 20px 25px;">Привет!</h3>
+            
             <div class="main-scroll">
-                <div class="side-btn" onclick="navTo('screen-exchange')">💱</div>
-                <div class="side-btn" onclick="openTransferScreen()">💵</div>
+                <div class="narrow-btn" onclick="navTo('screen-exchange')">💱</div>
+                <div class="narrow-btn" onclick="openTransfer()">💵</div>
 
-                <div class="tall-card" onclick="openCardDetails('debit')">
-                    <span style="font-size: 10px; font-weight: 700; opacity: 0.7;">МИР</span>
+                <div class="tall-card" onclick="openCardView('debit')">
+                    <span style="font-size: 10px; font-weight: 800; opacity: 0.6;">MIR DEBIT</span>
                     <div>
-                        <div id="mainBal" style="font-size: 18px; font-weight: 800;">0 ₽</div>
+                        <div id="userBal" style="font-size: 18px; font-weight: 800;">0 ₽</div>
                         <div style="font-size: 10px; opacity: 0.5;">•••• 4002</div>
                     </div>
                 </div>
 
-                <div id="creditCardUI" class="tall-card credit" style="display:none;" onclick="openCardDetails('credit')">
-                    <span style="font-size: 10px; font-weight: 700; color: #f1c40f;">VISA CREDIT</span>
+                <div id="creditCardUI" class="tall-card credit" style="display:none;" onclick="openCardView('credit')">
+                    <span style="font-size: 10px; font-weight: 800; color: var(--gold);">CREDIT CARD</span>
                     <div>
-                        <div id="creditBal" style="font-size: 18px; font-weight: 800;">0 ₽</div>
+                        <div id="creditBalUI" style="font-size: 18px; font-weight: 800;">0 ₽</div>
                         <div style="font-size: 10px; opacity: 0.5;">•••• 5500</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="content-area">
-            <div class="info-card">
-                <span>Траты в декабре</span>
-                <b id="totalSpends">12 400.00 ₽</b>
+        <div class="white-content">
+            <div class="info-box">
+                <span style="color:#777; font-size:12px;">Траты в декабре</span>
+                <b id="monthlySpends">12 400.00 ₽</b>
             </div>
-
-            <div class="info-card" onclick="navTo('screen-loan')">
-                <span>Доступно вам</span>
-                <b>Взять кредит ➜</b>
-            </div>
-
-            <div style="margin-top: 10px; color: #aaa; font-size: 12px; text-align: center;" onclick="openChat()">
-                Нужна помощь? <u>Написать в чат</u>
+            <div class="info-box" onclick="navTo('screen-loan')" style="background: #fff8e1; border-color: #ffe082;">
+                <span style="color:#777; font-size:12px;">Доступный лимит</span>
+                <b style="color: #f57c00;">Взять кредит ➜</b>
             </div>
         </div>
     </div>
 
     <div id="screen-card-view" class="screen">
-        <div style="padding: 20px; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px;">
-            <div onclick="navTo('screen-home')" style="font-size: 24px; cursor: pointer;">✕</div>
-            <b id="viewCardTitle">Карта</b>
+        <div style="padding: 20px; display: flex; align-items: center; gap: 15px; background: var(--white);">
+            <div onclick="navTo('screen-home')" style="font-size: 24px;">←</div>
+            <b id="viewTitle" style="font-size: 18px;">Карта</b>
         </div>
-        <div class="card-view-header">
-            <h1 id="viewCardBal" style="font-size: 36px; margin: 0;">0 ₽</h1>
-            <div class="bonus-badge">⭐ <span id="viewCardBonus">0</span> Спасибо</div>
+
+        <div class="card-view-top">
+            <div id="viewBal" style="font-size: 38px; font-weight: 800;">0 ₽</div>
+            <div class="bonus-tag">⭐ <span id="viewBonus">0</span> Спасибо</div>
         </div>
+
         <div class="actions-grid">
-            <div class="action-item" onclick="openTransferScreen()"><div class="action-ico">↗️</div>Перевести</div>
-            <div class="action-item" onclick="openDepositScreen()"><div class="action-ico">📥</div>Пополнить</div>
-            <div class="action-item" onclick="alert('Сканер QR...')"><div class="action-ico">📷</div>Оплата QR</div>
-            <div class="action-item" onclick="alert('Оплата услуг...')"><div class="action-ico">📱</div>Услуги</div>
+            <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевести</div>
+            <div class="act-item" onclick="openDeposit()"><div class="act-ico">📥</div>Пополнить</div>
+            <div class="act-item" onclick="alert('Сканер QR готов')"><div class="act-ico">📷</div>QR-код</div>
+            <div class="act-item" onclick="navTo('screen-pay')"><div class="act-ico">📱</div>Услуги</div>
         </div>
-        <div class="p-20">
-            <h4>История операций</h4>
-            <div id="cardHistoryBox"></div>
-        </div>
+
+        <div style="padding: 10px 20px;"><h3>История операций</h3></div>
+        <div id="viewHistory"></div>
     </div>
 
     <div id="screen-transfer" class="screen">
-        <div class="p-20">
+        <div style="padding: 20px;">
             <h2 onclick="navTo('screen-home')">← Перевод</h2>
-            <select id="transferReceiver"></select>
-            <input type="number" id="transferSum" placeholder="Сумма ₽">
+            <p>Кому переводим:</p>
+            <select id="receiverSelect"></select>
+            <input type="number" id="transferSum" placeholder="Сумма (₽)">
             <input type="text" id="transferComment" placeholder="Комментарий">
-            <button class="btn-green" onclick="confirmTransfer()">Отправить</button>
+            <button class="btn" onclick="executeTransfer()" style="background: #21a038;">Подтвердить</button>
         </div>
     </div>
 
     <div id="screen-loan" class="screen">
-        <div class="p-20">
+        <div style="padding: 20px;">
             <h2 onclick="navTo('screen-home')">← Кредит</h2>
-            <p style="color:#666">Введите сумму лимита для новой карты:</p>
-            <input type="number" id="loanSum" placeholder="Сумма кредита ₽">
-            <button class="btn-green" style="background:#f1c40f; color:#000" onclick="takeLoan()">Оформить кредитную карту</button>
+            <input type="number" id="loanSum" placeholder="Желаемая сумма (₽)">
+            <button class="btn" onclick="takeLoan()" style="background: var(--gold); color: black;">Оформить кредитку</button>
         </div>
     </div>
 
@@ -210,57 +204,79 @@
             const id = document.getElementById('loginId').value.trim();
             const pin = document.getElementById('loginPin').value.trim();
             const user = users.find(u => (u.name === id || u.phone === id) && u.clientPin === pin);
-            if(user) { curUser = user; navTo('screen-home'); updateMainUI(); } else { alert("Ошибка входа"); }
+            if(user) {
+                curUser = user;
+                document.getElementById('helloName').innerText = "Привет, " + curUser.name;
+                navTo('screen-home');
+                updateMainUI();
+            } else { alert("Ошибка входа"); }
         }
 
         function updateMainUI() {
-            document.getElementById('userName').innerText = "Привет, " + curUser.name;
-            document.getElementById('mainBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
-            const crCard = document.getElementById('creditCardUI');
+            document.getElementById('userBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
             if(curUser.hasCredit) {
-                crCard.style.display = "flex";
-                document.getElementById('creditBal').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
-            } else { crCard.style.display = "none"; }
+                document.getElementById('creditCardUI').style.display = "flex";
+                document.getElementById('creditBalUI').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
+            }
         }
 
-        function takeLoan() {
-            const s = parseInt(document.getElementById('loanSum').value);
-            if(!s) return;
-            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: s });
-            alert("Кредитная карта открыта!"); navTo('screen-home');
-        }
-
-        function openCardDetails(type) {
+        function openCardView(type) {
             navTo('screen-card-view');
-            const isCredit = (type === 'credit');
-            document.getElementById('viewCardTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
-            document.getElementById('viewCardBal').innerText = (isCredit ? curUser.creditBalance : curUser.balance).toLocaleString() + " ₽";
-            document.getElementById('viewCardBonus').innerText = curUser.bonus || 0;
-            const box = document.getElementById('cardHistoryBox');
-            box.innerHTML = curUser.history ? Object.values(curUser.history).reverse().map(h => `
-                <div class="history-item">
-                    <span>${h.title}</span>
+            const isCredit = type === 'credit';
+            document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
+            document.getElementById('viewBal').innerText = (isCredit ? curUser.creditBalance : curUser.balance).toLocaleString() + " ₽";
+            document.getElementById('viewBonus').innerText = curUser.bonus || 0;
+            
+            const hBox = document.getElementById('viewHistory');
+            hBox.innerHTML = curUser.history ? Object.values(curUser.history).reverse().map(h => `
+                <div class="h-item">
+                    <div><b>${h.title}</b><br><small style="color:#888">${h.comm || ''}</small></div>
                     <b style="color:${h.sum > 0 ? 'green' : 'black'}">${h.sum} ₽</b>
                 </div>
-            `).join('') : "Операций нет";
+            `).join('') : "<p style='text-align:center; color:#999;'>Операций нет</p>";
         }
 
-        function openTransferScreen() {
+        function openTransfer() {
             navTo('screen-transfer');
-            const sel = document.getElementById('transferReceiver');
+            const sel = document.getElementById('receiverSelect');
             sel.innerHTML = users.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
         }
 
-        function confirmTransfer() {
-            const targetKey = document.getElementById('transferReceiver').value;
+        function executeTransfer() {
+            const targetKey = document.getElementById('receiverSelect').value;
             const sum = parseInt(document.getElementById('transferSum').value);
+            const comment = document.getElementById('transferComment').value;
             const target = users.find(u => u.fbKey === targetKey);
-            if(sum > curUser.balance) return alert("Мало средств");
+
+            if(sum > curUser.balance) return alert("Недостаточно средств");
+
             db.ref(`clients/${curUser.fbKey}/balance`).set(curUser.balance - sum);
-            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + target.name, sum: -sum });
+            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + target.name, sum: -sum, comm: comment });
+            
             db.ref(`clients/${target.fbKey}/balance`).set((target.balance || 0) + sum);
-            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + curUser.name, sum: sum });
+            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + curUser.name, sum: sum, comm: comment });
+
             alert("Успешно!"); navTo('screen-home');
+        }
+
+        function openDeposit() {
+            if(!curUser.hasCredit) return alert("Нет кредитной карты");
+            const sum = prompt("Сумма пополнения с кредитки:");
+            if(sum && sum <= curUser.creditBalance) {
+                db.ref(`clients/${curUser.fbKey}`).update({
+                    balance: curUser.balance + parseInt(sum),
+                    creditBalance: curUser.creditBalance - parseInt(sum)
+                });
+                db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Пополнение с кредитки", sum: parseInt(sum) });
+                alert("Зачислено!"); navTo('screen-home');
+            }
+        }
+
+        function takeLoan() {
+            const sum = parseInt(document.getElementById('loanSum').value);
+            if(!sum) return;
+            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: sum });
+            alert("Кредитка готова!"); navTo('screen-home');
         }
 
         function navTo(id) {
