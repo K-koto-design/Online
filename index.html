@@ -7,10 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#020b0d">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/584/584011.png">
     
-    <link rel="manifest" id="pwa-manifest">
-
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
@@ -21,7 +18,6 @@
             --accent: #00ff88;
             --glass: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
-            --text-white: #ffffff;
             --white: #ffffff;
             --gold: #f1c40f;
             --gray: #f1f3f5;
@@ -45,18 +41,11 @@
         .header-section {
             background: linear-gradient(180deg, var(--bg-dark), var(--liquid));
             padding: 60px 0 35px 0; border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px; color: var(--text-white); position: relative;
+            border-bottom-right-radius: 40px; color: white; position: relative;
         }
 
         .main-scroll { display: flex; gap: 12px; overflow-x: auto; padding: 0 20px 10px 20px; scroll-snap-type: x mandatory; }
         .main-scroll::-webkit-scrollbar { display: none; }
-
-        .narrow-btn {
-            min-width: 45px; width: 45px; height: 180px;
-            background: var(--glass); border: 1px solid var(--glass-border);
-            border-radius: 18px; display: flex; align-items: center; justify-content: center;
-            font-size: 22px; cursor: pointer; backdrop-filter: blur(10px); color: white;
-        }
 
         .tall-card {
             min-width: 135px; height: 180px; background: var(--glass); border: 1px solid var(--glass-border);
@@ -69,27 +58,27 @@
         .info-box { background: var(--gray); padding: 20px; border-radius: 24px; border: 1px solid #e9ecef; }
         .info-box b { font-size: 20px; display: block; margin-top: 5px; }
 
-        .card-view-top { padding: 40px 20px; text-align: center; border-bottom: 8px solid var(--gray); }
-        .actions-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 25px 20px; }
-        .act-item { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 10px; font-weight: 600; cursor: pointer; color: #555; text-align: center; }
-        .act-ico { width: 52px; height: 52px; background: var(--gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; }
-
-        input, select { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid #ddd; background: #f8f9fa; margin-bottom: 15px; font-size: 16px; outline: none; }
+        input, select { width: 100%; padding: 16px; border-radius: 16px; border: 1px solid #ddd; background: #f8f9fa; margin-bottom: 10px; font-size: 16px; outline: none; }
         .btn { background: var(--liquid); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 700; cursor: pointer; }
         .glass-auth { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; margin: 20px; width: 100%; }
-        .h-item { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f1f1; }
         
-        .frozen-msg { text-align: center; padding: 40px; color: white; font-weight: bold; }
+        .h-item { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f1f1; }
+        .frozen-msg { text-align: center; padding: 40px; color: white; }
     </style>
 </head>
 <body>
 
     <div id="screen-auth" class="screen active">
         <div class="glass-auth">
-            <h1 style="text-align:center;">K-Online</h1>
+            <h1 id="authTitle" style="text-align:center; margin-bottom: 20px;">K-Online</h1>
             <input type="text" id="loginId" placeholder="Имя или Номер">
-            <input type="password" id="loginPin" placeholder="ПИН-код">
-            <button class="btn" onclick="handleAuth()" style="background: var(--accent); color: #000;">Войти</button>
+            <input type="password" id="loginPin" placeholder="ПИН-код (4 цифры)">
+            
+            <button id="mainAuthBtn" class="btn" onclick="handleAuth()" style="background: var(--accent); color: #000;">Войти</button>
+            
+            <p id="toggleAuthText" style="text-align:center; margin-top:15px; font-size:14px; opacity:0.8;" onclick="toggleAuthMode()">
+                Нет аккаунта? <b>Создать</b>
+            </p>
         </div>
     </div>
 
@@ -100,12 +89,10 @@
             
             <div id="frozenArea" class="frozen-msg" style="display:none;">
                 <div style="font-size: 50px;">🔒</div>
-                <div style="margin-top: 10px;">Ваши карты заблокированы.</div>
+                <div style="margin-top: 10px; font-weight: bold;">Ваши карты заблокированы.</div>
             </div>
 
             <div id="cardsArea" class="main-scroll">
-                <div class="narrow-btn" onclick="window.location.href='https://sbp.nspk.ru/'">📷</div>
-                <div class="narrow-btn" onclick="openTransfer()">💵</div>
                 <div class="tall-card" onclick="openCardView('debit')">
                     <span style="font-size: 10px; font-weight: 800; opacity: 0.6;">MIR DEBIT</span>
                     <div>
@@ -126,63 +113,27 @@
         <div class="white-content">
             <div class="info-box">
                 <span style="color:#777; font-size:12px;">Траты в декабре</span>
-                <b id="monthlySpends">12 400.00 ₽</b>
+                <b id="monthlySpends">0.00 ₽</b>
             </div>
 
             <div class="info-box" id="loanBox" onclick="navTo('screen-loan')" style="background: #fff8e1; border-color: #ffe082;">
-                <span style="color:#777; font-size:12px;">Лимит кредита</span>
+                <span style="color:#777; font-size:12px;">Доступный лимит</span>
                 <b style="color: #f57c00;">Взять кредит ➜</b>
             </div>
-
-            <div class="info-box" id="usdBox"><span style="color:#777; font-size:12px;">Баланс USD</span><b id="usdBal">0.00 $</b></div>
-        </div>
-    </div>
-
-    <div id="screen-card-view" class="screen">
-        <div style="padding: 20px; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #eee;">
-            <div onclick="navTo('screen-home')" style="font-size: 24px;">←</div>
-            <b id="viewTitle" style="font-size: 18px;">Карта</b>
-        </div>
-        <div class="card-view-top">
-            <div id="viewBal" style="font-size: 38px; font-weight: 800;">0 ₽</div>
-            <div id="viewSubInfo" style="font-size: 14px; color: #888; margin-top:5px;"></div>
-        </div>
-        <div id="cardActionsArea">
-            <div class="actions-grid">
-                <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевод</div>
-                <div id="cardMainAction" class="act-item"><div class="act-ico">📥</div>Действие</div>
-                <div class="act-item" onclick="navTo('screen-exchange')"><div class="act-ico">💱</div>Обмен</div>
-                <div class="act-item" onclick="freezeCard()"><div class="act-ico" style="color:var(--red)">🔒</div>Блок</div>
+            
+            <div class="info-box" id="usdBox">
+                <span style="color:#777; font-size:12px;">Валютный счет</span>
+                <b id="usdBal">0.00 $</b>
             </div>
-        </div>
-        <div style="padding: 10px 20px;"><h3>История</h3></div>
-        <div id="viewHistory"></div>
-    </div>
-
-    <div id="screen-transfer" class="screen">
-        <div style="padding: 20px;">
-            <h2 onclick="navTo('screen-home')">← Перевод</h2>
-            <select id="receiverSelect"></select>
-            <input type="number" id="transferSum" placeholder="Сумма (₽)">
-            <input type="text" id="transferComment" placeholder="Комментарий">
-            <button class="btn" onclick="executeTransfer()" style="background: #21a038;">Подтвердить</button>
         </div>
     </div>
 
     <div id="screen-loan" class="screen">
         <div style="padding: 20px;">
             <h2 onclick="navTo('screen-home')">← Кредит</h2>
-            <input type="number" id="loanSum" placeholder="Сумма лимита (₽)">
-            <button class="btn" onclick="takeLoan()" style="background: var(--gold); color: black;">Оформить кредитку</button>
-        </div>
-    </div>
-
-    <div id="screen-exchange" class="screen">
-        <div style="padding: 20px;">
-            <h2 onclick="navTo('screen-home')">← Обмен</h2>
-            <p>Курс: 1$ = 90.00 ₽</p>
-            <input type="number" id="exSum" placeholder="Сумма USD">
-            <button class="btn" onclick="executeExchange()">Купить USD</button>
+            <p>Введите сумму кредитного лимита:</p>
+            <input type="number" id="loanSum" placeholder="Сумма (₽)">
+            <button class="btn" onclick="takeLoan()" style="background: var(--gold); color: black;">Открыть кредитку</button>
         </div>
     </div>
 
@@ -196,11 +147,22 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let users = []; let curUser = null;
+        let isRegisterMode = false;
+        let users = [];
+        let curUser = null;
 
         function navTo(id) {
             document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
             document.getElementById(id).style.display = 'block';
+        }
+
+        // Переключатель Войти / Создать
+        function toggleAuthMode() {
+            isRegisterMode = !isRegisterMode;
+            document.getElementById('authTitle').innerText = isRegisterMode ? 'Регистрация' : 'K-Online';
+            document.getElementById('mainAuthBtn').innerText = isRegisterMode ? 'Создать аккаунт' : 'Войти';
+            document.getElementById('toggleAuthText').innerHTML = isRegisterMode ? 
+                'Уже есть аккаунт? <b>Войти</b>' : 'Нет аккаунта? <b>Создать</b>';
         }
 
         db.ref('clients').on('value', snap => {
@@ -215,136 +177,74 @@
         function handleAuth() {
             const id = document.getElementById('loginId').value.trim();
             const pin = document.getElementById('loginPin').value.trim();
-            const user = users.find(u => (u.name === id || u.phone === id) && u.clientPin === pin);
-            if(user) {
-                curUser = user;
-                document.getElementById('helloName').innerText = "Привет, " + curUser.name;
-                updateMainUI();
-                navTo('screen-home');
-            } else alert("Ошибка входа");
+
+            if(!id || !pin) return alert("Заполните все поля");
+
+            if (isRegisterMode) {
+                // Регистрация нового пользователя
+                const exists = users.find(u => u.name === id || u.phone === id);
+                if(exists) return alert("Пользователь уже существует");
+                
+                const newUser = {
+                    name: id,
+                    clientPin: pin,
+                    balance: 1000, // Бонус при регистрации
+                    bonus: 0,
+                    hasCredit: false,
+                    frozen: false,
+                    usd: 0
+                };
+                db.ref('clients').push(newUser).then(() => {
+                    alert("Аккаунт создан! Теперь войдите.");
+                    toggleAuthMode();
+                });
+            } else {
+                // Вход
+                const user = users.find(u => (u.name === id || u.phone === id) && u.clientPin === pin);
+                if(user) {
+                    curUser = user;
+                    document.getElementById('helloName').innerText = "Привет, " + curUser.name;
+                    updateMainUI();
+                    navTo('screen-home');
+                } else alert("Неверные данные");
+            }
         }
 
         function updateMainUI() {
-            const isFrozen = curUser.frozen === true;
+            const frozen = curUser.frozen === true;
+            document.getElementById('frozenArea').style.display = frozen ? 'block' : 'none';
+            document.getElementById('cardsArea').style.display = frozen ? 'none' : 'flex';
             
-            // Логика отображения при блокировке
-            document.getElementById('frozenArea').style.display = isFrozen ? 'block' : 'none';
-            document.getElementById('cardsArea').style.display = isFrozen ? 'none' : 'flex';
-
-            // Балансы
             document.getElementById('userBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
             document.getElementById('usdBal').innerText = (curUser.usd || 0).toFixed(2) + " $";
-
-            // Кредитная логика
-            if(curUser.hasCredit && !isFrozen) {
+            
+            // Траты и Кредит
+            document.getElementById('monthlySpends').innerText = (curUser.spends || 12400).toLocaleString() + " ₽";
+            
+            if(curUser.hasCredit && !frozen) {
                 document.getElementById('creditCardUI').style.display = "flex";
+                document.getElementById('loanBox').style.display = "none";
                 const cBal = curUser.creditBalance || 0;
                 const cLimit = curUser.credit_limit || 0;
                 document.getElementById('creditBalUI').innerText = cBal.toLocaleString() + " ₽";
                 document.getElementById('creditDebtLabel').innerText = "Долг: " + (cLimit - cBal).toLocaleString() + " ₽";
-                document.getElementById('loanBox').style.display = "none";
             } else {
                 document.getElementById('creditCardUI').style.display = "none";
-                document.getElementById('loanBox').style.display = isFrozen ? "none" : "block";
+                document.getElementById('loanBox').style.display = frozen ? "none" : "block";
             }
-            
-            if(isFrozen) {
-                document.getElementById('usdBox').style.display = "none";
-            } else {
-                document.getElementById('usdBox').style.display = "block";
-            }
-        }
-
-        function openCardView(type) {
-            if(curUser.frozen) return;
-            const isCredit = type === 'credit';
-            const actionBtn = document.getElementById('cardMainAction');
-            document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
-            
-            if(isCredit) {
-                const debt = (curUser.credit_limit || 0) - (curUser.creditBalance || 0);
-                document.getElementById('viewBal').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
-                document.getElementById('viewSubInfo').innerText = "Долг: " + debt.toLocaleString() + " ₽";
-                if(debt > 0) {
-                    actionBtn.innerHTML = '<div class="act-ico">💰</div>Погасить';
-                    actionBtn.onclick = repayCredit;
-                } else {
-                    actionBtn.innerHTML = '<div class="act-ico">❌</div>Закрыть';
-                    actionBtn.onclick = closeCredit;
-                }
-            } else {
-                document.getElementById('viewBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
-                document.getElementById('viewSubInfo').innerText = "Карта активна";
-                actionBtn.innerHTML = '<div class="act-ico">📥</div>Пополнить';
-                actionBtn.onclick = () => alert("Пополнение через СБП или терминал");
-            }
-
-            const hBox = document.getElementById('viewHistory');
-            hBox.innerHTML = curUser.history ? Object.values(curUser.history).reverse().map(h => `
-                <div class="h-item">
-                    <div><b>${h.title || 'Операция'}</b><br><small>${h.comm || ''}</small></div>
-                    <b style="color:${h.sum > 0 ? 'green' : 'black'}">${h.sum} ₽</b>
-                </div>
-            `).join('') : "<p style='text-align:center; color:#999;'>Операций нет</p>";
-            navTo('screen-card-view');
-        }
-
-        function freezeCard() {
-            if(confirm("Заблокировать все карты? Это действие нельзя отменить.")) {
-                db.ref(`clients/${curUser.fbKey}`).update({ frozen: true });
-                navTo('screen-home');
-            }
-        }
-
-        function executeTransfer() {
-            const targetKey = document.getElementById('receiverSelect').value;
-            const sum = parseInt(document.getElementById('transferSum').value);
-            const target = users.find(u => u.fbKey === targetKey);
-            if(!sum || sum > curUser.balance) return alert("Ошибка суммы");
-            db.ref(`clients/${curUser.fbKey}`).update({ balance: curUser.balance - sum });
-            db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + (target.name || "Клиент"), sum: -sum });
-            db.ref(`clients/${target.fbKey}`).update({ balance: (target.balance || 0) + sum });
-            db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + (curUser.name || "Клиент"), sum: sum });
-            alert("Успешно!"); navTo('screen-home');
         }
 
         function takeLoan() {
             const sum = parseInt(document.getElementById('loanSum').value);
-            if(!sum) return;
-            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: sum, credit_limit: sum });
-            alert("Кредит оформлен!"); navTo('screen-home');
-        }
-
-        function repayCredit() {
-            const debt = curUser.credit_limit - curUser.creditBalance;
-            const val = parseInt(prompt("Сумма погашения:", debt));
-            if(val > 0 && val <= curUser.balance) {
+            if(sum > 0) {
                 db.ref(`clients/${curUser.fbKey}`).update({
-                    balance: curUser.balance - val,
-                    creditBalance: curUser.creditBalance + val
+                    hasCredit: true,
+                    credit_limit: sum,
+                    creditBalance: sum
                 });
-                alert("Успешно!");
+                alert("Кредитная карта открыта!");
+                navTo('screen-home');
             }
-        }
-
-        function closeCredit() {
-            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: false, credit_limit: 0, creditBalance: 0 });
-            navTo('screen-home');
-        }
-
-        function executeExchange() {
-            const usd = parseFloat(document.getElementById('exSum').value);
-            const cost = usd * 90;
-            if(usd > 0 && curUser.balance >= cost) {
-                db.ref(`clients/${curUser.fbKey}`).update({ balance: curUser.balance - cost, usd: (curUser.usd || 0) + usd });
-                alert("Обмен совершен!"); navTo('screen-home');
-            }
-        }
-
-        function openTransfer() {
-            const sel = document.getElementById('receiverSelect');
-            sel.innerHTML = users.filter(u => u.fbKey !== curUser.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
-            navTo('screen-transfer');
         }
     </script>
 </body>
