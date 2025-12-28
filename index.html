@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#21a038">
+    <meta name="format-detection" content="telephone=no">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
@@ -15,299 +15,347 @@
         :root {
             --sber-green: #21a038;
             --sber-dark: #083d12;
-            --bg-main: #f4f6f8;
+            --bg-main: #f2f5f7;
             --white: #ffffff;
+            --dark-panel: #020b0d;
             --text-main: #1a1a1a;
             --text-gray: #8e8e93;
-            --accent-blue: #007aff;
-            --shadow: 0 8px 24px rgba(0,0,0,0.08);
-            --card-grad: linear-gradient(135deg, #2c3e50, #000000);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.05);
+            --shadow-md: 0 8px 24px rgba(0,0,0,0.12);
+            --card-black: linear-gradient(135deg, #232526, #414345);
+            --card-green: linear-gradient(135deg, #1d976c, #93f9b9);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
         
-        body { 
-            margin: 0; padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             background: var(--bg-main); color: var(--text-main);
-            overflow: hidden; height: 100vh; width: 100vw;
+            overflow: hidden; 
         }
 
-        /* Навигация между экранами */
+        /* --- Анимации --- */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* --- Экраны --- */
         .screen {
             display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            overflow-y: auto; background: var(--bg-main);
-            padding-bottom: 80px; 
-            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--bg-main); overflow-y: auto; overflow-x: hidden;
+            z-index: 10;
         }
-        .screen.active { display: block; }
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        /* --- Авторизация (Расширенная) --- */
+        #screen-auth {
+            background: linear-gradient(135deg, #21a038 0%, #004d40 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 20px; text-align: center;
+        }
+        .auth-logo { font-size: 48px; font-weight: 900; color: white; margin-bottom: 10px; letter-spacing: -2px; }
+        .auth-card {
+            background: rgba(255, 255, 255, 0.95); width: 100%; max-width: 350px;
+            border-radius: 30px; padding: 30px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+        }
+        .auth-tabs { display: flex; background: #eee; border-radius: 12px; margin-bottom: 20px; padding: 3px; }
+        .tab-btn { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; background: none; }
+        .tab-btn.active { background: white; box-shadow: var(--shadow-sm); color: var(--sber-green); }
+
+        .user-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 15px; border-bottom: 1px solid #f0f0f0; transition: 0.2s;
+        }
+        .user-row:active { background: #f9f9f9; }
+        .user-row.selected { color: var(--sber-green); font-weight: 800; border-right: 4px solid var(--sber-green); }
+
+        /* --- Шапка главной --- */
+        .top-bar {
+            background: var(--dark-panel); padding: 60px 20px 30px;
+            color: white; border-radius: 0 0 35px 35px; position: relative;
+        }
+        .user-info-block { display: flex; justify-content: space-between; align-items: center; }
+        .avatar-circle {
+            width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(45deg, #444, #888);
+            display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 20px;
+            border: 2px solid rgba(255,255,255,0.2);
         }
 
-        /* HEADER & TOP NAV */
-        .header-main {
-            background: var(--sber-green);
-            padding: 55px 20px 25px;
-            color: white;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 12px rgba(33, 160, 56, 0.2);
+        /* --- Слайдер карт (Детальный) --- */
+        .card-slider {
+            display: flex; gap: 15px; overflow-x: auto; padding: 20px 0;
+            scroll-snap-type: x mandatory; padding-left: 20px;
         }
-        .user-profile { display: flex; align-items: center; justify-content: space-between; margin-bottom: 25px; }
-        .avatar { 
-            width: 45px; height: 45px; background: rgba(255,255,255,0.2); 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 20px; border: 1px solid rgba(255,255,255,0.4);
+        .card-slider::-webkit-scrollbar { display: none; }
+        .card-item {
+            min-width: 280px; height: 170px; border-radius: 24px; padding: 25px;
+            color: white; position: relative; scroll-snap-align: center;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
         }
+        .debit-style { background: var(--card-green); }
+        .credit-style { background: var(--card-black); }
+        .card-name { font-size: 11px; text-transform: uppercase; letter-spacing: 1.2px; opacity: 0.9; }
+        .card-sum { font-size: 32px; font-weight: 800; margin: 15px 0; }
+        .card-chip { width: 40px; height: 30px; background: #ffd700; border-radius: 6px; margin-bottom: 10px; opacity: 0.8; }
 
-        /* КАРТЫ */
-        .card-carousel { 
-            display: flex; overflow-x: auto; gap: 15px; padding: 10px 0;
-            scroll-snap-type: x mandatory; scrollbar-width: none;
+        /* --- Сетка действий --- */
+        .action-container { 
+            display: grid; grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; padding: 25px 20px; 
         }
-        .card-carousel::-webkit-scrollbar { display: none; }
-        
-        .bank-card {
-            min-width: 280px; height: 160px; background: var(--card-grad);
-            border-radius: 20px; padding: 20px; color: white;
-            position: relative; scroll-snap-align: center;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-        }
-        .card-mir { background: linear-gradient(135deg, #005a2d, #00a651); }
-        .card-credit { background: linear-gradient(135deg, #434343, #000000); }
-        
-        .card-type { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; }
-        .card-balance { font-size: 28px; font-weight: 800; margin: 15px 0; }
-        .card-number { font-family: monospace; font-size: 16px; opacity: 0.7; }
-
-        /* ВИДЖЕТЫ И КНОПКИ */
-        .section-title { padding: 20px 20px 10px; font-size: 18px; font-weight: 700; }
-        
-        .action-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 20px;
-        }
-        .action-item { text-align: center; }
-        .action-circle {
-            width: 55px; height: 55px; background: white; border-radius: 50%;
+        .action-box { text-align: center; }
+        .action-icon {
+            width: 60px; height: 60px; background: white; border-radius: 20px;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 8px; font-size: 22px; box-shadow: var(--shadow);
+            font-size: 24px; margin: 0 auto 8px; box-shadow: var(--shadow-sm);
         }
-        .action-label { font-size: 11px; font-weight: 600; color: #444; }
+        .action-text { font-size: 11px; font-weight: 700; color: #555; }
 
-        .widget-list { padding: 10px 20px; }
-        .widget-item {
-            background: white; border-radius: 18px; padding: 16px;
-            display: flex; align-items: center; gap: 15px; margin-bottom: 12px;
-            box-shadow: var(--shadow); transition: transform 0.2s;
+        /* --- Виджеты --- */
+        .widget-card {
+            background: white; margin: 0 20px 12px; border-radius: 22px;
+            padding: 18px; display: flex; align-items: center; gap: 15px;
+            box-shadow: var(--shadow-sm);
         }
-        .widget-item:active { transform: scale(0.97); }
-        .widget-icon { 
-            width: 44px; height: 44px; border-radius: 12px; 
+        .widget-circle {
+            width: 48px; height: 48px; border-radius: 14px;
             display: flex; align-items: center; justify-content: center; font-size: 20px;
         }
 
-        /* ИСТОРИЯ */
-        .history-card {
-            background: white; border-radius: 25px 25px 0 0; 
-            margin-top: 20px; padding: 25px 20px; min-height: 400px;
+        /* --- История (Полная) --- */
+        .history-panel {
+            background: white; border-radius: 35px 35px 0 0; margin-top: 25px;
+            padding: 30px 20px; min-height: 500px; box-shadow: 0 -10px 30px rgba(0,0,0,0.03);
         }
-        .op-row {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 15px 0; border-bottom: 1px solid #f0f0f0;
+        .history-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .op-item {
+            display: flex; align-items: center; padding: 16px 0;
+            border-bottom: 1px solid #f8f8f8;
         }
-        .op-info { display: flex; flex-direction: column; }
-        .op-title { font-weight: 600; font-size: 15px; }
-        .op-date { font-size: 12px; color: var(--text-gray); margin-top: 3px; }
-        .op-amount { font-weight: 700; font-size: 16px; }
-        .amount-minus { color: #000; }
-        .amount-plus { color: var(--sber-green); }
+        .op-icon-bg {
+            width: 42px; height: 42px; border-radius: 50%; background: #f0f2f5;
+            display: flex; align-items: center; justify-content: center; margin-right: 15px;
+        }
+        .op-main { flex: 1; }
+        .op-name { font-weight: 700; font-size: 15px; }
+        .op-sub { font-size: 12px; color: var(--text-gray); margin-top: 2px; }
+        .op-val { font-weight: 800; font-size: 16px; text-align: right; }
+        .val-plus { color: var(--sber-green); }
 
-        /* ФОРМЫ */
-        .form-group { padding: 20px; }
-        .input-box {
-            background: white; border-radius: 15px; padding: 15px;
-            margin-bottom: 15px; box-shadow: var(--shadow);
+        /* --- Формы и инпуты --- */
+        .form-wrap { padding: 20px; }
+        .input-field {
+            background: #fff; border-radius: 18px; padding: 15px;
+            margin-bottom: 15px; box-shadow: var(--shadow-sm);
         }
-        input, select {
-            width: 100%; border: none; font-size: 17px; font-weight: 600;
-            padding: 10px 0; color: var(--text-main);
+        .input-field label { display: block; font-size: 11px; color: var(--text-gray); font-weight: 700; margin-bottom: 5px; }
+        .input-field input, .input-field select {
+            width: 100%; border: none; font-size: 18px; font-weight: 700; background: none;
         }
-        label { font-size: 12px; color: var(--text-gray); font-weight: 700; }
-        
-        .btn-pay {
-            background: var(--sber-green); color: white; border: none;
-            width: 100%; height: 55px; border-radius: 15px;
-            font-size: 17px; font-weight: 700; margin-top: 10px;
+        .main-btn {
+            width: 100%; height: 60px; background: var(--sber-green); color: white;
+            border: none; border-radius: 18px; font-size: 18px; font-weight: 800;
+            margin-top: 10px; box-shadow: 0 8px 20px rgba(33, 160, 56, 0.3);
         }
 
-        /* ЭКРАН ВХОДА */
-        #screen-auth {
-            background: linear-gradient(160deg, var(--sber-green) 0%, #0d4d1d 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 1000;
+        /* --- Всплывающее меню --- */
+        .bottom-sheet {
+            position: fixed; bottom: 0; left: 0; right: 0; background: white;
+            border-radius: 30px 30px 0 0; padding: 30px 20px; z-index: 1000;
+            transform: translateY(100%); transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .auth-container {
-            width: 85%; background: rgba(255,255,255,0.95);
-            padding: 30px 20px; border-radius: 30px; backdrop-filter: blur(10px);
-            text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        .bottom-sheet.open { transform: translateY(0); }
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); opacity: 0; pointer-events: none; transition: 0.3s; z-index: 999;
         }
-        .auth-title { font-size: 26px; font-weight: 900; color: var(--sber-dark); margin-bottom: 10px; }
-        .user-select-list { max-height: 200px; overflow-y: auto; margin: 20px 0; }
-        .user-option {
-            padding: 15px; border-bottom: 1px solid #eee; font-weight: 700;
-            display: flex; justify-content: space-between;
-        }
-        .user-option.selected { color: var(--sber-green); border-left: 4px solid var(--sber-green); }
+        .overlay.show { opacity: 1; pointer-events: auto; }
 
     </style>
 </head>
 <body>
 
+    <div id="overlay" class="overlay" onclick="closeAllModals()"></div>
+
     <div id="screen-auth" class="screen active">
-        <div class="auth-container">
-            <div class="auth-title">K-Online Pro</div>
-            <div style="color: #666; font-size: 14px;">Выберите профиль для входа</div>
-            <div id="userListUI" class="user-select-list"></div>
-            <button class="btn-pay" onclick="loginAction()">Войти в кабинет</button>
-            <div onclick="registerNew()" style="margin-top: 20px; font-weight: 700; font-size: 13px; color: #555;">Создать новый аккаунт</div>
+        <div class="auth-logo">K-Online</div>
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <button class="tab-btn active" onclick="setAuthTab('private')">Частное лицо</button>
+                <button class="tab-btn" onclick="setAuthTab('business')">Бизнес</button>
+            </div>
+            <div id="userListUI" style="max-height: 250px; overflow-y: auto; margin-bottom: 20px;">
+                </div>
+            <button class="main-btn" onclick="loginAction()">Войти по ПИН-коду</button>
+            <div style="margin-top: 20px; font-size: 13px; color: #666;" onclick="registerNew()">
+                Нет аккаунта? <span style="color: var(--sber-green); font-weight: 800;">Регистрация</span>
+            </div>
         </div>
     </div>
 
     <div id="screen-home" class="screen">
-        <div class="header-main">
-            <div class="user-profile">
+        <div class="top-bar">
+            <div class="user-info-block">
                 <div>
-                    <div style="opacity: 0.8; font-size: 13px;">Добрый день,</div>
-                    <div id="userName" style="font-size: 22px; font-weight: 800;">Загрузка...</div>
+                    <div style="opacity: 0.7; font-size: 12px;">Добро пожаловать,</div>
+                    <div id="homeUserName" style="font-size: 24px; font-weight: 900;">Пользователь</div>
                 </div>
-                <div class="avatar" id="userAvatar">?</div>
+                <div class="avatar-circle" id="homeAvatar">?</div>
             </div>
             
-            <div class="card-carousel">
-                <div class="bank-card card-mir" onclick="openCardDetails('debit')">
-                    <div class="card-type">Дебетовая карта • МИР</div>
-                    <div class="card-balance" id="bal-debit">0 ₽</div>
-                    <div class="card-number">•••• 4002</div>
+            <div class="card-slider">
+                <div class="card-item debit-style" onclick="openCardDetails('debit')">
+                    <div class="card-name">Mir Debit Platinum</div>
+                    <div class="card-chip"></div>
+                    <div id="bal-debit" class="card-sum">0.00 ₽</div>
+                    <div style="font-family: monospace; letter-spacing: 2px;">•••• 4002</div>
                 </div>
-                <div class="bank-card card-credit" onclick="openCardDetails('credit')">
-                    <div class="card-type">Кредитная карта</div>
-                    <div class="card-balance" id="bal-credit">0 ₽</div>
-                    <div class="card-number">•••• 8851</div>
+                <div class="card-item credit-style" onclick="openCardDetails('credit')">
+                    <div class="card-name">Credit Signature</div>
+                    <div class="card-chip" style="background: #c0c0c0;"></div>
+                    <div id="bal-credit" class="card-sum">0.00 ₽</div>
+                    <div style="font-family: monospace; letter-spacing: 2px;">•••• 8851</div>
                 </div>
             </div>
         </div>
 
-        <div class="section-title">Быстрые действия</div>
-        <div class="action-grid">
-            <div class="action-item" onclick="nav('screen-transfer')">
-                <div class="action-circle">💸</div>
-                <div class="action-label">Перевод</div>
+        <div class="action-container">
+            <div class="action-box" onclick="nav('screen-transfer')">
+                <div class="action-icon">📤</div>
+                <div class="action-text">Перевод</div>
             </div>
-            <div class="action-item" onclick="nav('screen-payments')">
-                <div class="action-circle">📱</div>
-                <div class="action-label">Платежи</div>
+            <div class="action-box" onclick="nav('screen-payments')">
+                <div class="action-icon">📱</div>
+                <div class="action-text">Платежи</div>
             </div>
-            <div class="action-item" onclick="openExchange()">
-                <div class="action-circle">💱</div>
-                <div class="action-label">Обмен</div>
+            <div class="action-box" onclick="openExchange()">
+                <div class="action-icon">💱</div>
+                <div class="action-text">Курсы</div>
             </div>
-            <div class="action-item" onclick="nav('screen-settings')">
-                <div class="action-circle">⚙️</div>
-                <div class="action-label">Инфо</div>
+            <div class="action-box" onclick="nav('screen-settings')">
+                <div class="action-icon">⚙️</div>
+                <div class="action-text">Лимиты</div>
             </div>
         </div>
 
-        <div class="section-title">Сервисы</div>
-        <div class="widget-list">
-            <div class="widget-item">
-                <div class="widget-icon" style="background: #e3f2fd; color: #1e88e5;">⭐</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 700; font-size: 15px;">Бонусы</div>
-                    <div id="userBonus" style="font-size: 13px; color: var(--sber-green); font-weight: 700;">0</div>
-                </div>
-                <div style="font-size: 12px; color: #999;">Накоплено ➜</div>
+        <div class="widget-card" onclick="alert('Ваша программа лояльности активна')">
+            <div class="widget-circle" style="background: #e8f5e9; color: var(--sber-green);">⭐</div>
+            <div style="flex: 1;">
+                <div style="font-size: 15px; font-weight: 800;">Бонусы за покупки</div>
+                <div id="userBonuses" style="font-size: 13px; color: #666;">Накоплено: 0</div>
             </div>
-            <div class="widget-item" onclick="openExchange()">
-                <div class="widget-icon" style="background: #fff8e1; color: #fbc02d;">💵</div>
-                <div style="flex: 1;">
-                    <div style="font-weight: 700; font-size: 15px;">Валютный счет</div>
-                    <div id="userUsd" style="font-size: 13px; color: #666;">$ 0.00</div>
-                </div>
+            <div style="font-weight: 900; color: var(--sber-green);">➜</div>
+        </div>
+
+        <div class="widget-card">
+            <div class="widget-circle" style="background: #fff3e0; color: #ff9800;">💵</div>
+            <div style="flex: 1;">
+                <div style="font-size: 15px; font-weight: 800;">Валютный счет</div>
+                <div id="userUsd" style="font-size: 13px; color: #666;">$ 0.00</div>
             </div>
+        </div>
+
+        <div class="history-panel">
+            <div class="history-title">
+                Последние операции
+                <span style="font-size: 13px; color: var(--sber-green);">Все</span>
+            </div>
+            <div id="mainHistoryUI">
+                </div>
         </div>
     </div>
 
     <div id="screen-transfer" class="screen">
-        <div class="header-main" style="padding-top: 40px; border-radius: 0 0 20px 20px;">
-            <div onclick="nav('screen-home')" style="font-weight: 600;">✕ Закрыть</div>
-            <h2 style="margin-top: 15px;">Перевод клиенту</h2>
+        <div style="padding: 50px 20px 20px; display: flex; align-items: center; justify-content: space-between;">
+            <div onclick="nav('screen-home')" style="font-size: 24px;">✕</div>
+            <div style="font-weight: 800; font-size: 18px;">Перевод по номеру</div>
+            <div style="width: 24px;"></div>
         </div>
-        <div class="form-group">
-            <div class="input-box">
-                <label>Кому переводим</label>
-                <select id="select-recipient"></select>
+        <div class="form-wrap">
+            <div class="input-field">
+                <label>Получатель</label>
+                <select id="transferRecipient"></select>
             </div>
-            <div class="input-box">
-                <label>Сумма перевода (₽)</label>
-                <input type="number" id="input-sum" placeholder="0">
+            <div class="input-field">
+                <label>Сумма перевода</label>
+                <input type="number" id="transferAmount" placeholder="0.00">
             </div>
-            <button class="btn-pay" onclick="executeTransfer()">Отправить деньги</button>
+            <div class="input-field">
+                <label>Сообщение (необязательно)</label>
+                <input type="text" placeholder="Подарок">
+            </div>
+            <button class="main-btn" onclick="executeTransfer()">Отправить перевод</button>
         </div>
     </div>
 
     <div id="screen-payments" class="screen">
-        <div class="header-main" style="padding-top: 40px; border-radius: 0 0 20px 20px;">
-            <div onclick="nav('screen-home')" style="font-weight: 600;">✕ Закрыть</div>
-            <h2 style="margin-top: 15px;">Платежи и услуги</h2>
+        <div style="padding: 50px 20px 20px; display: flex; align-items: center; gap: 15px;">
+            <div onclick="nav('screen-home')" style="font-size: 24px;">←</div>
+            <h2 style="margin: 0;">Платежи</h2>
         </div>
-        <div class="widget-list" style="margin-top: 20px;">
-            <div class="widget-item" onclick="startServicePay('Мобильная связь', '📱')">
-                <div class="widget-icon">📱</div>
-                <div style="font-weight: 700;">Мобильная связь</div>
-            </div>
-            <div class="widget-item" onclick="startServicePay('Домашний интернет', '🌐')">
-                <div class="widget-icon">🌐</div>
-                <div style="font-weight: 700;">Интернет</div>
-            </div>
-            <div class="widget-item" onclick="startServicePay('Транспорт (Тройка)', '🚌')">
-                <div class="widget-icon">🚌</div>
-                <div style="font-weight: 700;">Транспорт</div>
-            </div>
+        <div class="widget-card" onclick="startServicePay('Мобильная связь', '📱')">
+            <div class="widget-circle">📱</div>
+            <div style="font-weight: 800;">Мобильная связь</div>
+        </div>
+        <div class="widget-card" onclick="startServicePay('Интернет', '🌐')">
+            <div class="widget-circle">🌐</div>
+            <div style="font-weight: 800;">Интернет и ТВ</div>
+        </div>
+        <div class="widget-card" onclick="startServicePay('Транспорт', '🚌')">
+            <div class="widget-circle">🚌</div>
+            <div style="font-weight: 800;">Транспорт</div>
+        </div>
+        <div class="widget-card" onclick="startServicePay('ЖКХ', '🏠')">
+            <div class="widget-circle">🏠</div>
+            <div style="font-weight: 800;">Квартплата</div>
         </div>
     </div>
 
     <div id="screen-card-detail" class="screen">
-        <div style="padding: 40px 20px 20px; background: white;">
-            <div onclick="nav('screen-home')" style="color: var(--accent-blue); font-weight: 600;">← Назад</div>
-            <h1 id="detail-bal-title" style="font-size: 34px; margin: 20px 0 5px;">0 ₽</h1>
-            <div id="detail-card-name" style="color: var(--text-gray); font-weight: 600;">Дебетовая карта</div>
+        <div id="detailHeader" style="padding: 50px 20px 30px; color: white;">
+            <div onclick="nav('screen-home')">← Назад</div>
+            <h1 id="detailAmount" style="font-size: 42px; margin: 20px 0 5px;">0.00 ₽</h1>
+            <p id="detailName" style="opacity: 0.8; font-weight: 700;">Дебетовая карта</p>
         </div>
-        
-        <div class="action-grid" style="margin-top: 10px;">
-            <div class="action-item" onclick="topUpBalance()">
-                <div class="action-circle">📥</div>
-                <div class="action-label">Пополнить</div>
+        <div class="action-container">
+            <div class="action-box" onclick="topUpAction()">
+                <div class="action-icon">➕</div>
+                <div class="action-text">Пополнить</div>
             </div>
-            <div class="action-item" onclick="alert('Реквизиты: RU89 2100 0000 4002 9912')">
-                <div class="action-circle">📄</div>
-                <div class="action-label">Реквизиты</div>
+            <div class="action-box" onclick="alert('Лимит: 150 000 ₽ / день')">
+                <div class="action-icon">📊</div>
+                <div class="action-text">Лимиты</div>
             </div>
-            <div class="action-item" onclick="toggleFreeze()">
-                <div class="action-circle">❄️</div>
-                <div class="action-label" id="freeze-label">Блок</div>
+            <div class="action-box" onclick="freezeToggle()">
+                <div class="action-icon">❄️</div>
+                <div class="action-text">Блок</div>
+            </div>
+            <div class="action-box" onclick="alert('RU45 2020 4002 1100 9982')">
+                <div class="action-icon">ℹ️</div>
+                <div class="action-text">Реквизиты</div>
             </div>
         </div>
+        <div class="history-panel" id="detailHistory">
+            </div>
+    </div>
 
-        <div class="history-card">
-            <div style="font-weight: 800; font-size: 18px; margin-bottom: 20px;">История операций</div>
-            <div id="history-list">
-                </div>
+    <div id="screen-settings" class="screen">
+        <div style="padding: 50px 20px;">
+            <div onclick="nav('screen-home')" style="font-size: 24px;">✕</div>
+            <h2>Настройки</h2>
+            <div class="widget-card" onclick="changePin()">
+                <div style="flex: 1; font-weight: 800;">Изменить ПИН-код</div>
+            </div>
+            <div class="widget-card" onclick="location.reload()">
+                <div style="flex: 1; font-weight: 800; color: #d32f2f;">Выйти из приложения</div>
+            </div>
         </div>
     </div>
 
     <script>
+        // Инициализация Firebase
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
@@ -318,221 +366,212 @@
 
         let currentUser = null;
         let allUsers = [];
-        let selectedUserId = null;
-        let currentDetailType = 'debit';
+        let selectedLoginId = null;
+        let currentDetailCard = 'debit';
 
-        // Инициализация
-        function initApp() {
+        // Инициализация данных
+        function init() {
             db.ref('clients').on('value', snap => {
                 const data = snap.val();
-                allUsers = data ? Object.keys(data).map(key => ({ ...data[key], fbKey: key })) : [];
-                renderUserSelect();
+                allUsers = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
+                renderUserList();
                 if(currentUser) {
                     currentUser = allUsers.find(u => u.fbKey === currentUser.fbKey);
-                    updateUI();
+                    refreshUI();
                 }
             });
         }
 
-        // Рендер списка пользователей на входе
-        function renderUserSelect() {
+        // Рендер списка на входе
+        function renderUserList() {
             const container = document.getElementById('userListUI');
-            container.innerHTML = allUsers.map(user => `
-                <div class="user-option ${selectedUserId === user.fbKey ? 'selected' : ''}" onclick="selectUser('${user.fbKey}')">
-                    ${user.name} <span>${selectedUserId === user.fbKey ? '●' : ''}</span>
+            container.innerHTML = allUsers.map(u => `
+                <div class="user-row ${selectedLoginId === u.fbKey ? 'selected' : ''}" onclick="selectLogin('${u.fbKey}')">
+                    <span>${u.name}</span>
+                    <span>${selectedLoginId === u.fbKey ? '✓' : ''}</span>
                 </div>
             `).join('');
 
-            // Заполнение списка получателей в переводах
-            const select = document.getElementById('select-recipient');
-            select.innerHTML = allUsers
-                .filter(u => currentUser && u.fbKey !== currentUser.fbKey)
-                .map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+            // Селект для переводов
+            const select = document.getElementById('transferRecipient');
+            select.innerHTML = allUsers.filter(u => currentUser && u.fbKey !== currentUser.fbKey)
+                                       .map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
         }
 
-        function selectUser(id) {
-            selectedUserId = id;
-            renderUserSelect();
+        function selectLogin(id) {
+            selectedLoginId = id;
+            renderUserList();
         }
 
+        // Авторизация
         function loginAction() {
-            if(!selectedUserId) return alert("Выберите пользователя");
-            const pin = prompt("Введите ПИН-код (4 цифры):");
-            const user = allUsers.find(u => u.fbKey === selectedUserId);
-            
+            if(!selectedLoginId) return alert("Выберите пользователя");
+            const pin = prompt("Введите 4-значный ПИН:");
+            const user = allUsers.find(u => u.fbKey === selectedLoginId);
             if(user && user.clientPin === pin) {
                 currentUser = user;
-                updateUI();
+                refreshUI();
                 nav('screen-home');
-            } else {
-                alert("Неверный код доступа");
-            }
+            } else { alert("Неверный ПИН-код"); }
         }
 
+        // Регистрация
         function registerNew() {
-            const name = prompt("Введите Ваше ФИО:");
-            const pin = prompt("Придумайте 4-значный ПИН-код:");
+            const name = prompt("Ваше имя:");
+            const pin = prompt("Новый ПИН (4 цифры):");
             if(name && pin) {
                 db.ref('clients').push({
                     name: name,
                     clientPin: pin,
-                    balance: 5000,
-                    bonus: 100,
-                    creditBalance: 0,
-                    creditLimit: 50000,
+                    balance: 10000,
+                    bonus: 0,
                     usd: 0,
-                    history: { "init": { title: "Открытие счета", sum: 5000, date: new Date().toLocaleDateString() } }
+                    creditLimit: 50000,
+                    creditBalance: 0,
+                    history: { "init": { title: "Открытие счета", sum: 10000, date: new Date().toLocaleDateString() } }
                 });
-                alert("Аккаунт успешно создан!");
             }
         }
 
-        function updateUI() {
+        // Обновление всех данных на экране
+        function refreshUI() {
             if(!currentUser) return;
             
             // Главный экран
-            document.getElementById('userName').innerText = currentUser.name;
-            document.getElementById('userAvatar').innerText = currentUser.name.charAt(0);
+            document.getElementById('homeUserName').innerText = currentUser.name;
+            document.getElementById('homeAvatar').innerText = currentUser.name[0];
             document.getElementById('bal-debit').innerText = (currentUser.balance || 0).toLocaleString() + " ₽";
             document.getElementById('bal-credit').innerText = (currentUser.creditLimit - (currentUser.creditBalance || 0)).toLocaleString() + " ₽";
-            document.getElementById('userBonus').innerText = (currentUser.bonus || 0).toLocaleString();
+            document.getElementById('userBonuses').innerText = "Накоплено: " + (currentUser.bonus || 0);
             document.getElementById('userUsd').innerText = "$ " + (currentUser.usd || 0).toFixed(2);
 
-            // Экран деталей, если открыт
+            // Рендер истории
+            const hist = currentUser.history ? Object.values(currentUser.history).reverse() : [];
+            const html = hist.map(op => `
+                <div class="op-item">
+                    <div class="op-icon-bg">${op.sum > 0 ? '💰' : '🛒'}</div>
+                    <div class="op-main">
+                        <div class="op-name">${op.title}</div>
+                        <div class="op-sub">${op.date || 'Сегодня'}</div>
+                    </div>
+                    <div class="op-val ${op.sum > 0 ? 'val-plus' : ''}">
+                        ${op.sum > 0 ? '+' : ''}${op.sum.toLocaleString()} ₽
+                    </div>
+                </div>
+            `).join('');
+            
+            document.getElementById('mainHistoryUI').innerHTML = html;
+            
+            // Если экран деталей открыт, обновляем и его
             if(document.getElementById('screen-card-detail').classList.contains('active')) {
-                renderDetails();
+                renderCardDetail();
             }
         }
 
+        // Навигация
         function nav(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
         }
 
-        // ПЕРЕВОДЫ
+        // Переводы
         function executeTransfer() {
-            const targetId = document.getElementById('select-recipient').value;
-            const amount = parseInt(document.getElementById('input-sum').value);
-            const targetUser = allUsers.find(u => u.fbKey === targetId);
-
-            if(!amount || amount <= 0) return alert("Укажите сумму");
+            const targetId = document.getElementById('transferRecipient').value;
+            const amount = parseInt(document.getElementById('transferAmount').value);
+            if(!amount || amount <= 0) return alert("Неверная сумма");
             if(currentUser.balance < amount) return alert("Недостаточно средств");
 
+            const target = allUsers.find(u => u.fbKey === targetId);
+            
             // Списание
             db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - amount });
             db.ref(`clients/${currentUser.fbKey}/history`).push({ 
-                title: "Перевод: " + targetUser.name, 
-                sum: -amount, 
-                date: new Date().toLocaleDateString() 
+                title: "Перевод: " + target.name, sum: -amount, date: "Сегодня" 
             });
 
             // Начисление
-            db.ref(`clients/${targetId}`).update({ balance: (targetUser.balance || 0) + amount });
+            db.ref(`clients/${targetId}`).update({ balance: (target.balance || 0) + amount });
             db.ref(`clients/${targetId}/history`).push({ 
-                title: "Входящий от: " + currentUser.name, 
-                sum: amount, 
-                date: new Date().toLocaleDateString() 
+                title: "Перевод от: " + currentUser.name, sum: amount, date: "Сегодня" 
             });
 
-            alert("Перевод успешно выполнен!");
+            alert("Перевод успешно отправлен!");
             nav('screen-home');
         }
 
-        // ОПЛАТА УСЛУГ
-        function startServicePay(serviceName, icon) {
-            const amount = prompt(`Оплата: ${serviceName}\nВведите сумму (₽):`);
-            if(!amount || isNaN(amount)) return;
-            const sum = parseInt(amount);
+        // Оплата услуг
+        function startServicePay(name, icon) {
+            const amountStr = prompt(`Оплата ${name}. Введите сумму:`);
+            const amount = parseInt(amountStr);
+            if(!amount || amount <= 0) return;
+            if(currentUser.balance < amount) return alert("Недостаточно средств");
 
-            if(currentUser.balance < sum) return alert("Недостаточно средств");
-
-            const bBonus = Math.floor(sum * 0.01); // 1% бонус
-            
+            const bonusGain = Math.floor(amount * 0.01);
             db.ref(`clients/${currentUser.fbKey}`).update({ 
-                balance: currentUser.balance - sum,
-                bonus: (currentUser.bonus || 0) + bBonus
+                balance: currentUser.balance - amount,
+                bonus: (currentUser.bonus || 0) + bonusGain
             });
             db.ref(`clients/${currentUser.fbKey}/history`).push({ 
-                title: "Оплата: " + serviceName, 
-                sum: -sum, 
-                date: new Date().toLocaleDateString() 
+                title: "Оплата: " + name, sum: -amount, date: "Сегодня" 
             });
-
-            alert(`Успешно оплачено!\nНачислено бонусов: ${bBonus}`);
+            alert("Платеж прошел! Начислено бонусов: " + bonusGain);
         }
 
-        // ИСТОРИЯ И ДЕТАЛИ
+        // Детали карты
         function openCardDetails(type) {
-            currentDetailType = type;
-            nav('screen-card-detail');
-            renderDetails();
-        }
-
-        function renderDetails() {
-            const hList = document.getElementById('history-list');
-            const balTitle = document.getElementById('detail-bal-title');
-            const nameTitle = document.getElementById('detail-card-name');
-
-            if(currentDetailType === 'debit') {
-                balTitle.innerText = currentUser.balance.toLocaleString() + " ₽";
-                nameTitle.innerText = "Дебетовая карта • МИР";
+            currentDetailCard = type;
+            const header = document.getElementById('detailHeader');
+            if(type === 'debit') {
+                header.style.background = "var(--sber-green)";
+                document.getElementById('detailName').innerText = "Mir Debit Platinum";
             } else {
-                balTitle.innerText = (currentUser.creditLimit - (currentUser.creditBalance || 0)).toLocaleString() + " ₽";
-                nameTitle.innerText = "Кредитная карта";
+                header.style.background = "var(--dark-panel)";
+                document.getElementById('detailName').innerText = "Credit Signature";
             }
-
-            const historyArr = currentUser.history ? Object.values(currentUser.history).reverse() : [];
-            hList.innerHTML = historyArr.map(h => `
-                <div class="op-row">
-                    <div class="op-info">
-                        <span class="op-title">${h.title}</span>
-                        <span class="op-date">${h.date || 'Сегодня'}</span>
-                    </div>
-                    <div class="op-amount ${h.sum > 0 ? 'amount-plus' : 'amount-minus'}">
-                        ${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()} ₽
-                    </div>
-                </div>
-            `).join('');
+            renderCardDetail();
+            nav('screen-card-detail');
         }
 
-        function topUpBalance() {
-            const sum = prompt("Введите сумму для пополнения через терминал:");
-            if(sum && !isNaN(sum)) {
+        function renderCardDetail() {
+            const val = currentDetailCard === 'debit' ? currentUser.balance : (currentUser.creditLimit - currentUser.creditBalance);
+            document.getElementById('detailAmount').innerText = val.toLocaleString() + " ₽";
+            document.getElementById('detailHistory').innerHTML = document.getElementById('mainHistoryUI').innerHTML;
+        }
+
+        // Доп. функции
+        function topUpAction() {
+            const sum = prompt("Введите сумму пополнения:");
+            if(sum) {
                 db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance + parseInt(sum) });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ 
-                    title: "Пополнение ATM", 
-                    sum: parseInt(sum), 
-                    date: new Date().toLocaleDateString() 
-                });
+                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Пополнение", sum: parseInt(sum), date: "Сегодня" });
             }
         }
 
         function openExchange() {
-            const usd = prompt("Курс: 1$ = 91.20 ₽\nСколько USD желаете купить?");
-            if(!usd || isNaN(usd)) return;
-            const cost = Math.round(usd * 91.2);
-
-            if(currentUser.balance < cost) return alert("Недостаточно рублей");
-
-            db.ref(`clients/${currentUser.fbKey}`).update({ 
-                balance: currentUser.balance - cost,
-                usd: (currentUser.usd || 0) + parseFloat(usd)
-            });
-            db.ref(`clients/${currentUser.fbKey}/history`).push({ 
-                title: "Покупка валюты", 
-                sum: -cost, 
-                date: new Date().toLocaleDateString() 
-            });
-            alert("Валюта зачислена!");
+            const usd = prompt("Курс покупки: 1$ = 91.2 ₽\nСколько USD купить?");
+            if(usd) {
+                const cost = Math.round(usd * 91.2);
+                if(currentUser.balance < cost) return alert("Мало средств");
+                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - cost, usd: (currentUser.usd || 0) + parseFloat(usd) });
+                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Обмен валюты", sum: -cost, date: "Сегодня" });
+            }
         }
 
-        function toggleFreeze() {
-            alert("Карта временно заблокирована в целях безопасности. Обратитесь в банк.");
+        function changePin() {
+            const np = prompt("Введите новый 4-значный ПИН:");
+            if(np && np.length === 4) {
+                db.ref(`clients/${currentUser.fbKey}`).update({ clientPin: np });
+                alert("ПИН изменен!");
+            }
         }
 
-        // Старт приложения
-        initApp();
+        function setAuthTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            if(tab === 'business') alert("Раздел для бизнеса временно на обслуживании");
+        }
 
+        init();
     </script>
 </body>
 </html>
