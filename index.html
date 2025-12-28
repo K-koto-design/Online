@@ -22,7 +22,6 @@
             --glass: rgba(255, 255, 255, 0.1);
             --glass-border: rgba(255, 255, 255, 0.2);
             --text-white: #ffffff;
-            --text-dark: #2d3436;
             --white: #ffffff;
             --gold: #f1c40f;
             --gray: #f1f3f5;
@@ -79,6 +78,8 @@
         .btn { background: var(--liquid); color: white; border: none; padding: 18px; border-radius: 18px; width: 100%; font-weight: 700; cursor: pointer; }
         .glass-auth { background: var(--glass); backdrop-filter: blur(25px); border: 1px solid var(--glass-border); padding: 30px; border-radius: 28px; margin: 20px; width: 100%; }
         .h-item { display: flex; justify-content: space-between; padding: 15px 20px; border-bottom: 1px solid #f1f1f1; }
+        
+        .frozen-msg { text-align: center; padding: 40px; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -96,7 +97,13 @@
         <div class="header-section">
             <div style="position:absolute; top:50px; right:20px; font-size:22px;" onclick="location.reload()">↻</div>
             <h3 id="helloName" style="margin: 0 20px 25px;">Привет!</h3>
-            <div class="main-scroll">
+            
+            <div id="frozenArea" class="frozen-msg" style="display:none;">
+                <div style="font-size: 50px;">🔒</div>
+                <div style="margin-top: 10px;">Ваши карты заблокированы.</div>
+            </div>
+
+            <div id="cardsArea" class="main-scroll">
                 <div class="narrow-btn" onclick="window.location.href='https://sbp.nspk.ru/'">📷</div>
                 <div class="narrow-btn" onclick="openTransfer()">💵</div>
                 <div class="tall-card" onclick="openCardView('debit')">
@@ -115,12 +122,19 @@
                 </div>
             </div>
         </div>
+
         <div class="white-content">
-            <div class="info-box"><span style="color:#777; font-size:12px;">Баланс USD</span><b id="usdBal">0.00 $</b></div>
+            <div class="info-box">
+                <span style="color:#777; font-size:12px;">Траты в декабре</span>
+                <b id="monthlySpends">12 400.00 ₽</b>
+            </div>
+
             <div class="info-box" id="loanBox" onclick="navTo('screen-loan')" style="background: #fff8e1; border-color: #ffe082;">
                 <span style="color:#777; font-size:12px;">Лимит кредита</span>
                 <b style="color: #f57c00;">Взять кредит ➜</b>
             </div>
+
+            <div class="info-box" id="usdBox"><span style="color:#777; font-size:12px;">Баланс USD</span><b id="usdBal">0.00 $</b></div>
         </div>
     </div>
 
@@ -133,13 +147,15 @@
             <div id="viewBal" style="font-size: 38px; font-weight: 800;">0 ₽</div>
             <div id="viewSubInfo" style="font-size: 14px; color: #888; margin-top:5px;"></div>
         </div>
-        <div class="actions-grid">
-            <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевод</div>
-            <div id="cardMainAction" class="act-item"><div class="act-ico">📥</div>Действие</div>
-            <div class="act-item" onclick="navTo('screen-exchange')"><div class="act-ico">💱</div>Обмен</div>
-            <div class="act-item" onclick="freezeCard()"><div class="act-ico" style="color:var(--red)">🔒</div>Блок</div>
+        <div id="cardActionsArea">
+            <div class="actions-grid">
+                <div class="act-item" onclick="openTransfer()"><div class="act-ico">↗️</div>Перевод</div>
+                <div id="cardMainAction" class="act-item"><div class="act-ico">📥</div>Действие</div>
+                <div class="act-item" onclick="navTo('screen-exchange')"><div class="act-ico">💱</div>Обмен</div>
+                <div class="act-item" onclick="freezeCard()"><div class="act-ico" style="color:var(--red)">🔒</div>Блок</div>
+            </div>
         </div>
-        <div style="padding: 10px 20px;"><h3 id="historyTitle">История</h3></div>
+        <div style="padding: 10px 20px;"><h3>История</h3></div>
         <div id="viewHistory"></div>
     </div>
 
@@ -163,9 +179,9 @@
 
     <div id="screen-exchange" class="screen">
         <div style="padding: 20px;">
-            <h2 onclick="navTo('screen-home')">← Обмен валюты</h2>
+            <h2 onclick="navTo('screen-home')">← Обмен</h2>
             <p>Курс: 1$ = 90.00 ₽</p>
-            <input type="number" id="exSum" placeholder="Сколько USD купить?">
+            <input type="number" id="exSum" placeholder="Сумма USD">
             <button class="btn" onclick="executeExchange()">Купить USD</button>
         </div>
     </div>
@@ -192,7 +208,6 @@
             users = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
             if(curUser) {
                 curUser = users.find(u => u.fbKey === curUser.fbKey);
-                if(curUser.frozen) { alert("Карта заблокирована безвозвратно"); location.reload(); }
                 updateMainUI();
             }
         });
@@ -202,7 +217,6 @@
             const pin = document.getElementById('loginPin').value.trim();
             const user = users.find(u => (u.name === id || u.phone === id) && u.clientPin === pin);
             if(user) {
-                if(user.frozen) return alert("Ваш аккаунт заблокирован банком");
                 curUser = user;
                 document.getElementById('helloName').innerText = "Привет, " + curUser.name;
                 updateMainUI();
@@ -211,36 +225,46 @@
         }
 
         function updateMainUI() {
-            const bal = curUser.balance || 0;
-            const cBal = curUser.creditBalance || 0;
-            const cLimit = curUser.credit_limit || 0;
-            const debt = cLimit - cBal;
+            const isFrozen = curUser.frozen === true;
+            
+            // Логика отображения при блокировке
+            document.getElementById('frozenArea').style.display = isFrozen ? 'block' : 'none';
+            document.getElementById('cardsArea').style.display = isFrozen ? 'none' : 'flex';
 
-            document.getElementById('userBal').innerText = bal.toLocaleString() + " ₽";
+            // Балансы
+            document.getElementById('userBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
             document.getElementById('usdBal').innerText = (curUser.usd || 0).toFixed(2) + " $";
 
-            if(curUser.hasCredit) {
+            // Кредитная логика
+            if(curUser.hasCredit && !isFrozen) {
                 document.getElementById('creditCardUI').style.display = "flex";
+                const cBal = curUser.creditBalance || 0;
+                const cLimit = curUser.credit_limit || 0;
                 document.getElementById('creditBalUI').innerText = cBal.toLocaleString() + " ₽";
-                document.getElementById('creditDebtLabel').innerText = "Долг: " + debt.toLocaleString() + " ₽";
+                document.getElementById('creditDebtLabel').innerText = "Долг: " + (cLimit - cBal).toLocaleString() + " ₽";
                 document.getElementById('loanBox').style.display = "none";
             } else {
                 document.getElementById('creditCardUI').style.display = "none";
-                document.getElementById('loanBox').style.display = "block";
+                document.getElementById('loanBox').style.display = isFrozen ? "none" : "block";
+            }
+            
+            if(isFrozen) {
+                document.getElementById('usdBox').style.display = "none";
+            } else {
+                document.getElementById('usdBox').style.display = "block";
             }
         }
 
         function openCardView(type) {
+            if(curUser.frozen) return;
             const isCredit = type === 'credit';
             const actionBtn = document.getElementById('cardMainAction');
-            
             document.getElementById('viewTitle').innerText = isCredit ? "Кредитная карта" : "Дебетовая карта";
             
             if(isCredit) {
                 const debt = (curUser.credit_limit || 0) - (curUser.creditBalance || 0);
                 document.getElementById('viewBal').innerText = (curUser.creditBalance || 0).toLocaleString() + " ₽";
-                document.getElementById('viewSubInfo').innerText = "Осталось платить: " + debt.toLocaleString() + " ₽";
-                
+                document.getElementById('viewSubInfo').innerText = "Долг: " + debt.toLocaleString() + " ₽";
                 if(debt > 0) {
                     actionBtn.innerHTML = '<div class="act-ico">💰</div>Погасить';
                     actionBtn.onclick = repayCredit;
@@ -250,9 +274,9 @@
                 }
             } else {
                 document.getElementById('viewBal').innerText = (curUser.balance || 0).toLocaleString() + " ₽";
-                document.getElementById('viewSubInfo').innerText = "Активна";
+                document.getElementById('viewSubInfo').innerText = "Карта активна";
                 actionBtn.innerHTML = '<div class="act-ico">📥</div>Пополнить';
-                actionBtn.onclick = () => alert("Для пополнения используйте перевод или терминал");
+                actionBtn.onclick = () => alert("Пополнение через СБП или терминал");
             }
 
             const hBox = document.getElementById('viewHistory');
@@ -265,17 +289,22 @@
             navTo('screen-card-view');
         }
 
+        function freezeCard() {
+            if(confirm("Заблокировать все карты? Это действие нельзя отменить.")) {
+                db.ref(`clients/${curUser.fbKey}`).update({ frozen: true });
+                navTo('screen-home');
+            }
+        }
+
         function executeTransfer() {
             const targetKey = document.getElementById('receiverSelect').value;
             const sum = parseInt(document.getElementById('transferSum').value);
             const target = users.find(u => u.fbKey === targetKey);
-            if(!sum || sum > curUser.balance) return alert("Недостаточно средств");
-
+            if(!sum || sum > curUser.balance) return alert("Ошибка суммы");
             db.ref(`clients/${curUser.fbKey}`).update({ balance: curUser.balance - sum });
             db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Перевод: " + (target.name || "Клиент"), sum: -sum });
             db.ref(`clients/${target.fbKey}`).update({ balance: (target.balance || 0) + sum });
             db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + (curUser.name || "Клиент"), sum: sum });
-
             alert("Успешно!"); navTo('screen-home');
         }
 
@@ -283,46 +312,32 @@
             const sum = parseInt(document.getElementById('loanSum').value);
             if(!sum) return;
             db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: true, creditBalance: sum, credit_limit: sum });
-            alert("Кредитка открыта!"); navTo('screen-home');
+            alert("Кредит оформлен!"); navTo('screen-home');
         }
 
         function repayCredit() {
             const debt = curUser.credit_limit - curUser.creditBalance;
-            const sum = prompt("Сумма погашения (с баланса):", debt);
-            const val = parseInt(sum);
+            const val = parseInt(prompt("Сумма погашения:", debt));
             if(val > 0 && val <= curUser.balance) {
                 db.ref(`clients/${curUser.fbKey}`).update({
                     balance: curUser.balance - val,
                     creditBalance: curUser.creditBalance + val
                 });
-                alert("Долг частично погашен");
-            } else alert("Ошибка суммы");
-        }
-
-        function closeCredit() {
-            if(confirm("Закрыть кредитную карту?")) {
-                db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: false, credit_limit: 0, creditBalance: 0 });
-                navTo('screen-home');
+                alert("Успешно!");
             }
         }
 
-        function executeExchange() {
-            const sumUsd = parseFloat(document.getElementById('exSum').value);
-            const cost = sumUsd * 90;
-            if(sumUsd > 0 && curUser.balance >= cost) {
-                db.ref(`clients/${curUser.fbKey}`).update({
-                    balance: curUser.balance - cost,
-                    usd: (curUser.usd || 0) + sumUsd
-                });
-                db.ref(`clients/${curUser.fbKey}/history`).push({ title: "Покупка USD", sum: -cost, comm: `Куплено ${sumUsd}$` });
-                alert("Валюта куплена!"); navTo('screen-home');
-            } else alert("Недостаточно рублей");
+        function closeCredit() {
+            db.ref(`clients/${curUser.fbKey}`).update({ hasCredit: false, credit_limit: 0, creditBalance: 0 });
+            navTo('screen-home');
         }
 
-        function freezeCard() {
-            if(confirm("ВНИМАНИЕ: Блокировка карты необратима. Вы больше не сможете войти в приложение. Продолжить?")) {
-                db.ref(`clients/${curUser.fbKey}`).update({ frozen: true });
-                location.reload();
+        function executeExchange() {
+            const usd = parseFloat(document.getElementById('exSum').value);
+            const cost = usd * 90;
+            if(usd > 0 && curUser.balance >= cost) {
+                db.ref(`clients/${curUser.fbKey}`).update({ balance: curUser.balance - cost, usd: (curUser.usd || 0) + usd });
+                alert("Обмен совершен!"); navTo('screen-home');
             }
         }
 
