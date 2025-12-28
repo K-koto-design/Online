@@ -50,6 +50,26 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        /* --- СТИЛИ МОДАЛЬНЫХ ОКОН --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;
+            backdrop-filter: blur(5px); padding: 20px;
+        }
+        .modal-card {
+            background: white; width: 100%; max-width: 340px; border-radius: 30px;
+            padding: 30px 20px; text-align: center; position: relative;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .success-icon {
+            width: 70px; height: 70px; background: var(--sber-green); color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 35px; margin: 0 auto 20px;
+        }
+
         #screen-install { background: #fff; text-align: center; z-index: 1000; }
         .hero-banner {
             background: linear-gradient(180deg, #3494e6 0%, #2ecc71 100%);
@@ -192,7 +212,7 @@
         .op-amount.plus { color: var(--sber-green); }
 
         .form-container { padding: 30px 20px; }
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
         label { display: block; font-size: 13px; font-weight: 700; color: #777; margin-bottom: 8px; margin-left: 5px; }
         input, select {
             width: 100%; height: 60px; background: #f5f5f5; border: 1px solid #eee;
@@ -202,6 +222,7 @@
             width: 100%; height: 65px; background: var(--sber-green); color: white;
             border: none; border-radius: 20px; font-size: 18px; font-weight: 800;
             margin-top: 20px; box-shadow: 0 5px 15px rgba(33, 160, 56, 0.3);
+            cursor: pointer;
         }
         .submit-btn:active { transform: scale(0.98); }
 
@@ -213,6 +234,36 @@
     </style>
 </head>
 <body>
+
+    <div id="modal-success" class="modal-overlay" onclick="closeSuccessModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+            <div class="success-icon">✓</div>
+            <h2 id="success-title" style="margin:0; font-size: 22px;">Готово!</h2>
+            <div id="success-amount" style="font-size: 32px; font-weight: 900; margin: 15px 0;">0 ₽</div>
+            <div id="success-path" style="font-size: 14px; color: #666; font-weight: 600; margin-bottom: 25px;">...</div>
+            <button class="submit-btn" onclick="closeSuccessModal()">Вернуться</button>
+        </div>
+    </div>
+
+    <div id="modal-service" class="modal-overlay">
+        <div class="modal-card" style="text-align: left;">
+            <h3 id="srv-modal-title" style="margin-top:0; text-align: center;">Оплата</h3>
+            <div class="form-group">
+                <label id="srv-select-label">Провайдер</label>
+                <select id="srv-provider"></select>
+            </div>
+            <div class="form-group">
+                <label id="srv-acc-label">Реквизиты</label>
+                <input type="text" id="srv-account" placeholder="Введите данные">
+            </div>
+            <div class="form-group">
+                <label>Сумма</label>
+                <input type="number" id="srv-sum" placeholder="0 ₽">
+            </div>
+            <button class="submit-btn" onclick="confirmServicePayment()">Оплатить</button>
+            <button class="submit-btn" style="background:#eee; color:#333; margin-top:10px; box-shadow:none;" onclick="closeServiceModal()">Отмена</button>
+        </div>
+    </div>
 
     <div id="screen-install" class="screen">
         <div class="hero-banner">
@@ -324,9 +375,9 @@
     <div id="screen-payments" class="screen">
         <div class="header-detail"><div class="btn-back" onclick="nav('screen-home')">←</div><b>Оплата услуг</b><div></div></div>
         <div class="form-container">
-            <div class="widget" onclick="payService('Мобильная связь')"><div class="widget-icon">📱</div><div class="widget-info"><b>Связь</b></div></div>
-            <div class="widget" onclick="payService('Интернет')"><div class="widget-icon">🌐</div><div class="widget-info"><b>Интернет</b></div></div>
-            <div class="widget" onclick="payService('Транспорт')"><div class="widget-icon">🚌</div><div class="widget-info"><b>Транспорт</b></div></div>
+            <div class="widget" onclick="openSrv('mobile')"><div class="widget-icon">📱</div><div class="widget-info"><b>Связь</b></div></div>
+            <div class="widget" onclick="openSrv('internet')"><div class="widget-icon">🌐</div><div class="widget-info"><b>Интернет</b></div></div>
+            <div class="widget" onclick="openSrv('transport')"><div class="widget-icon">🚌</div><div class="widget-info"><b>Транспорт</b></div></div>
         </div>
     </div>
 
@@ -373,15 +424,23 @@
         let currentUser = null;
         let activeCardType = 'debit';
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ПРОВЕРКИ РЕЖИМА
         function checkAppMode() {
             const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
             const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
-            if (isIOS && !isStandalone) { nav('screen-install'); } else { nav('screen-auth'); }
+            
+            // Если это iPhone/iOS и сайт открыт НЕ через иконку на главном экране
+            if (isIOS && !isStandalone) { 
+                nav('screen-install'); 
+            } else { 
+                nav('screen-auth'); 
+            }
         }
 
         function nav(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
+            const target = document.getElementById(id);
+            if (target) target.classList.add('active');
         }
 
         db.ref('clients').on('value', snap => {
@@ -401,7 +460,7 @@
             const listUI = document.getElementById('userListUI');
             listUI.innerHTML = allUsers.map(u => `<div class="user-row ${selectedLoginKey === u.fbKey ? 'selected' : ''}" onclick="selectUser('${u.fbKey}')">${u.name} <span>${selectedLoginKey === u.fbKey ? '✓' : '›'}</span></div>`).join('');
             const ts = document.getElementById('transferTarget');
-            if(ts) ts.innerHTML = allUsers.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+            if(ts) ts.innerHTML = allUsers.filter(u => u.fbKey !== currentUser?.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
         }
 
         function selectUser(key) { selectedLoginKey = key; renderUserList(); }
@@ -460,22 +519,56 @@
             nav('screen-card-detail');
         }
 
+        // --- ЛОГИКА УСПЕХА ---
+        function showSuccess(title, amount, path) {
+            document.getElementById('success-title').innerText = title;
+            document.getElementById('success-amount').innerText = amount.toLocaleString() + " ₽";
+            document.getElementById('success-path').innerText = path;
+            document.getElementById('modal-success').style.display = 'flex';
+        }
+        function closeSuccessModal() { document.getElementById('modal-success').style.display = 'none'; nav('screen-home'); }
+
+        // --- ОПЛАТА УСЛУГ ---
+        function openSrv(type) {
+            const p = document.getElementById('srv-provider');
+            p.innerHTML = '';
+            if(type === 'mobile') {
+                document.getElementById('srv-modal-title').innerText = "Мобильная связь";
+                document.getElementById('srv-acc-label').innerText = "Номер телефона";
+                ["МТС", "Билайн", "МегаФон", "Tele2"].forEach(x => p.innerHTML += `<option>${x}</option>`);
+            } else if(type === 'internet') {
+                document.getElementById('srv-modal-title').innerText = "Интернет";
+                document.getElementById('srv-acc-label').innerText = "Лицевой счет";
+                ["Ростелеком", "Дом.ру", "МГТС"].forEach(x => p.innerHTML += `<option>${x}</option>`);
+            } else {
+                document.getElementById('srv-modal-title').innerText = "Транспорт";
+                document.getElementById('srv-acc-label').innerText = "Номер карты";
+                ["Тройка", "Подорожник", "Стрелка"].forEach(x => p.innerHTML += `<option>${x}</option>`);
+            }
+            document.getElementById('modal-service').style.display = 'flex';
+        }
+        function closeServiceModal() { document.getElementById('modal-service').style.display = 'none'; }
+
+        function confirmServicePayment() {
+            const sum = parseInt(document.getElementById('srv-sum').value);
+            const provider = document.getElementById('srv-provider').value;
+            const acc = document.getElementById('srv-account').value;
+            if(!sum || !acc) return alert("Заполните поля");
+            if(currentUser.balance < sum) return alert("Недостаточно средств");
+
+            db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - sum });
+            db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Оплата: " + provider, sum: -sum });
+            closeServiceModal();
+            showSuccess("Оплата выполнена", sum, provider + " • " + acc);
+        }
+
         function topUpBalance() {
             const sum = parseInt(prompt("Введите сумму пополнения (₽):"));
             if(sum > 0) {
                 db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance + sum });
                 db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Пополнение через ATM", sum: sum });
-                alert("Счет пополнен");
+                showSuccess("Баланс пополнен", sum, "Наличные > Карта");
             }
-        }
-
-        function payService(name) {
-            const sum = parseInt(prompt(`Оплата: ${name}. Введите сумму:`));
-            if(sum > 0 && currentUser.balance >= sum) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - sum });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Оплата: " + name, sum: -sum });
-                alert("Оплачено!");
-            } else { alert("Недостаточно средств"); }
         }
 
         function doTransfer() {
@@ -487,15 +580,15 @@
                 db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Перевод: " + target.name, sum: -sum });
                 db.ref(`clients/${target.fbKey}`).update({ balance: (target.balance || 0) + sum });
                 db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + currentUser.name, sum: sum });
-                alert("Успешно!"); nav('screen-home');
-            }
+                showSuccess("Перевод выполнен", sum, currentUser.name.split(' ')[0] + " > " + target.name.split(' ')[0]);
+            } else { alert("Ошибка перевода"); }
         }
 
         function getLoan() {
             const sum = parseInt(document.getElementById('loanSum').value);
             if(sum >= 1000) {
                 db.ref(`clients/${currentUser.fbKey}`).update({ hasCredit: true, creditLimit: sum, creditBalance: sum });
-                alert("Кредит выдан!"); nav('screen-home');
+                showSuccess("Кредит одобрен", sum, "Банк > Кредитный счет");
             }
         }
 
@@ -506,7 +599,7 @@
                 const actualPay = pay > debt ? debt : pay;
                 db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - actualPay, creditBalance: currentUser.creditBalance + actualPay });
                 db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Погашение кредита", sum: -actualPay });
-                alert("Внесено " + actualPay + " ₽");
+                showSuccess("Долг погашен", actualPay, "Карта > Кредит");
             }
         }
 
@@ -523,7 +616,7 @@
             if(currentUser.balance >= cost) {
                 db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - cost, usd: (currentUser.usd || 0) + usd });
                 db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Покупка USD", sum: -cost });
-                alert("Куплено $" + usd); nav('screen-home');
+                showSuccess("Валюта куплена", cost, "RUB > USD (" + usd + "$)");
             }
         }
 
@@ -537,7 +630,8 @@
             else event.target.classList.add('active');
         }
 
-        checkAppMode();
+        // Запуск проверки при загрузке страницы
+        window.addEventListener('load', checkAppMode);
     </script>
 </body>
 </html>
