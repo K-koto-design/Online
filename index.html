@@ -2,651 +2,726 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>K-Online Ultra Pro Max | Enterprise Edition</title>
+    <title>K-Online Red Edition | Ultra Compact</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        /* ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ */
+        /* -----------------------------------------------------------
+           ГЛОБАЛЬНЫЕ НАСТРОЙКИ И ПЕРЕМЕННЫЕ
+           ----------------------------------------------------------- */
         :root {
-            --bg-main: #f2f4f7;
+            --bg-body: #f7f8fa; /* Белый/светлый низ */
+            --bg-card-container: linear-gradient(170deg, #000000 10%, #520000 100%); /* Черно-красный градиент */
+            
             --white: #ffffff;
             --sber-green: #21a038;
-            --sber-dark: #1a7d2c;
-            --danger: #eb4d4b;
-            --text-main: #1c1c1e;
+            --danger: #ff3b30;
+            
+            --text-dark: #1c1c1e;
+            --text-light: #f5f5f7;
             --text-grey: #8e8e93;
-            --shadow-soft: 0 10px 30px rgba(0,0,0,0.06);
-            --shadow-card: 0 15px 40px rgba(0,0,0,0.18);
-            --anim-speed: 0.4s;
+            
+            --shadow-soft: 0 10px 40px rgba(0,0,0,0.08);
+            --shadow-deep: 0 15px 35px rgba(0,0,0,0.3);
+            
+            --anim-bezier: cubic-bezier(0.34, 1.56, 0.64, 1); /* Пружинистая анимация */
         }
 
-        /* БАЗОВЫЕ СТИЛИ */
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background: var(--bg-main); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden; background: var(--bg-body); 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             -webkit-font-smoothing: antialiased;
+            color: var(--text-dark);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
-        /* ЭКРАННАЯ СИСТЕМА */
+        /* -----------------------------------------------------------
+           СИСТЕМА ЭКРАНОВ (SPA NAVIGATION)
+           ----------------------------------------------------------- */
         .screen { 
             display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%; overflow-y: auto; background: var(--bg-main);
-            z-index: 10; opacity: 0; transform: translateY(20px);
-            transition: opacity var(--anim-speed) ease, transform var(--anim-speed) ease;
+            width: 100%; height: 100%; overflow-y: auto; background: var(--bg-body);
+            z-index: 10; opacity: 0; transform: scale(0.96);
+            transition: opacity 0.4s ease, transform 0.4s var(--anim-bezier);
         }
-        .screen.active { display: block !important; opacity: 1; transform: translateY(0); }
+        .screen.active { display: block !important; opacity: 1; transform: scale(1); }
 
-        /* АВТОРИЗАЦИЯ */
-        .auth-container { padding: 90px 30px 40px; text-align: center; min-height: 100vh; display: flex; flex-direction: column; }
-        .auth-header h1 { font-size: 56px; font-weight: 900; color: #3494e6; margin: 0; letter-spacing: -3px; }
-        .auth-header p { color: var(--text-grey); font-size: 18px; margin-top: 5px; }
+        /* -----------------------------------------------------------
+           ЭКРАН 1: АВТОРИЗАЦИЯ
+           ----------------------------------------------------------- */
+        .auth-container { 
+            padding: 90px 30px 40px; text-align: center; min-height: 100vh; 
+            display: flex; flex-direction: column; background: var(--white);
+        }
+        .auth-logo { 
+            font-size: 48px; font-weight: 900; 
+            background: -webkit-linear-gradient(45deg, #000, #990000); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            margin: 0; letter-spacing: -2px; 
+        }
+        .auth-sub { color: var(--text-grey); font-size: 17px; margin-top: 8px; }
         
-        .auth-list { 
-            background: var(--white); border-radius: 35px; padding: 15px; 
-            box-shadow: var(--shadow-soft); margin: 45px 0; max-height: 380px; 
-            overflow-y: auto; border: 1px solid rgba(0,0,0,0.03); flex-grow: 1;
+        .auth-list-box { 
+            background: #f9f9f9; border-radius: 30px; padding: 10px; 
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.03); margin: 40px 0; 
+            max-height: 350px; overflow-y: auto; flex-grow: 1;
         }
         .user-item { 
-            padding: 24px; border-bottom: 1px solid #f2f2f7; font-size: 20px; 
-            font-weight: 700; display: flex; justify-content: space-between; 
-            align-items: center; cursor: pointer; border-radius: 20px; transition: 0.2s;
+            padding: 20px; margin: 5px; background: white; border-radius: 20px;
+            font-size: 18px; font-weight: 600; display: flex; justify-content: space-between; 
+            align-items: center; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.02);
         }
-        .user-item:active { background: #f9f9f9; transform: scale(0.98); }
-        .user-item.selected { background: #eef9ef; color: var(--sber-green); }
+        .user-item:active { transform: scale(0.97); }
+        .user-item.selected { border: 2px solid #990000; color: #990000; }
 
-        /* ПИН-КОД ДИЗАЙН */
+        /* -----------------------------------------------------------
+           ЭКРАН 2: ПИН-КОД
+           ----------------------------------------------------------- */
         #screen-pin-entry {
-            background: linear-gradient(180deg, #1c1c1e 0%, #21a038 100%);
+            background: linear-gradient(135deg, #000000 0%, #3a0000 100%);
             color: white; display: none; flex-direction: column; align-items: center; 
-            justify-content: space-between; padding: 80px 40px; z-index: 1000;
+            justify-content: space-between; padding: 80px 30px 50px; z-index: 1000;
         }
-        .pin-header { text-align: left; width: 100%; }
-        .pin-dots-row { display: flex; gap: 25px; margin: 60px 0; }
-        .dot { width: 20px; height: 20px; border: 2.5px solid rgba(255,255,255,0.3); border-radius: 50%; transition: 0.3s; }
-        .dot.active { background: white; border-color: white; transform: scale(1.3); box-shadow: 0 0 15px #fff; }
+        .pin-title-box { width: 100%; text-align: center; }
+        .pin-dots { display: flex; gap: 20px; margin: 40px 0; justify-content: center; }
+        .pin-dot { 
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); 
+            border-radius: 50%; transition: 0.2s; 
+        }
+        .pin-dot.filled { background: #ff3b30; border-color: #ff3b30; transform: scale(1.3); box-shadow: 0 0 15px #ff3b30; }
         
-        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 320px; }
-        .n-key { 
-            height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1); 
+        .keyboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 300px; }
+        .key-btn { 
+            height: 75px; border-radius: 50%; background: rgba(255,255,255,0.1); 
             display: flex; align-items: center; justify-content: center; 
-            font-size: 32px; font-weight: 500; cursor: pointer;
+            font-size: 28px; font-weight: 500; cursor: pointer; transition: 0.1s;
         }
-        .n-key:active { background: rgba(255,255,255,0.2); }
+        .key-btn:active { background: rgba(255,255,255,0.3); }
 
-        /* ДАШБОРД И ВЕРТИКАЛЬНЫЕ КАРТЫ */
-        .dashboard-top { background: var(--white); padding: 70px 25px 35px; border-radius: 0 0 45px 45px; box-shadow: var(--shadow-soft); }
-        .user-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        
-        /* КАРУСЕЛЬ КАРТ */
-        .cards-scroll-container { 
-            display: flex; overflow-x: auto; padding: 20px 0; gap: 20px; 
+        /* -----------------------------------------------------------
+           ЭКРАН 3: ГЛАВНЫЙ (РЕДИЗАЙН)
+           ----------------------------------------------------------- */
+        /* Черно-красная шапка с закруглением */
+        .dashboard-header { 
+            background: var(--bg-card-container); 
+            padding: 60px 0 40px; /* Отступы для карт */
+            border-radius: 0 0 45px 45px; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+            color: white;
+            position: relative;
+        }
+
+        .user-info-row {
+            padding: 0 25px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;
+        }
+        .user-avatar-circle {
+            width: 48px; height: 48px; background: rgba(255,255,255,0.2); 
+            backdrop-filter: blur(5px); border-radius: 50%; display: flex; 
+            align-items: center; justify-content: center; font-weight: 700; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        /* Контейнер карт с горизонтальным скроллом */
+        .cards-scroller { 
+            display: flex; overflow-x: auto; padding: 10px 25px 30px; gap: 15px; 
             scrollbar-width: none; scroll-snap-type: x mandatory; 
         }
-        .cards-scroll-container::-webkit-scrollbar { display: none; }
+        .cards-scroller::-webkit-scrollbar { display: none; }
 
-        .v-card { 
-            min-width: 220px; height: 320px; border-radius: 30px; 
-            padding: 28px; color: white; display: flex; flex-direction: column; 
-            justify-content: space-between; scroll-snap-align: center;
-            box-shadow: var(--shadow-card); position: relative; transition: 0.3s;
+        /* КОМПАКТНАЯ КАРТА (SMALL SIZE) */
+        .compact-card { 
+            min-width: 165px;  /* Уменьшенная ширина */
+            height: 250px;     /* Уменьшенная высота */
+            border-radius: 24px; 
+            padding: 20px; 
+            color: white; 
+            display: flex; flex-direction: column; justify-content: space-between; 
+            scroll-snap-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
+            position: relative; overflow: hidden;
+            transition: transform 0.3s;
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .v-card:active { transform: scale(0.96); }
-        .v-card-rub { background: linear-gradient(135deg, #1d1d1f 0%, #434343 100%); }
-        .v-card-usd { background: linear-gradient(135deg, #2c3e50 0%, #3494e6 100%); }
-        .v-card-gold { background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%); }
+        .compact-card:active { transform: scale(0.95); }
+
+        /* Стили карт */
+        .bg-rub { background: linear-gradient(160deg, #2b2b2b 0%, #1a1a1a 100%); }
+        .bg-usd { background: linear-gradient(160deg, #141E30 0%, #243B55 100%); }
+        .bg-gold { background: linear-gradient(160deg, #BF953F 0%, #FCF6BA 50%, #B38728 100%); color: #4a3b00; text-shadow: none; }
         
-        .v-card .chip { width: 45px; height: 35px; background: rgba(255,255,255,0.15); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
-        .v-card .balance-label { font-size: 30px; font-weight: 900; margin-top: 15px; letter-spacing: -1px; }
-        .v-card .card-info { font-size: 14px; opacity: 0.6; letter-spacing: 2px; font-family: monospace; }
-        .v-card .card-brand { font-weight: 800; font-size: 16px; text-align: right; }
+        /* Элементы внутри карты */
+        .c-chip { width: 32px; height: 24px; background: rgba(255,255,255,0.2); border-radius: 6px; }
+        .c-bal { font-size: 20px; font-weight: 800; margin-top: 10px; word-break: break-all; }
+        .c-name { font-size: 11px; opacity: 0.6; text-transform: uppercase; letter-spacing: 1px; margin-top: auto; padding-top: 10px; }
+        .c-logo { font-weight: 900; font-size: 14px; text-align: right; font-style: italic; }
 
-        /* КНОПКИ ДЕЙСТВИЙ */
-        .action-grid { display: flex; justify-content: space-around; margin-top: 25px; }
-        .act-btn { 
-            width: 60px; height: 60px; background: #f2f2f7; border-radius: 20px; 
-            display: flex; align-items: center; justify-content: center; font-size: 26px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); cursor: pointer; transition: 0.2s;
+        /* Кнопки действий на темном фоне */
+        .dark-actions { display: flex; justify-content: center; gap: 25px; margin-top: 5px; }
+        .d-btn { 
+            width: 55px; height: 55px; 
+            background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px);
+            border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; font-size: 24px;
+            cursor: pointer; border: 1px solid rgba(255,255,255,0.05);
+            transition: 0.2s;
         }
-        .act-btn:active { transform: translateY(3px); background: #e5e5ea; }
+        .d-btn:active { background: rgba(255,255,255,0.2); transform: translateY(2px); }
 
-        /* ВИДЖЕТЫ */
-        .widget-list { padding: 15px 25px 100px; }
-        .widget-item { 
-            background: white; border-radius: 28px; padding: 22px; margin-bottom: 18px; 
-            display: flex; align-items: center; gap: 18px; box-shadow: var(--shadow-soft);
-        }
-        .w-icon { width: 55px; height: 55px; border-radius: 18px; display: flex; align-items: center; justify-content: center; font-size: 26px; }
-
-        /* КНОПКИ И ФОРМЫ */
-        .main-button { 
-            width: 100%; height: 65px; background: var(--sber-green); color: white; 
-            border: none; border-radius: 22px; font-size: 19px; font-weight: 700; 
-            cursor: pointer; transition: 0.2s; margin-top: 15px;
-        }
-        .main-button:active { opacity: 0.8; transform: scale(0.98); }
-        .btn-red { background: var(--danger) !important; }
+        /* Белая часть страницы */
+        .white-body-content { padding: 30px 20px 80px; }
         
-        .modal { 
+        .widget { 
+            background: white; border-radius: 24px; padding: 20px; margin-bottom: 15px; 
+            display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-soft);
+            transition: 0.2s;
+        }
+        .widget:active { transform: scale(0.98); background: #fcfcfc; }
+        .w-icon { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+
+        /* -----------------------------------------------------------
+           ЭКРАНЫ ОПЕРАЦИЙ (ФОРМЫ)
+           ----------------------------------------------------------- */
+        .form-header { padding: 60px 25px 20px; }
+        .form-card { 
+            background: white; border-radius: 35px; padding: 30px; margin: 10px 15px;
+            box-shadow: var(--shadow-soft);
+        }
+        
+        label { display: block; font-size: 13px; font-weight: 700; color: #888; margin-left: 10px; margin-bottom: 5px; }
+        input, select { 
+            width: 100%; height: 55px; border-radius: 16px; border: 1px solid #e0e0e0; 
+            padding: 0 15px; margin-bottom: 25px; font-size: 17px; background: #fafafa; transition: 0.3s;
+        }
+        input:focus { border-color: #000; background: #fff; }
+        
+        .main-btn { 
+            width: 100%; height: 60px; background: #000; color: white; 
+            border: none; border-radius: 18px; font-size: 17px; font-weight: 700; 
+            cursor: pointer; transition: 0.2s;
+        }
+        .main-btn:active { opacity: 0.8; }
+        .btn-red { background: var(--danger); margin-top: 15px; }
+
+        .back-circle { 
+            width: 40px; height: 40px; border-radius: 50%; background: #eee; 
+            display: flex; align-items: center; justify-content: center; font-size: 20px; 
+            cursor: pointer; margin-bottom: 15px;
+        }
+
+        /* -----------------------------------------------------------
+           МОДАЛЬНЫЕ ОКНА И ДЕТАЛИ
+           ----------------------------------------------------------- */
+        .modal-overlay { 
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.85); z-index: 5000; align-items: center; 
-            justify-content: center; backdrop-filter: blur(12px); 
+            justify-content: center; backdrop-filter: blur(15px); 
         }
-        .modal-content { background: white; width: 90%; max-width: 400px; border-radius: 40px; padding: 40px; text-align: center; }
+        .modal-box { background: white; width: 88%; max-width: 380px; border-radius: 35px; padding: 35px; text-align: center; }
         
-        .input-group { text-align: left; margin-top: 20px; }
-        .input-group label { font-weight: 700; color: var(--text-grey); margin-left: 10px; font-size: 14px; }
-        input, select { 
-            width: 100%; height: 62px; border-radius: 20px; border: 1.5px solid #f2f2f7; 
-            padding: 0 20px; margin-top: 8px; font-size: 18px; background: #fafafa; transition: 0.3s;
+        /* Детали счета */
+        .details-hero { 
+            background: var(--white); padding: 70px 25px 40px; 
+            border-radius: 0 0 45px 45px; box-shadow: var(--shadow-soft); text-align: center;
         }
-        input:focus { border-color: var(--sber-green); background: #fff; }
-        
-        .back-icon { font-size: 38px; cursor: pointer; width: 50px; height: 50px; display: flex; align-items: center; }
-
-        /* ИСТОРИЯ */
-        .history-row { display: flex; justify-content: space-between; align-items: center; padding: 20px 0; border-bottom: 1px solid #f2f2f7; }
-        .h-title { font-weight: 700; font-size: 17px; }
-        .h-date { font-size: 13px; color: var(--text-grey); margin-top: 3px; }
-        .h-sum { font-weight: 800; font-size: 17px; }
+        .hist-list { padding: 25px 15px; }
+        .hist-row { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 18px 15px; border-bottom: 1px solid #f0f0f0; 
+        }
     </style>
 </head>
 <body>
 
-    <div id="modal-success" class="modal">
-        <div class="modal-content">
-            <div style="width:90px; height:90px; background:var(--sber-green); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:45px; margin:0 auto 30px; box-shadow: 0 10px 25px rgba(33,160,56,0.3);">✓</div>
-            <h2 id="success-header" style="font-size: 26px; font-weight: 800;">Успешно</h2>
-            <div id="success-val" style="font-size: 38px; font-weight: 900; margin: 15px 0;">0 ₽</div>
-            <p id="success-desc" style="color:var(--text-grey); font-size:16px; margin-bottom: 35px;"></p>
-            <button class="main-button btn-red" onclick="closeSuccess()">Закрыть чек</button>
+    <div id="modal-success" class="modal-overlay">
+        <div class="modal-box">
+            <div style="width:80px; height:80px; background:#2ecc71; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:40px; margin:0 auto 20px;">✓</div>
+            <h2 id="suc-title" style="margin:0; font-size:24px;">Готово</h2>
+            <div id="suc-sum" style="font-size:32px; font-weight:900; margin:15px 0;">0 ₽</div>
+            <p id="suc-desc" style="color:#888; font-size:15px; margin-bottom:30px;"></p>
+            <button class="main-btn btn-red" onclick="ui.closeSuccess()">Закрыть</button>
         </div>
     </div>
 
     <div id="screen-auth" class="screen active">
         <div class="auth-container">
-            <div class="auth-header">
-                <h1>K-Online</h1>
-                <p>Цифровой банкинг нового поколения</p>
+            <h1 class="auth-logo">K-Online</h1>
+            <div class="auth-sub">Black Edition</div>
+            
+            <div class="auth-list-box" id="auth-list">
+                <div style="padding:40px; color:#aaa;">Подключение к облаку...</div>
             </div>
             
-            <div class="auth-list" id="ui-user-list">
-                <div style="padding:40px; color:grey;">Синхронизация с сервером...</div>
-            </div>
-            
-            <div style="display: flex; gap: 15px;">
-                <button class="main-button" style="background: #1c1c1e; flex: 1;" onclick="app.createUser()">+ Новый клиент</button>
-                <button class="main-button" style="width: 100px; background: #3494e6;" onclick="app.toPin()">➜</button>
+            <div style="display:flex; gap:10px;">
+                <button class="main-btn" style="background:#f2f2f2; color:black;" onclick="core.newUser()">+ Создать</button>
+                <button class="main-btn" style="width:80px; background: linear-gradient(45deg, #000, #550000);" onclick="core.toPin()">➜</button>
             </div>
         </div>
     </div>
 
     <div id="screen-pin-entry" class="screen">
-        <div class="pin-header">
-            <h2 id="pin-user-name" style="font-size: 40px; margin: 0; font-weight: 900;">Привет!</h2>
-            <p style="opacity: 0.8; font-size: 19px; margin-top: 10px;">Введите защитный код</p>
+        <div class="pin-title-box">
+            <h2 id="pin-hello" style="font-size:32px; font-weight:800; margin-bottom:10px;">Вход</h2>
+            <p style="opacity:0.7;">Введите код доступа</p>
         </div>
         
-        <div class="pin-dots-row" id="ui-pin-dots">
-            <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <div class="pin-dots" id="pin-dots-ui">
+            <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
         </div>
         
-        <div class="numpad">
-            <div class="n-key" onclick="app.pinPress('1')">1</div>
-            <div class="n-key" onclick="app.pinPress('2')">2</div>
-            <div class="n-key" onclick="app.pinPress('3')">3</div>
-            <div class="n-key" onclick="app.pinPress('4')">4</div>
-            <div class="n-key" onclick="app.pinPress('5')">5</div>
-            <div class="n-key" onclick="app.pinPress('6')">6</div>
-            <div class="n-key" onclick="app.pinPress('7')">7</div>
-            <div class="n-key" onclick="app.pinPress('8')">8</div>
-            <div class="n-key" onclick="app.pinPress('9')">9</div>
-            <div class="n-key" style="opacity:0; pointer-events:none;"></div>
-            <div class="n-key" onclick="app.pinPress('0')">0</div>
-            <div class="n-key" onclick="app.pinPress('DEL')">⌫</div>
+        <div class="keyboard-grid">
+            <div class="key-btn" onclick="core.inputPin('1')">1</div><div class="key-btn" onclick="core.inputPin('2')">2</div><div class="key-btn" onclick="core.inputPin('3')">3</div>
+            <div class="key-btn" onclick="core.inputPin('4')">4</div><div class="key-btn" onclick="core.inputPin('5')">5</div><div class="key-btn" onclick="core.inputPin('6')">6</div>
+            <div class="key-btn" onclick="core.inputPin('7')">7</div><div class="key-btn" onclick="core.inputPin('8')">8</div><div class="key-btn" onclick="core.inputPin('9')">9</div>
+            <div class="key-btn" style="opacity:0; pointer-events:none;"></div><div class="key-btn" onclick="core.inputPin('0')">0</div><div class="key-btn" onclick="core.inputPin('DEL')">⌫</div>
         </div>
-        
-        <div onclick="app.nav('screen-auth')" style="margin-top:20px; opacity:0.7; font-size:18px; text-decoration:underline;">Сменить аккаунт</div>
+        <div onclick="ui.nav('screen-auth')" style="margin-top:20px; opacity:0.6; text-decoration:underline;">Отмена</div>
     </div>
 
     <div id="screen-home" class="screen">
-        <div class="dashboard-top">
-            <div class="user-bar">
+        <div class="dashboard-header">
+            <div class="user-info-row">
                 <div>
-                    <div id="ui-name" style="font-size:28px; font-weight:900;">...</div>
-                    <div style="font-size:14px; color:var(--sber-green); font-weight:700; margin-top:5px;">SberPrime+ Active</div>
+                    <div id="home-name" style="font-size:24px; font-weight:800;">Загрузка...</div>
+                    <div style="font-size:13px; opacity:0.7; margin-top:4px;">Premium Status</div>
                 </div>
-                <div id="ui-avatar" style="width:55px; height:55px; background:var(--sber-green); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:22px; box-shadow: 0 5px 15px rgba(33,160,56,0.2);">?</div>
+                <div id="home-ava" class="user-avatar-circle">?</div>
             </div>
             
-            <div class="cards-scroll-container" id="ui-cards-carousel">
+            <div class="cards-scroller" id="cards-container">
                 </div>
 
-            <div class="action-grid">
-                <div class="act-btn" onclick="app.nav('screen-transfer')">💸</div>
-                <div class="act-btn" onclick="app.nav('screen-exchange')">🔄</div>
-                <div class="act-btn" onclick="alert('История пуста')">📑</div>
-                <div class="act-btn" onclick="app.nav('screen-loan')">📈</div>
+            <div class="dark-actions">
+                <div class="d-btn" onclick="ui.nav('screen-transfer')">💸</div>
+                <div class="d-btn" onclick="ui.nav('screen-exchange')">🔄</div>
+                <div class="d-btn" onclick="ui.nav('screen-loan')">🏦</div>
+                <div class="d-btn" onclick="alert('История доступна внутри карты')">🧾</div>
             </div>
         </div>
 
-        <div class="widget-list">
-            <div class="widget-item" onclick="app.nav('screen-transfer')">
-                <div class="w-icon" style="background:#e8f5e9; color:var(--sber-green);">💸</div>
+        <div class="white-body-content">
+            <h3 style="margin: 0 0 15px 10px; font-size: 18px; color: #333;">Важное сегодня</h3>
+            
+            <div class="widget" onclick="ui.nav('screen-transfer')">
+                <div class="w-icon" style="background:#e8f5e9; color:#2ecc71;">⚡</div>
                 <div style="flex:1;">
-                    <b style="font-size:18px;">Платежи</b>
-                    <div style="font-size:14px; color:grey;">Переводы, ЖКХ, штрафы</div>
+                    <b style="font-size:16px;">Быстрый перевод</b>
+                    <div style="font-size:13px; color:#999;">Без комиссии клиентам</div>
                 </div>
             </div>
             
-            <div class="widget-item" onclick="app.nav('screen-exchange')">
-                <div class="w-icon" style="background:#e3f2fd; color:#1e88e5;">🏦</div>
+            <div class="widget" onclick="ui.nav('screen-exchange')">
+                <div class="w-icon" style="background:#e3f2fd; color:#3494e6;">💲</div>
                 <div style="flex:1;">
-                    <b style="font-size:18px;">Курс USD</b>
-                    <div id="ui-home-usd" style="font-weight:700; color:var(--text-main);">91.20 ₽</div>
+                    <b style="font-size:16px;">Курс Доллара</b>
+                    <div id="widget-usd" style="font-size:14px; font-weight:700; color:#333;">91.20 ₽</div>
                 </div>
             </div>
 
-            <div id="ui-loan-widget" class="widget-item" onclick="app.nav('screen-loan')">
-                <div class="w-icon" style="background:#fff3e0; color:#fb8c00;">💎</div>
+            <div id="widget-loan" class="widget" onclick="ui.nav('screen-loan')">
+                <div class="w-icon" style="background:#fff3e0; color:#f39c12;">🔥</div>
                 <div style="flex:1;">
-                    <b style="font-size:18px;">Кредитный лимит</b>
-                    <div style="font-size:14px; color:var(--sber-green);">Вам одобрено 500 000 ₽</div>
+                    <b style="font-size:16px;">Кредитная карта</b>
+                    <div style="font-size:13px; color:#e67e22;">Вам одобрено 500 000 ₽</div>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="screen-transfer" class="screen">
-        <div style="padding:70px 30px;">
-            <div class="back-icon" onclick="app.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:10px;">Перевод</h2>
-            <p style="color:grey; font-size:17px; margin-bottom:30px;">Мгновенно клиенту K-Online по внутреннему идентификатору.</p>
+        <div class="form-header">
+            <div class="back-circle" onclick="ui.nav('screen-home')">←</div>
+            <h2 style="font-size:32px; font-weight:900;">Перевод</h2>
+        </div>
+        <div class="form-card">
+            <label>Кому перевести</label>
+            <select id="inp-tr-to"></select>
             
-            <div style="background:white; padding:30px; border-radius:35px; box-shadow: var(--shadow-soft);">
-                <div class="input-group">
-                    <label>Выберите получателя</label>
-                    <select id="inp-target-user"></select>
-                </div>
-                
-                <div class="input-group">
-                    <label>Сумма перевода (₽)</label>
-                    <input type="number" id="inp-tr-amount" placeholder="0.00">
-                </div>
-                
-                <button class="main-button" style="margin-top:40px;" onclick="app.execTransfer()">Отправить деньги</button>
-                <button class="main-button btn-red" onclick="app.nav('screen-home')">Закрыть</button>
-            </div>
+            <label>Сумма (₽)</label>
+            <input type="number" id="inp-tr-sum" placeholder="0">
+            
+            <button class="main-btn" onclick="bank.transfer()">Отправить</button>
+            <button class="main-btn btn-red" onclick="ui.nav('screen-home')">Отмена</button>
         </div>
     </div>
 
     <div id="screen-exchange" class="screen">
-        <div style="padding:70px 30px;">
-            <div class="back-icon" onclick="app.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:35px;">Обмен USD</h2>
+        <div class="form-header">
+            <div class="back-circle" onclick="ui.nav('screen-home')">←</div>
+            <h2 style="font-size:32px; font-weight:900;">Обмен валют</h2>
+        </div>
+        <div class="form-card" style="text-align:center;">
+            <p style="color:#888; margin-bottom:5px;">Текущий курс продажи</p>
+            <div style="font-size:48px; font-weight:900; margin-bottom:30px;">91.20 ₽</div>
             
-            <div style="background:white; padding:40px; border-radius:40px; text-align:center; box-shadow: var(--shadow-soft);">
-                <div style="color:grey; font-size:17px; font-weight:500;">Курс продажи доллара</div>
-                <div style="font-size:52px; font-weight:900; color:var(--sber-green); margin:15px 0;">91.20 ₽</div>
-                
-                <div class="input-group">
-                    <label>Сумма к покупке ($)</label>
-                    <input type="number" id="inp-buy-usd" placeholder="0.00 $">
-                </div>
-                
-                <button class="main-button" style="margin-top:40px; background:#3494e6;" onclick="app.execExchange()">Купить валюту</button>
-                <button class="main-button btn-red" onclick="app.nav('screen-home')">Закрыть</button>
-                <p style="font-size:13px; color:grey; margin-top:20px; line-height:1.4;">При покупке будет автоматически выпущена виртуальная карта VISA DIGITAL.</p>
-            </div>
+            <label style="text-align:left;">Сколько купить ($)</label>
+            <input type="number" id="inp-exc-usd" placeholder="100">
+            
+            <button class="main-btn" style="background:#3494e6;" onclick="bank.buyUsd()">Купить USD</button>
+            <button class="main-btn btn-red" onclick="ui.nav('screen-home')">Закрыть</button>
+            <p style="font-size:12px; color:#aaa; margin-top:15px;">Откроется новая карта VISA Digital</p>
         </div>
     </div>
 
     <div id="screen-loan" class="screen">
-        <div style="padding:70px 30px;">
-            <div class="back-icon" onclick="app.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:15px;">Кредит</h2>
-            <p style="color:grey; font-size:17px; margin-bottom:30px;">Зачисление на новую GOLD карту мгновенно после подтверждения.</p>
+        <div class="form-header">
+            <div class="back-circle" onclick="ui.nav('screen-home')">←</div>
+            <h2 style="font-size:32px; font-weight:900;">Кредит</h2>
+        </div>
+        <div class="form-card">
+            <label>Желаемый лимит (₽)</label>
+            <input type="number" id="inp-loan-sum" placeholder="Мин. 10 000">
             
-            <div style="background:white; padding:35px; border-radius:40px; box-shadow: var(--shadow-soft);">
-                <div class="input-group">
-                    <label>Лимит кредитования (₽)</label>
-                    <input type="number" id="inp-loan-limit" placeholder="От 10 000 ₽">
-                </div>
-                
-                <div style="margin-top:30px; font-size:13px; color:#aaa; line-height:1.5;">Нажимая кнопку, вы соглашаетесь с условиями кредитного договора №К-0021-99.</div>
-                
-                <button class="main-button" style="background:#8e44ad; margin-top:40px;" onclick="app.execLoan()">Получить деньги</button>
-                <button class="main-button btn-red" onclick="app.nav('screen-home')">Закрыть</button>
+            <div style="font-size:12px; color:#999; margin-bottom:20px;">
+                Ставка 14.9% годовых. Льготный период 120 дней.
             </div>
+            
+            <button class="main-btn" style="background:#f39c12;" onclick="bank.takeLoan()">Оформить карту</button>
+            <button class="main-btn btn-red" onclick="ui.nav('screen-home')">Назад</button>
         </div>
     </div>
 
     <div id="screen-details" class="screen">
-        <div style="padding: 70px 30px 45px; background:white; border-radius: 0 0 50px 50px; box-shadow: var(--shadow-soft);">
-            <div class="back-icon" onclick="app.nav('screen-home')">✕</div>
-            <div id="det-label" style="font-size: 15px; color: var(--text-grey); font-weight: 800; text-transform: uppercase; letter-spacing: 2px;">MIR PREMIUM</div>
-            <h1 id="det-balance" style="font-size:55px; font-weight:900; margin:15px 0; color: var(--text-main);">0 ₽</h1>
-            <div style="display:flex; align-items:center; gap:12px; color:#f39c12; font-size:21px; font-weight:800;">
-                <span>✨</span> <span id="det-bonus">0</span> бонусов
-            </div>
+        <div class="details-hero">
+            <div class="back-circle" onclick="ui.nav('screen-home')" style="margin:0 auto 15px; background:#f5f5f5;">✕</div>
+            <div id="det-type" style="text-transform:uppercase; font-size:12px; font-weight:800; color:#888; letter-spacing:2px;">Счет</div>
+            <h1 id="det-amount" style="font-size:46px; font-weight:900; margin:10px 0;">0</h1>
+            <div id="det-actions" style="margin-top:20px;"></div>
         </div>
-        
-        <div style="padding: 40px 30px;">
-            <h3 style="font-size: 25px; font-weight: 800; margin-bottom: 25px;">Последние операции</h3>
-            <div id="ui-history-box">
-                </div>
-            
-            <div id="ui-context-btns" style="margin-top: 40px;"></div>
-            
-            <button class="main-button btn-red" style="margin-top:20px;" onclick="app.nav('screen-home')">Вернуться</button>
+        <div class="hist-list">
+            <h3 style="margin-left:10px;">История операций</h3>
+            <div id="det-hist-box"></div>
         </div>
     </div>
 
     <script>
         /**
-         * -------------------------------------------------------------------
-         * ЯДРО ПРИЛОЖЕНИЯ K-ONLINE (ENTERPRISE EDITION)
-         * -------------------------------------------------------------------
+         * -------------------------------------------------------------
+         * K-ONLINE CORE LOGIC
+         * -------------------------------------------------------------
          */
-        const firebaseConfig = { 
+        
+        // 1. КОНФИГУРАЦИЯ FIREBASE
+        const fbConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
             projectId: "webapp-b7149" 
         };
-        firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(fbConfig);
         const db = firebase.database();
 
-        // ОБЪЕКТ ПРИЛОЖЕНИЯ ДЛЯ ГЛОБАЛЬНОГО ДОСТУПА
-        const app = {
+        // 2. ГЛОБАЛЬНОЕ СОСТОЯНИЕ
+        const state = {
             users: [],
-            selectedKey: null,
+            selectedUid: null,
             currentUser: null,
             pinBuffer: "",
-            isBusy: false,
+            isBusy: false
+        };
 
-            // НАВИГАЦИЯ
-            nav(id) {
+        // 3. UI МЕНЕДЖЕР
+        const ui = {
+            nav: (id) => {
                 document.querySelectorAll('.screen').forEach(s => {
                     s.classList.remove('active');
                     setTimeout(() => { if(!s.classList.contains('active')) s.style.display = 'none'; }, 400);
                 });
-                const target = document.getElementById(id);
-                target.style.display = (id === 'screen-pin-entry') ? 'flex' : 'block';
-                setTimeout(() => target.classList.add('active'), 50);
-                window.scrollTo(0, 0);
+                const t = document.getElementById(id);
+                t.style.display = (id === 'screen-pin-entry') ? 'flex' : 'block';
+                setTimeout(() => t.classList.add('active'), 50);
+                window.scrollTo(0,0);
             },
-
-            // СИНХРОНИЗАЦИЯ ДАННЫХ
-            initData() {
-                db.ref('clients').on('value', snap => {
-                    const data = snap.val();
-                    this.users = data ? Object.keys(data).map(k => ({ ...data[k], fbKey: k })) : [];
-                    this.renderUsers();
-                    
-                    if (this.currentUser) {
-                        const updated = this.users.find(u => u.fbKey === this.currentUser.fbKey);
-                        if (updated) {
-                            this.currentUser = updated;
-                            this.refreshUI();
-                        }
-                    }
-                });
-            },
-
-            renderUsers() {
-                const container = document.getElementById('ui-user-list');
-                if (!this.users.length) {
-                    container.innerHTML = '<div style="padding:40px; color:grey;">Пользователи не найдены</div>';
-                    return;
-                }
-                container.innerHTML = this.users.map(u => `
-                    <div class="user-item ${this.selectedKey === u.fbKey ? 'selected' : ''}" onclick="app.selectUser('${u.fbKey}')">
+            
+            renderUsers: () => {
+                const list = document.getElementById('auth-list');
+                if(!state.users.length) { list.innerHTML = '<div style="padding:30px">Нет данных</div>'; return; }
+                
+                list.innerHTML = state.users.map(u => `
+                    <div class="user-item ${state.selectedUid === u.fbKey ? 'selected' : ''}" onclick="core.selectUser('${u.fbKey}')">
                         <span>${u.name}</span>
-                        ${this.selectedKey === u.fbKey ? '<span style="color:var(--sber-green); font-size:22px;">●</span>' : ''}
+                        ${state.selectedUid === u.fbKey ? '<span>●</span>' : ''}
                     </div>
                 `).join('');
-
-                const select = document.getElementById('inp-target-user');
-                if (select) {
-                    const others = this.users.filter(u => u.fbKey !== this.currentUser?.fbKey);
-                    select.innerHTML = others.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+                
+                // Обновление селекта перевода
+                const sel = document.getElementById('inp-tr-to');
+                if(sel) {
+                    sel.innerHTML = state.users
+                        .filter(u => u.fbKey !== state.currentUser?.fbKey)
+                        .map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
                 }
             },
 
-            selectUser(key) {
-                this.selectedKey = key;
-                this.renderUsers();
-            },
+            renderDashboard: () => {
+                const u = state.currentUser;
+                if(!u) return;
 
-            // ЛОГИКА ПИН-КОДА
-            toPin() {
-                if (!this.selectedKey) return alert("Пожалуйста, выберите профиль");
-                const user = this.users.find(u => u.fbKey === this.selectedKey);
-                document.getElementById('pin-user-name').innerText = "Привет, " + user.name.split(' ')[0];
-                this.pinBuffer = "";
-                this.updatePinDots();
-                this.nav('screen-pin-entry');
-            },
+                document.getElementById('home-name').innerText = u.name;
+                document.getElementById('home-ava').innerText = u.name[0];
+                document.getElementById('widget-usd').innerText = (u.usd || 0).toFixed(2) + " $";
 
-            pinPress(key) {
-                if (this.isBusy) return;
-                if (key === 'DEL') {
-                    this.pinBuffer = this.pinBuffer.slice(0, -1);
-                } else if (this.pinBuffer.length < 4) {
-                    this.pinBuffer += key;
-                }
-                this.updatePinDots();
+                const container = document.getElementById('cards-container');
+                let html = '';
 
-                if (this.pinBuffer.length === 4) {
-                    this.isBusy = true;
-                    const user = this.users.find(u => u.fbKey === this.selectedKey);
-                    setTimeout(() => {
-                        if (user.clientPin === this.pinBuffer) {
-                            this.currentUser = user;
-                            this.refreshUI();
-                            this.nav('screen-home');
-                            this.pinBuffer = "";
-                        } else {
-                            alert("Неверный ПИН-код!");
-                            this.pinBuffer = "";
-                            this.updatePinDots();
-                        }
-                        this.isBusy = false;
-                    }, 300);
-                }
-            },
-
-            updatePinDots() {
-                const dots = document.querySelectorAll('#ui-pin-dots .dot');
-                dots.forEach((d, i) => d.classList.toggle('active', i < this.pinBuffer.length));
-            },
-
-            // ГЛАВНЫЙ ИНТЕРФЕЙС
-            refreshUI() {
-                if (!this.currentUser) return;
-                document.getElementById('ui-name').innerText = this.currentUser.name;
-                document.getElementById('ui-avatar').innerText = this.currentUser.name.charAt(0).toUpperCase();
-                document.getElementById('ui-home-usd').innerText = (this.currentUser.usd || 0).toFixed(2) + " $";
-
-                // РЕНДЕР КАРУСЕЛИ ВЕРТИКАЛЬНЫХ КАРТ
-                const carousel = document.getElementById('ui-cards-carousel');
-                let cardsHtml = `
-                    <div class="v-card v-card-rub" onclick="app.showDet('rub')">
-                        <div class="chip"></div>
-                        <div>
-                            <div class="balance-label">${(this.currentUser.balance || 0).toLocaleString()} ₽</div>
-                            <div class="card-info">MIR DEBIT • 4002</div>
+                // Карта 1: Рублевая (Всегда есть)
+                html += `
+                    <div class="compact-card bg-rub" onclick="ui.openDetails('rub')">
+                        <div style="display:flex; justify-content:space-between;">
+                            <div class="c-chip"></div>
+                            <div class="c-logo">MIR</div>
                         </div>
-                        <div class="card-brand">MIR</div>
+                        <div>
+                            <div class="c-bal">${(u.balance || 0).toLocaleString()} ₽</div>
+                            <div class="c-name">Main Debit • 4200</div>
+                        </div>
                     </div>
                 `;
 
-                // Авто-создание карты USD если баланс > 0
-                if (this.currentUser.usd > 0) {
-                    cardsHtml += `
-                        <div class="v-card v-card-usd" onclick="app.showDet('usd')">
-                            <div class="chip"></div>
-                            <div>
-                                <div class="balance-label">${(this.currentUser.usd).toFixed(2)} $</div>
-                                <div class="card-info">VISA DIGITAL • 8812</div>
+                // Карта 2: Долларовая (Если есть баланс)
+                if(u.usd > 0) {
+                    html += `
+                        <div class="compact-card bg-usd" onclick="ui.openDetails('usd')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div class="c-chip"></div>
+                                <div class="c-logo">VISA</div>
                             </div>
-                            <div class="card-brand">VISA</div>
+                            <div>
+                                <div class="c-bal">${u.usd.toFixed(2)} $</div>
+                                <div class="c-name">Digital USD • 8811</div>
+                            </div>
                         </div>
                     `;
                 }
 
-                if (this.currentUser.hasCredit) {
-                    cardsHtml += `
-                        <div class="v-card v-card-gold" onclick="app.showDet('gold')">
-                            <div class="chip"></div>
-                            <div>
-                                <div class="balance-label">${(this.currentUser.creditBalance || 0).toLocaleString()} ₽</div>
-                                <div class="card-info">GOLD CREDIT • 9901</div>
+                // Карта 3: Кредитная (Если есть)
+                if(u.hasCredit) {
+                    document.getElementById('widget-loan').style.display = 'none';
+                    html += `
+                        <div class="compact-card bg-gold" onclick="ui.openDetails('gold')">
+                            <div style="display:flex; justify-content:space-between;">
+                                <div class="c-chip" style="background:rgba(0,0,0,0.1)"></div>
+                                <div class="c-logo">GOLD</div>
                             </div>
-                            <div class="card-brand">MIR GOLD</div>
+                            <div>
+                                <div class="c-bal" style="color:#4a3b00">${(u.creditBalance || 0).toLocaleString()} ₽</div>
+                                <div class="c-name" style="color:#6e5800">Credit Limit • 7777</div>
+                            </div>
                         </div>
                     `;
-                    document.getElementById('ui-loan-widget').style.display = 'none';
                 } else {
-                    document.getElementById('ui-loan-widget').style.display = 'flex';
+                    document.getElementById('widget-loan').style.display = 'flex';
                 }
 
-                carousel.innerHTML = cardsHtml;
+                container.innerHTML = html;
             },
 
-            // БАНКОВСКИЕ ОПЕРАЦИИ
-            execTransfer() {
-                const targetKey = document.getElementById('inp-target-user').value;
-                const amount = parseInt(document.getElementById('inp-tr-amount').value);
-                const targetUser = this.users.find(u => u.fbKey === targetKey);
-
-                if (!amount || amount <= 0) return alert("Введите сумму");
-                if (this.currentUser.balance < amount) return alert("Недостаточно средств");
-
-                db.ref(`clients/${this.currentUser.fbKey}`).update({ balance: this.currentUser.balance - amount });
-                db.ref(`clients/${this.currentUser.fbKey}/history`).push({ title: "Перевод: " + targetUser.name, sum: -amount, date: Date.now() });
-
-                db.ref(`clients/${targetKey}`).update({ balance: (targetUser.balance || 0) + amount });
-                db.ref(`clients/${targetKey}/history`).push({ title: "Входящий от " + this.currentUser.name, sum: amount, date: Date.now() });
-
-                showSuccess("Перевод отправлен", amount, "Получатель: " + targetUser.name);
-                document.getElementById('inp-tr-amount').value = "";
-            },
-
-            execExchange() {
-                const usdVal = parseFloat(document.getElementById('inp-buy-usd').value);
-                const cost = Math.round(usdVal * 91.20);
-
-                if (!usdVal || usdVal <= 0) return alert("Укажите сумму");
-                if (this.currentUser.balance < cost) return alert("Недостаточно рублей");
-
-                db.ref(`clients/${this.currentUser.fbKey}`).update({
-                    balance: this.currentUser.balance - cost,
-                    usd: (this.currentUser.usd || 0) + usdVal
-                });
-                db.ref(`clients/${this.currentUser.fbKey}/history`).push({ title: "Обмен валюты (USD)", sum: -cost, date: Date.now() });
-
-                showSuccess("Валюта куплена", cost, "Зачислено " + usdVal.toFixed(2) + " $");
-                document.getElementById('inp-buy-usd').value = "";
-            },
-
-            execLoan() {
-                const limit = parseInt(document.getElementById('inp-loan-limit').value);
-                if (!limit || limit < 10000) return alert("Мин. сумма 10 000 ₽");
-
-                db.ref(`clients/${this.currentUser.fbKey}`).update({
-                    hasCredit: true,
-                    creditLimit: limit,
-                    creditBalance: limit
-                });
-                db.ref(`clients/${this.currentUser.fbKey}/history`).push({ title: "Кредитный лимит", sum: limit, date: Date.now() });
-
-                showSuccess("Кредит выдан", limit, "Карта GOLD активирована");
-                document.getElementById('inp-loan-limit').value = "";
-            },
-
-            // ДЕТАЛИ И ИСТОРИЯ
-            showDet(type) {
-                const label = document.getElementById('det-label');
-                const bal = document.getElementById('det-balance');
-                const bonus = document.getElementById('det-bonus');
+            openDetails: (type) => {
+                const u = state.currentUser;
+                const tit = document.getElementById('det-type');
+                const am = document.getElementById('det-amount');
+                const acts = document.getElementById('det-actions');
                 
-                if (type === 'rub') { label.innerText = "MIR PREMIUM"; bal.innerText = (this.currentUser.balance || 0).toLocaleString() + " ₽"; }
-                if (type === 'usd') { label.innerText = "VISA DIGITAL"; bal.innerText = (this.currentUser.usd || 0).toFixed(2) + " $"; }
-                if (type === 'gold') { label.innerText = "MIR GOLD"; bal.innerText = (this.currentUser.creditBalance || 0).toLocaleString() + " ₽"; }
+                let hist = [];
+                if(u.history) hist = Object.values(u.history).reverse();
 
-                bonus.innerText = (this.currentUser.bonus || 0).toLocaleString();
+                if(type === 'rub') {
+                    tit.innerText = "MIR PREMIUM";
+                    am.innerText = u.balance.toLocaleString() + " ₽";
+                    am.style.color = "#000";
+                    acts.innerHTML = `<button class="main-btn" onclick="ui.nav('screen-transfer')">Перевести</button>`;
+                }
+                else if(type === 'usd') {
+                    tit.innerText = "VISA DIGITAL";
+                    am.innerText = u.usd.toFixed(2) + " $";
+                    am.style.color = "#2980b9";
+                    acts.innerHTML = `<button class="main-btn" onclick="ui.nav('screen-exchange')">Купить еще</button>`;
+                }
+                else if(type === 'gold') {
+                    tit.innerText = "CREDIT GOLD";
+                    am.innerText = u.creditBalance.toLocaleString() + " ₽";
+                    am.style.color = "#f39c12";
+                    const debt = (u.creditLimit || 0) - (u.creditBalance || 0);
+                    if(debt > 0) {
+                        acts.innerHTML = `<button class="main-btn" onclick="bank.repay(${debt})">Погасить (${debt} ₽)</button>`;
+                    } else {
+                        acts.innerHTML = `<div style="color:green; font-weight:bold;">Задолженности нет</div>`;
+                    }
+                }
 
-                const box = document.getElementById('ui-history-box');
-                const history = this.currentUser.history ? Object.values(this.currentUser.history).reverse() : [];
-                
-                box.innerHTML = history.length ? history.map(h => `
-                    <div class="history-row">
+                // Рендер истории
+                const box = document.getElementById('det-hist-box');
+                box.innerHTML = hist.length ? hist.map(h => `
+                    <div class="hist-row">
                         <div>
-                            <div class="h-title">${h.title}</div>
-                            <div class="h-date">${new Date(h.date || Date.now()).toLocaleDateString()} • Успешно</div>
+                            <div style="font-weight:700;">${h.title}</div>
+                            <div style="font-size:12px; color:#aaa;">${new Date(h.date).toLocaleDateString()}</div>
                         </div>
-                        <div class="h-sum" style="color:${h.sum > 0 ? 'var(--sber-green)' : 'black'}">
-                            ${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()} ₽
+                        <div style="font-weight:bold; color:${h.sum > 0 ? '#2ecc71' : '#000'}">
+                            ${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()}
                         </div>
                     </div>
-                `).join('') : '<div style="padding:30px; text-align:center; color:grey;">Истории пока нет</div>';
+                `).join('') : '<div style="text-align:center; padding:20px; color:#ccc;">Нет операций</div>';
 
-                const ctxBox = document.getElementById('ui-context-btns');
-                ctxBox.innerHTML = type === 'gold' ? 
-                    `<button class="main-button" onclick="app.repayLoan()">Погасить задолженность</button>` :
-                    `<button class="main-button" style="background:#333" onclick="alert('Карта заблокирована')">Заблокировать карту</button>`;
-
-                this.nav('screen-details');
+                ui.nav('screen-details');
             },
 
-            repayLoan() {
-                const debt = this.currentUser.creditLimit - this.currentUser.creditBalance;
-                if (debt <= 0) return alert("Долгов нет!");
-                if (this.currentUser.balance < debt) return alert("Недостаточно средств на MIR PREMIUM");
+            showSuccess: (t, s, d) => {
+                document.getElementById('suc-title').innerText = t;
+                document.getElementById('suc-sum').innerText = s;
+                document.getElementById('suc-desc').innerText = d;
+                document.getElementById('modal-success').style.display = 'flex';
+            },
+            closeSuccess: () => {
+                document.getElementById('modal-success').style.display = 'none';
+                ui.nav('screen-home');
+            }
+        };
 
-                db.ref(`clients/${this.currentUser.fbKey}`).update({
-                    balance: this.currentUser.balance - debt,
-                    creditBalance: this.currentUser.creditLimit
+        // 4. БИЗНЕС ЛОГИКА
+        const core = {
+            init: () => {
+                db.ref('clients').on('value', snap => {
+                    const val = snap.val();
+                    state.users = val ? Object.keys(val).map(k => ({...val[k], fbKey: k})) : [];
+                    ui.renderUsers();
+                    if(state.currentUser) {
+                        state.currentUser = state.users.find(u => u.fbKey === state.currentUser.fbKey);
+                        ui.renderDashboard();
+                    }
                 });
-                db.ref(`clients/${this.currentUser.fbKey}/history`).push({ title: "Погашение кредита", sum: -debt, date: Date.now() });
-                alert("Кредит успешно погашен!");
             },
+            selectUser: (uid) => {
+                state.selectedUid = uid;
+                ui.renderUsers();
+            },
+            toPin: () => {
+                if(!state.selectedUid) return alert("Выберите пользователя");
+                const u = state.users.find(x => x.fbKey === state.selectedUid);
+                document.getElementById('pin-hello').innerText = "Привет, " + u.name.split(' ')[0];
+                state.pinBuffer = "";
+                core.updatePinUI();
+                ui.nav('screen-pin-entry');
+            },
+            inputPin: (key) => {
+                if(state.isBusy) return;
+                if(key === 'DEL') state.pinBuffer = state.pinBuffer.slice(0, -1);
+                else if(state.pinBuffer.length < 4) state.pinBuffer += key;
+                
+                core.updatePinUI();
 
-            createUser() {
-                const n = prompt("ФИО:");
-                const p = prompt("ПИН (4 цифры):");
-                if (n && p && p.length === 4) {
-                    db.ref('clients').push({ name: n, clientPin: p, balance: 45000, usd: 0, bonus: 1500, hasCredit: false });
+                if(state.pinBuffer.length === 4) {
+                    state.isBusy = true;
+                    setTimeout(() => {
+                        const u = state.users.find(x => x.fbKey === state.selectedUid);
+                        if(u.clientPin === state.pinBuffer) {
+                            state.currentUser = u;
+                            ui.renderDashboard();
+                            ui.nav('screen-home');
+                            state.pinBuffer = "";
+                        } else {
+                            alert("Неверный код");
+                            state.pinBuffer = "";
+                            core.updatePinUI();
+                        }
+                        state.isBusy = false;
+                    }, 200);
+                }
+            },
+            updatePinUI: () => {
+                document.querySelectorAll('.pin-dot').forEach((d, i) => {
+                    d.classList.toggle('filled', i < state.pinBuffer.length);
+                });
+            },
+            newUser: () => {
+                const n = prompt("ФИО клиента:");
+                const p = prompt("ПИН-код (4 цифры):");
+                if(n && p && p.length===4) {
+                    db.ref('clients').push({
+                        name: n, clientPin: p, balance: 50000, usd: 0, hasCredit: false,
+                        history: { init: {title:"Открытие счета", sum: 50000, date: Date.now()} }
+                    });
                 }
             }
         };
 
-        // ВСПОМОГАТЕЛЬНЫЕ
-        function showSuccess(h, v, d) {
-            document.getElementById('success-header').innerText = h;
-            document.getElementById('success-val').innerText = v.toLocaleString() + " ₽";
-            document.getElementById('success-desc').innerText = d;
-            document.getElementById('modal-success').style.display = 'flex';
-        }
+        const bank = {
+            transfer: () => {
+                const toId = document.getElementById('inp-tr-to').value;
+                const sum = parseInt(document.getElementById('inp-tr-sum').value);
+                const u = state.currentUser;
+                const target = state.users.find(x => x.fbKey === toId);
 
-        function closeSuccess() {
-            document.getElementById('modal-success').style.display = 'none';
-            app.nav('screen-home');
-        }
+                if(!sum || sum <= 0) return alert("Некорректная сумма");
+                if(u.balance < sum) return alert("Недостаточно средств");
+
+                db.ref(`clients/${u.fbKey}`).update({ balance: u.balance - sum });
+                db.ref(`clients/${u.fbKey}/history`).push({ title: `Перевод (${target.name})`, sum: -sum, date: Date.now() });
+                
+                db.ref(`clients/${toId}`).update({ balance: (target.balance||0) + sum });
+                db.ref(`clients/${toId}/history`).push({ title: `Входящий (${u.name})`, sum: sum, date: Date.now() });
+
+                ui.showSuccess("Перевод выполнен", sum + " ₽", "Получатель: " + target.name);
+                document.getElementById('inp-tr-sum').value = "";
+            },
+            buyUsd: () => {
+                const amount = parseFloat(document.getElementById('inp-exc-usd').value);
+                const rate = 91.20;
+                const cost = Math.round(amount * rate);
+                const u = state.currentUser;
+
+                if(!amount || amount <= 0) return alert("Введите сумму");
+                if(u.balance < cost) return alert("Недостаточно рублей");
+
+                db.ref(`clients/${u.fbKey}`).update({
+                    balance: u.balance - cost,
+                    usd: (u.usd || 0) + amount
+                });
+                db.ref(`clients/${u.fbKey}/history`).push({ title: "Покупка USD", sum: -cost, date: Date.now() });
+
+                ui.showSuccess("Успешно", amount + " $", `Списано ${cost} ₽. Новая карта доступна.`);
+                document.getElementById('inp-exc-usd').value = "";
+            },
+            takeLoan: () => {
+                const sum = parseInt(document.getElementById('inp-loan-sum').value);
+                if(!sum || sum < 10000) return alert("Минимум 10 000 ₽");
+                
+                const u = state.currentUser;
+                db.ref(`clients/${u.fbKey}`).update({
+                    hasCredit: true, creditLimit: sum, creditBalance: sum
+                });
+                db.ref(`clients/${u.fbKey}/history`).push({ title: "Кредит выдан", sum: sum, date: Date.now() });
+
+                ui.showSuccess("Кредит одобрен", sum + " ₽", "Карта Gold активирована");
+                document.getElementById('inp-loan-sum').value = "";
+            },
+            repay: (amount) => {
+                const u = state.currentUser;
+                if(u.balance < amount) return alert("Мало средств на рублевом счете");
+                
+                db.ref(`clients/${u.fbKey}`).update({
+                    balance: u.balance - amount,
+                    creditBalance: u.creditLimit
+                });
+                db.ref(`clients/${u.fbKey}/history`).push({ title: "Погашение долга", sum: -amount, date: Date.now() });
+                
+                ui.nav('screen-home');
+                alert("Долг полностью погашен!");
+            }
+        };
 
         // ЗАПУСК
         window.onload = () => {
-            app.initData();
-            app.nav('screen-auth');
+            core.init();
+            ui.nav('screen-auth');
         };
+
     </script>
 </body>
 </html>
