@@ -2,151 +2,292 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>K-Online Red Edition | Frozen Core</title>
+    <title>Онлайн</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="format-detection" content="telephone=no">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         /* -----------------------------------------------------------
-           БАЗОВЫЕ ПЕРЕМЕННЫЕ И ЦВЕТА
+           1. ГЛОБАЛЬНЫЕ НАСТРОЙКИ (ROOT)
            ----------------------------------------------------------- */
         :root {
             --bg-body: #f8f9fb;
-            --grad-red: linear-gradient(170deg, #000000 0%, #660000 100%);
+            /* Обновленный глубокий градиент */
+            --grad-red: linear-gradient(170deg, #000000 0%, #1a0000 40%, #660000 100%);
+            
             --white: #ffffff;
             --sber-green: #2ecc71;
             --danger: #ff3b30;
-            --frozen-blue: rgba(135, 206, 250, 0.4);
+            --frozen-overlay: rgba(179, 229, 252, 0.35); /* Цвет льда */
             
             --text-dark: #1c1c1e;
             --text-grey: #8e8e93;
             
             --shadow-soft: 0 10px 30px rgba(0,0,0,0.05);
-            --shadow-card: 0 15px 35px rgba(0,0,0,0.25);
-            --radius-xl: 40px;
+            --shadow-card: 0 15px 35px rgba(0,0,0,0.3);
+            
+            --radius-card: 28px;
+            --radius-btn: 22px;
+            
+            /* Анимация перехода экранов */
+            --anim-screen: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             overflow: hidden; background: var(--bg-body); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
             -webkit-font-smoothing: antialiased;
+            -webkit-user-select: none; /* Защита от выделения текста */
+            user-select: none;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
         /* -----------------------------------------------------------
-           ЭКРАНЫ
+           2. СИСТЕМА ЭКРАНОВ (SPA)
            ----------------------------------------------------------- */
         .screen { 
             display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             width: 100%; height: 100%; overflow-y: auto; background: var(--bg-body);
-            z-index: 10; opacity: 0; transform: scale(0.98);
-            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 10; opacity: 0; transform: scale(0.96);
+            transition: opacity var(--anim-screen), transform var(--anim-screen);
+            will-change: transform, opacity;
         }
         .screen.active { display: block !important; opacity: 1; transform: scale(1); }
 
         /* -----------------------------------------------------------
-           АВТОРИЗАЦИЯ И ПИН
+           3. ЭКРАН АВТОРИЗАЦИИ
            ----------------------------------------------------------- */
-        .auth-wrap { padding: 80px 30px; text-align: center; display: flex; flex-direction: column; min-height: 100vh; }
-        .logo-text { font-size: 50px; font-weight: 900; background: linear-gradient(45deg, #000, #ff0000); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; letter-spacing: -2px; }
+        .auth-wrap { 
+            padding: 80px 30px 40px; text-align: center; 
+            display: flex; flex-direction: column; min-height: 100vh; 
+            background: var(--white);
+        }
+        .logo-text { 
+            font-size: 52px; font-weight: 900; 
+            background: linear-gradient(45deg, #000, #b30000); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
+            margin: 0; letter-spacing: -3px; 
+        }
         
-        .client-list { background: #fff; border-radius: 30px; margin: 40px 0; padding: 10px; flex-grow: 1; box-shadow: var(--shadow-soft); overflow-y: auto; }
-        .user-row { padding: 22px; border-radius: 20px; margin-bottom: 5px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; border: 1px solid transparent; }
-        .user-row.selected { background: #fff1f1; border-color: #ff3b30; color: #ff3b30; }
-
-        #screen-pin-entry { background: linear-gradient(135deg, #000 0%, #440000 100%); color: white; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 30px 60px; }
-        .pin-dots { display: flex; gap: 20px; margin: 50px 0; }
-        .p-dot { width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; }
-        .p-dot.active { background: #ff3b30; border-color: #ff3b30; box-shadow: 0 0 15px #ff3b30; transform: scale(1.2); }
-
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 300px; }
-        .k-btn { height: 75px; border-radius: 50%; background: rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: center; font-size: 28px; cursor: pointer; }
-        .k-btn:active { background: rgba(255,255,255,0.2); }
+        .client-list { 
+            background: #fff; border-radius: 30px; margin: 40px 0; padding: 10px; 
+            flex-grow: 1; box-shadow: inset 0 0 20px rgba(0,0,0,0.03); 
+            overflow-y: auto; border: 1px solid #eee;
+        }
+        .user-row { 
+            padding: 22px; border-radius: 20px; margin-bottom: 8px; 
+            font-weight: 700; font-size: 18px; color: #333;
+            display: flex; justify-content: space-between; align-items: center; 
+            transition: 0.2s; cursor: pointer; background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .user-row:active { transform: scale(0.98); background: #f5f5f5; }
+        .user-row.selected { 
+            background: #fff0f0; border: 2px solid #b30000; color: #b30000; 
+        }
 
         /* -----------------------------------------------------------
-           ГЛАВНЫЙ ЭКРАН (RED GRADIENT)
+           4. ЭКРАН ВВОДА ПИН-КОДА
+           ----------------------------------------------------------- */
+        #screen-pin-entry { 
+            background: linear-gradient(135deg, #000 0%, #3a0000 100%); 
+            color: white; display: none; flex-direction: column; 
+            align-items: center; justify-content: space-between; 
+            padding: 80px 30px 50px; 
+        }
+        .pin-dots { display: flex; gap: 24px; margin: 50px 0; }
+        .p-dot { 
+            width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); 
+            border-radius: 50%; transition: 0.2s; 
+        }
+        .p-dot.active { 
+            background: #ff3b30; border-color: #ff3b30; 
+            box-shadow: 0 0 20px #ff3b30; transform: scale(1.3); 
+        }
+
+        .keypad { 
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; 
+            width: 100%; max-width: 320px; 
+        }
+        .k-btn { 
+            height: 75px; border-radius: 50%; background: rgba(255,255,255,0.1); 
+            display: flex; align-items: center; justify-content: center; 
+            font-size: 30px; font-weight: 500; cursor: pointer; 
+            backdrop-filter: blur(5px); transition: 0.1s;
+        }
+        .k-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
+
+        /* -----------------------------------------------------------
+           5. ГЛАВНЫЙ ЭКРАН (DASHBOARD)
            ----------------------------------------------------------- */
         .header-top { 
             background: var(--grad-red); 
-            padding: 60px 0 40px; 
+            padding: 60px 0 45px; 
             border-radius: 0 0 50px 50px; 
-            box-shadow: 0 15px 40px rgba(0,0,0,0.3); 
-            color: white; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4); 
+            color: white; position: relative; z-index: 5;
         }
-        .user-meta { display: flex; justify-content: space-between; padding: 0 30px; align-items: center; margin-bottom: 30px; }
-        .ava-box { width: 50px; height: 50px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; backdrop-filter: blur(10px); }
+        .user-meta { 
+            display: flex; justify-content: space-between; padding: 0 30px; 
+            align-items: center; margin-bottom: 30px; 
+        }
+        .ava-box { 
+            width: 50px; height: 50px; background: rgba(255,255,255,0.2); 
+            border-radius: 50%; display: flex; align-items: center; 
+            justify-content: center; font-weight: 800; font-size: 20px;
+            backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
+        }
 
         /* КАРРУСЕЛЬ КАРТ */
-        .cards-row { display: flex; overflow-x: auto; padding: 10px 30px 30px; gap: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .cards-row { 
+            display: flex; overflow-x: auto; padding: 10px 30px 40px; gap: 20px; 
+            scroll-snap-type: x mandatory; scrollbar-width: none; 
+            -webkit-overflow-scrolling: touch; /* Плавный скролл iOS */
+        }
         .cards-row::-webkit-scrollbar { display: none; }
 
+        /* СТИЛЬ ВЕРТИКАЛЬНОЙ КАРТЫ */
         .v-card { 
-            min-width: 175px; height: 260px; border-radius: 28px; padding: 25px; 
-            display: flex; flex-direction: column; justify-content: space-between; 
-            scroll-snap-align: center; box-shadow: var(--shadow-card); 
-            position: relative; overflow: hidden; transition: 0.3s; 
-            border: 1px solid rgba(255,255,255,0.1);
+            min-width: 175px; height: 260px; border-radius: var(--radius-card); 
+            padding: 25px; display: flex; flex-direction: column; 
+            justify-content: space-between; scroll-snap-align: center; 
+            box-shadow: var(--shadow-card); position: relative; overflow: hidden; 
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            border: 1px solid rgba(255,255,255,0.15);
+            cursor: pointer;
+            z-index: 10; /* Поднимаем карту выше */
+            touch-action: manipulation; /* Улучшает реакцию на тач */
         }
         .v-card:active { transform: scale(0.96); }
         
-        /* Заморозка карты */
-        .v-card.frozen { filter: blur(2px) grayscale(0.5); }
+        /* Стили заливки карт */
+        .c-black { background: linear-gradient(160deg, #2b2b2b 0%, #000000 100%); }
+        .c-blue { background: linear-gradient(160deg, #1e3c72 0%, #2a5298 100%); }
+        .c-gold { background: linear-gradient(160deg, #d4af37 0%, #f1c40f 100%); color: #4a3b00; text-shadow:none; }
+
+        /* Эффект ЗАМОРОЗКИ (Исправлено) */
+        .v-card.frozen { 
+            filter: blur(0px); /* Убрали сильный блюр самой карты для читаемости, добавим оверлей */
+        }
+        .v-card.frozen::before {
+            content: ""; position: absolute; top:0; left:0; right:0; bottom:0;
+            backdrop-filter: blur(4px) grayscale(0.8);
+            z-index: 1; pointer-events: none; /* ПРОПУСКАЕТ КЛИК */
+        }
         .v-card.frozen::after { 
             content: "❄️ FROZEN"; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--frozen-blue); color: white; display: flex; align-items: center;
-            justify-content: center; font-weight: 900; font-size: 18px; backdrop-filter: blur(4px);
-            z-index: 5;
+            background: var(--frozen-overlay); color: white; 
+            display: flex; align-items: center; justify-content: center; 
+            font-weight: 900; font-size: 20px; letter-spacing: 2px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+            z-index: 2; 
+            pointer-events: none; /* !!! ВАЖНО: Клик проходит сквозь надпись к карте */
         }
 
-        .c-black { background: linear-gradient(160deg, #222 0%, #000 100%); }
-        .c-blue { background: linear-gradient(160deg, #1e3c72 0%, #2a5298 100%); }
-        .c-gold { background: linear-gradient(160deg, #d4af37 0%, #f1c40f 100%); color: #000; }
+        .c-chip { 
+            width: 38px; height: 28px; background: rgba(255,255,255,0.25); 
+            border-radius: 8px; position: relative; z-index:0; 
+        }
+        .c-balance { font-size: 24px; font-weight: 900; margin-top: 15px; z-index:0; }
+        .c-number { font-size: 11px; opacity: 0.6; letter-spacing: 2px; margin-top: auto; z-index:0; text-transform: uppercase; }
 
-        .c-chip { width: 35px; height: 26px; background: rgba(255,255,255,0.2); border-radius: 6px; }
-        .c-balance { font-size: 22px; font-weight: 900; margin-top: 15px; }
-        .c-number { font-size: 11px; opacity: 0.5; letter-spacing: 2px; margin-top: auto; }
+        /* Кнопки быстрых действий */
+        .quick-actions { 
+            display: flex; justify-content: center; gap: 25px; margin-top: 5px; 
+        }
+        .qa-btn { 
+            width: 60px; height: 60px; background: rgba(255,255,255,0.1); 
+            border-radius: 20px; display: flex; align-items: center; 
+            justify-content: center; font-size: 26px; backdrop-filter: blur(10px); 
+            cursor: pointer; transition: 0.2s; border: 1px solid rgba(255,255,255,0.05);
+        }
+        .qa-btn:active { background: rgba(255,255,255,0.25); transform: translateY(2px); }
 
-        /* Кнопки действий */
-        .quick-actions { display: flex; justify-content: center; gap: 25px; margin-top: 5px; }
-        .qa-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 26px; backdrop-filter: blur(10px); cursor: pointer; transition: 0.2s; }
-        .qa-btn:active { background: rgba(255,255,255,0.3); transform: translateY(3px); }
-
-        /* Белый контент */
+        /* Контент под шапкой */
         .white-content { padding: 35px 25px 100px; }
-        .widget { background: #fff; border-radius: 25px; padding: 20px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; box-shadow: var(--shadow-soft); cursor: pointer; }
-        .w-ico { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+        .widget { 
+            background: #fff; border-radius: 26px; padding: 22px; margin-bottom: 15px; 
+            display: flex; align-items: center; gap: 18px; 
+            box-shadow: var(--shadow-soft); cursor: pointer; transition: 0.2s;
+        }
+        .widget:active { transform: scale(0.98); background: #fcfcfc; }
+        .w-ico { 
+            width: 52px; height: 52px; border-radius: 16px; 
+            display: flex; align-items: center; justify-content: center; font-size: 24px; 
+        }
 
         /* -----------------------------------------------------------
-           ФОРМЫ И МОДАЛКИ
+           6. ФОРМЫ (ПЕРЕВОДЫ, КРЕДИТЫ)
            ----------------------------------------------------------- */
         .form-box { padding: 25px; }
-        .form-card { background: #fff; border-radius: 35px; padding: 35px; box-shadow: var(--shadow-soft); }
+        .form-card { 
+            background: #fff; border-radius: 35px; padding: 35px; 
+            box-shadow: var(--shadow-soft); 
+        }
         
-        label { display: block; font-size: 13px; font-weight: 800; color: #bbb; margin-bottom: 8px; margin-left: 10px; text-transform: uppercase; }
-        input, select { width: 100%; height: 60px; border-radius: 20px; border: 1.5px solid #f0f0f0; padding: 0 20px; margin-bottom: 25px; font-size: 18px; background: #fafafa; transition: 0.3s; }
-        input:focus { border-color: #ff3b30; background: #fff; }
+        label { 
+            display: block; font-size: 13px; font-weight: 800; color: #bbb; 
+            margin-bottom: 8px; margin-left: 10px; text-transform: uppercase; 
+        }
+        input, select { 
+            width: 100%; height: 60px; border-radius: 20px; border: 1px solid #e0e0e0; 
+            padding: 0 20px; margin-bottom: 25px; font-size: 18px; 
+            background: #fafafa; transition: 0.3s; color: #000;
+        }
+        input:focus { border-color: #000; background: #fff; }
 
-        .btn-main { width: 100%; height: 65px; border: none; border-radius: 22px; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-black { background: #000; color: #fff; }
+        .btn-main { 
+            width: 100%; height: 65px; border: none; border-radius: var(--radius-btn); 
+            font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; 
+        }
+        .btn-black { background: #000; color: #fff; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .btn-black:active { opacity: 0.8; transform: scale(0.98); }
+        
         .btn-red { background: var(--danger); color: #fff; margin-top: 15px; }
+        .btn-red:active { opacity: 0.8; }
         
-        .back-btn { width: 45px; height: 45px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-bottom: 20px; }
+        .back-btn { 
+            width: 45px; height: 45px; border-radius: 50%; background: #f0f0f0; 
+            display: flex; align-items: center; justify-content: center; 
+            cursor: pointer; margin-bottom: 20px; font-size: 20px; color: #333;
+        }
 
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .modal-in { background: #fff; width: 85%; max-width: 380px; border-radius: 40px; padding: 40px; text-align: center; }
+        /* -----------------------------------------------------------
+           7. МОДАЛЬНЫЕ ОКНА И ДЕТАЛИ
+           ----------------------------------------------------------- */
+        .modal { 
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; 
+            justify-content: center; backdrop-filter: blur(15px); 
+        }
+        .modal-in { 
+            background: #fff; width: 85%; max-width: 380px; border-radius: 40px; 
+            padding: 40px; text-align: center; 
+        }
 
-        /* Детали */
-        .details-top { background: #fff; padding: 70px 30px 40px; border-radius: 0 0 50px 50px; text-align: center; box-shadow: var(--shadow-soft); }
-        .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 15px; border-bottom: 1px solid #f8f8f8; }
-
-        /* Статус заморозки в деталях */
-        #frozen-notice { display: none; background: #e1f5fe; color: #0288d1; padding: 15px; border-radius: 15px; margin: 15px 0; font-size: 13px; font-weight: 700; }
+        /* Экран деталей */
+        .details-top { 
+            background: #fff; padding: 70px 30px 40px; border-radius: 0 0 50px 50px; 
+            text-align: center; box-shadow: var(--shadow-soft); position: relative;
+        }
+        .hist-item { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 20px 15px; border-bottom: 1px solid #f8f8f8; 
+        }
+        
+        /* Уведомление о заморозке внутри деталей */
+        #frozen-alert {
+            display: none; background: #e3f2fd; color: #1565c0; 
+            padding: 15px; border-radius: 18px; margin: 20px 0; 
+            font-size: 14px; font-weight: 700; border: 1px solid #bbdefb;
+        }
     </style>
 </head>
 <body>
@@ -164,15 +305,15 @@
     <div id="screen-auth" class="screen active">
         <div class="auth-wrap">
             <h1 class="logo-text">K-Online</h1>
-            <p style="color:#999; font-weight:600;">Secure Cloud Banking</p>
+            <p style="color:#999; font-weight:600; margin-top:5px;">Red Onyx Edition</p>
             
             <div class="client-list" id="ui-clients">
-                <div style="padding:40px; color:#ccc;">Синхронизация...</div>
+                <div style="padding:40px; color:#ccc;">Соединение с банком...</div>
             </div>
             
             <div style="display:flex; gap:12px;">
                 <button class="btn-main" style="background:#f2f2f2; color:#000; flex:1;" onclick="logic.reg()">+ Создать</button>
-                <button class="btn-main" style="width:90px; background:linear-gradient(45deg,#000,#600);" onclick="logic.goPin()">➜</button>
+                <button class="btn-main" style="width:90px; background:linear-gradient(45deg,#000,#600); color:white;" onclick="logic.goPin()">➜</button>
             </div>
         </div>
     </div>
@@ -180,7 +321,7 @@
     <div id="screen-pin-entry" class="screen">
         <div style="text-align:center;">
             <h2 id="pin-user" style="font-size:36px; font-weight:900; margin:0;">Вход</h2>
-            <p style="opacity:0.6; margin-top:10px;">Введите 4-значный код</p>
+            <p style="opacity:0.6; margin-top:10px;">Введите код доступа</p>
         </div>
         
         <div class="pin-dots">
@@ -191,17 +332,17 @@
             <div class="k-btn" onclick="logic.tapPin('1')">1</div><div class="k-btn" onclick="logic.tapPin('2')">2</div><div class="k-btn" onclick="logic.tapPin('3')">3</div>
             <div class="k-btn" onclick="logic.tapPin('4')">4</div><div class="k-btn" onclick="logic.tapPin('5')">5</div><div class="k-btn" onclick="logic.tapPin('6')">6</div>
             <div class="k-btn" onclick="logic.tapPin('7')">7</div><div class="k-btn" onclick="logic.tapPin('8')">8</div><div class="k-btn" onclick="logic.tapPin('9')">9</div>
-            <div class="k-btn" style="opacity:0"></div><div class="k-btn" onclick="logic.tapPin('0')">0</div><div class="k-btn" onclick="logic.tapPin('DEL')">⌫</div>
+            <div class="k-btn" style="opacity:0; pointer-events:none;"></div><div class="k-btn" onclick="logic.tapPin('0')">0</div><div class="k-btn" onclick="logic.tapPin('DEL')">⌫</div>
         </div>
-        <div onclick="view.nav('screen-auth')" style="opacity:0.5; text-decoration:underline;">Сменить аккаунт</div>
+        <div onclick="view.nav('screen-auth')" style="opacity:0.6; text-decoration:underline; margin-top:30px; cursor:pointer;">Сменить пользователя</div>
     </div>
 
     <div id="screen-home" class="screen">
         <div class="header-top">
             <div class="user-meta">
                 <div>
-                    <div id="h-name" style="font-size:26px; font-weight:900;">...</div>
-                    <div style="font-size:13px; opacity:0.6; margin-top:5px;">Black Status Client</div>
+                    <div id="h-name" style="font-size:26px; font-weight:900;">Загрузка...</div>
+                    <div style="font-size:13px; opacity:0.7; margin-top:5px;">Premium Client</div>
                 </div>
                 <div id="h-ava" class="ava-box">?</div>
             </div>
@@ -213,34 +354,34 @@
                 <div class="qa-btn" onclick="view.nav('screen-transfer')">💸</div>
                 <div class="qa-btn" onclick="view.nav('screen-exchange')">🔄</div>
                 <div class="qa-btn" onclick="view.nav('screen-loan')">🏦</div>
-                <div class="qa-btn" onclick="alert('История доступна в меню карты')">🧾</div>
+                <div class="qa-btn" onclick="alert('История операций находится внутри каждой карты.')">🧾</div>
             </div>
         </div>
 
         <div class="white-content">
-            <h3 style="margin-left:10px; margin-bottom:20px;">Сервисы</h3>
+            <h3 style="margin-left:10px; margin-bottom:20px; color:#333;">Ваши возможности</h3>
             
             <div class="widget" onclick="view.nav('screen-transfer')">
                 <div class="w-ico" style="background:#e8f5e9; color:#2ecc71;">⚡</div>
                 <div style="flex:1;">
-                    <b style="font-size:17px;">Переводы</b>
-                    <div style="font-size:13px; color:#999;">Любому клиенту банка</div>
+                    <b style="font-size:17px;">Перевод клиенту</b>
+                    <div style="font-size:13px; color:#999;">Моментально и без комиссии</div>
                 </div>
             </div>
 
             <div class="widget" onclick="view.nav('screen-exchange')">
-                <div class="w-ico" style="background:#e3f2fd; color:#3498db;">💎</div>
+                <div class="w-ico" style="background:#e3f2fd; color:#3498db;">💲</div>
                 <div style="flex:1;">
-                    <b style="font-size:17px;">Обмен валют</b>
-                    <div id="w-usd" style="font-size:14px; font-weight:700;">...</div>
+                    <b style="font-size:17px;">Покупка валюты</b>
+                    <div id="w-usd" style="font-size:14px; font-weight:700; color:#444;">...</div>
                 </div>
             </div>
 
             <div id="w-loan-box" class="widget" onclick="view.nav('screen-loan')">
                 <div class="w-ico" style="background:#fff3e0; color:#f39c12;">🔥</div>
                 <div style="flex:1;">
-                    <b style="font-size:17px;">Кредитная линия</b>
-                    <div style="font-size:13px; color:#e67e22;">Доступно 500 000 ₽</div>
+                    <b style="font-size:17px;">Кредитная карта</b>
+                    <div style="font-size:13px; color:#e67e22;">Вам предварительно одобрено</div>
                 </div>
             </div>
         </div>
@@ -249,7 +390,9 @@
     <div id="screen-transfer" class="screen">
         <div class="form-box">
             <div class="back-btn" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Перевод</h2>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:10px;">Перевод</h2>
+            <p style="color:#888; margin-bottom:30px;">Отправка средств другому клиенту</p>
+            
             <div class="form-card">
                 <label>Получатель</label>
                 <select id="tr-target"></select>
@@ -257,7 +400,7 @@
                 <label>Сумма (₽)</label>
                 <input type="number" id="tr-val" placeholder="0">
                 
-                <button class="btn-main btn-black" onclick="bank.send()">Отправить</button>
+                <button class="btn-main btn-black" onclick="bank.send()">Перевести</button>
                 <button class="btn-main btn-red" onclick="view.nav('screen-home')">Отмена</button>
             </div>
         </div>
@@ -266,15 +409,15 @@
     <div id="screen-exchange" class="screen">
         <div class="form-box">
             <div class="back-btn" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Обмен</h2>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Обмен валют</h2>
             <div class="form-card" style="text-align:center;">
-                <p style="color:#aaa;">Курс продажи USD</p>
+                <p style="color:#aaa;">Текущий курс</p>
                 <div style="font-size:50px; font-weight:900; margin:10px 0;">91.20 ₽</div>
                 
-                <label style="text-align:left;">Сколько купить ($)</label>
-                <input type="number" id="ex-val" placeholder="0">
+                <label style="text-align:left;">Купить USD ($)</label>
+                <input type="number" id="ex-val" placeholder="100">
                 
-                <button class="btn-main btn-black" style="background:#3498db;" onclick="bank.exchange()">Купить USD</button>
+                <button class="btn-main btn-black" style="background:#3498db;" onclick="bank.exchange()">Купить</button>
                 <button class="btn-main btn-red" onclick="view.nav('screen-home')">Назад</button>
             </div>
         </div>
@@ -283,12 +426,16 @@
     <div id="screen-loan" class="screen">
         <div class="form-box">
             <div class="back-btn" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Лимит</h2>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Кредит</h2>
             <div class="form-card">
-                <label>Желаемая сумма (₽)</label>
+                <label>Лимит (₽)</label>
                 <input type="number" id="ln-val" placeholder="Мин. 10 000">
-                <p style="font-size:12px; color:#aaa; line-height:1.5;">Оформление GOLD карты произойдет мгновенно после подтверждения.</p>
-                <button class="btn-main btn-black" style="background:#f39c12;" onclick="bank.loan()">Получить лимит</button>
+                
+                <div style="background:#fff3e0; padding:15px; border-radius:15px; color:#e67e22; font-size:13px; margin-bottom:20px;">
+                    <b>Карта GOLD</b> будет выпущена мгновенно. Льготный период 100 дней.
+                </div>
+                
+                <button class="btn-main btn-black" style="background:#f39c12;" onclick="bank.loan()">Оформить карту</button>
                 <button class="btn-main btn-red" onclick="view.nav('screen-home')">Отмена</button>
             </div>
         </div>
@@ -297,25 +444,26 @@
     <div id="screen-details" class="screen">
         <div class="details-top">
             <div class="back-btn" onclick="view.nav('screen-home')" style="margin:0 auto 20px;">✕</div>
-            <div id="d-label" style="text-transform:uppercase; font-size:12px; font-weight:900; color:#bbb; letter-spacing:2px;">Debit Card</div>
+            
+            <div id="d-label" style="text-transform:uppercase; font-size:12px; font-weight:900; color:#bbb; letter-spacing:2px;">Счет</div>
             <h1 id="d-sum" style="font-size:50px; font-weight:900; margin:10px 0;">0</h1>
             
-            <div id="frozen-notice">❄️ КАРТА ЗАБЛОКИРОВАНА</div>
+            <div id="frozen-alert">⚠️ КАРТА ЗАМОРОЖЕНА. ОПЕРАЦИИ НЕДОСТУПНЫ.</div>
             
             <div id="d-action-box" style="margin-top:25px;"></div>
         </div>
         
         <div style="padding:30px 20px;">
-            <h3 style="margin-left:15px;">Транзакции</h3>
+            <h3 style="margin-left:15px;">История операций</h3>
             <div id="d-hist"></div>
-            <button class="btn-main btn-red" style="margin-top:40px;" onclick="view.nav('screen-home')">Закрыть</button>
+            <button class="btn-main btn-red" style="margin-top:40px; background:#eee; color:#000;" onclick="view.nav('screen-home')">Закрыть</button>
         </div>
     </div>
 
     <script>
         /**
          * -------------------------------------------------------------
-         * СИСТЕМНОЕ ЯДРО K-ONLINE
+         * CORE SYSTEM
          * -------------------------------------------------------------
          */
         
@@ -337,26 +485,37 @@
 
         const view = {
             nav: (id) => {
+                // Скрываем все экраны
                 document.querySelectorAll('.screen').forEach(s => {
                     s.classList.remove('active');
+                    // Даем время анимации исчезновения
                     setTimeout(() => { if(!s.classList.contains('active')) s.style.display='none'; }, 400);
                 });
+                
+                // Показываем нужный
                 const t = document.getElementById(id);
                 t.style.display = (id === 'screen-pin-entry') ? 'flex' : 'block';
-                setTimeout(() => t.classList.add('active'), 50);
+                
+                // Небольшая задержка для анимации появления (transition)
+                setTimeout(() => {
+                    t.classList.add('active');
+                    window.scrollTo(0,0);
+                }, 50);
             },
             
+            // Отрисовка списка пользователей
             drawClients: () => {
                 const box = document.getElementById('ui-clients');
-                if(!state.all.length) { box.innerHTML = '<div style="padding:40px">Загрузка...</div>'; return; }
+                if(!state.all.length) { box.innerHTML = '<div style="padding:40px">Список пуст</div>'; return; }
                 
                 box.innerHTML = state.all.map(u => `
                     <div class="user-row ${state.selKey === u.fbKey ? 'selected' : ''}" onclick="logic.pick('${u.fbKey}')">
-                        ${u.name}
-                        ${state.selKey === u.fbKey ? '<span>✔</span>' : ''}
+                        <div>${u.name}</div>
+                        ${state.selKey === u.fbKey ? '<div style="color:#b30000; font-weight:900;">✔</div>' : ''}
                     </div>
                 `).join('');
                 
+                // Обновляем список для переводов
                 const sel = document.getElementById('tr-target');
                 if(sel) {
                     sel.innerHTML = state.all
@@ -365,16 +524,20 @@
                 }
             },
 
+            // Отрисовка Главного Экрана
             drawDash: () => {
                 const u = state.user;
-                if(!u) return;
+                if(!u) return; // Защита от ошибок
 
                 document.getElementById('h-name').innerText = u.name;
                 document.getElementById('h-ava').innerText = u.name[0];
                 document.getElementById('w-usd').innerText = (u.usd || 0).toFixed(2) + " $";
 
                 const container = document.getElementById('h-cards');
-                let cards = `
+                let cardsHtml = '';
+
+                // 1. Рублевая карта (Есть всегда)
+                cardsHtml += `
                     <div class="v-card c-black ${u.isFrozen ? 'frozen' : ''}" onclick="view.openDet('rub')">
                         <div style="display:flex; justify-content:space-between;">
                             <div class="c-chip"></div>
@@ -387,8 +550,9 @@
                     </div>
                 `;
 
+                // 2. Долларовая карта (Если есть баланс)
                 if(u.usd > 0) {
-                    cards += `
+                    cardsHtml += `
                         <div class="v-card c-blue ${u.isFrozenUsd ? 'frozen' : ''}" onclick="view.openDet('usd')">
                             <div style="display:flex; justify-content:space-between;">
                                 <div class="c-chip"></div>
@@ -402,9 +566,10 @@
                     `;
                 }
 
+                // 3. Кредитная карта (Если оформлена)
                 if(u.hasCredit) {
                     document.getElementById('w-loan-box').style.display = 'none';
-                    cards += `
+                    cardsHtml += `
                         <div class="v-card c-gold ${u.isFrozenGold ? 'frozen' : ''}" onclick="view.openDet('gold')">
                             <div style="display:flex; justify-content:space-between;">
                                 <div class="c-chip" style="background:rgba(0,0,0,0.1)"></div>
@@ -420,59 +585,79 @@
                     document.getElementById('w-loan-box').style.display = 'flex';
                 }
 
-                container.innerHTML = cards;
+                container.innerHTML = cardsHtml;
             },
 
+            // Открытие деталей карты
             openDet: (type) => {
                 const u = state.user;
+                if(!u) return;
+
                 const lab = document.getElementById('d-label');
                 const sum = document.getElementById('d-sum');
                 const act = document.getElementById('d-action-box');
-                const notice = document.getElementById('frozen-notice');
+                const alertBox = document.getElementById('frozen-alert');
                 
+                // Безопасное получение истории (Bugfix)
                 let hist = u.history ? Object.values(u.history).reverse() : [];
-                let frozen = false;
+                let isFrozen = false;
 
                 if(type === 'rub') {
-                    lab.innerText = "MIR DEBIT PREMIUM";
-                    sum.innerText = u.balance.toLocaleString() + " ₽";
-                    frozen = u.isFrozen;
-                    act.innerHTML = `<button class="btn-main btn-black" onclick="bank.toggleFreeze('isFrozen', ${!frozen})">
-                        ${frozen ? 'Разблокировать' : 'Заблокировать карту'}
-                    </button>`;
-                } else if(type === 'usd') {
-                    lab.innerText = "VISA DIGITAL USD";
-                    sum.innerText = u.usd.toFixed(2) + " $";
-                    frozen = u.isFrozenUsd;
-                    act.innerHTML = `<button class="btn-main btn-black" onclick="bank.toggleFreeze('isFrozenUsd', ${!frozen})">
-                        ${frozen ? 'Разблокировать' : 'Заблокировать карту'}
-                    </button>`;
-                } else if(type === 'gold') {
-                    lab.innerText = "GOLD CREDIT LINE";
-                    sum.innerText = (u.creditBalance || 0).toLocaleString() + " ₽";
-                    frozen = u.isFrozenGold;
-                    const debt = (u.creditLimit || 0) - (u.creditBalance || 0);
+                    lab.innerText = "MIR PREMIUM";
+                    sum.innerText = (u.balance || 0).toLocaleString() + " ₽";
+                    sum.style.color = "#000";
+                    isFrozen = u.isFrozen;
+                    
                     act.innerHTML = `
-                        ${debt > 0 ? `<button class="btn-main btn-black" onclick="bank.repay(${debt})" style="margin-bottom:10px">Погасить долг</button>` : ''}
-                        <button class="btn-main btn-red" onclick="bank.toggleFreeze('isFrozenGold', ${!frozen})">
-                            ${frozen ? 'Разблокировать' : 'Заблокировать карту'}
+                        <button class="btn-main btn-black" onclick="bank.toggleFreeze('isFrozen', ${!isFrozen})">
+                            ${isFrozen ? 'Разблокировать карту' : 'Заблокировать карту'}
+                        </button>
+                    `;
+                } 
+                else if(type === 'usd') {
+                    lab.innerText = "VISA DIGITAL USD";
+                    sum.innerText = (u.usd || 0).toFixed(2) + " $";
+                    sum.style.color = "#2a5298";
+                    isFrozen = u.isFrozenUsd;
+                    
+                    act.innerHTML = `
+                        <button class="btn-main btn-black" onclick="bank.toggleFreeze('isFrozenUsd', ${!isFrozen})">
+                            ${isFrozen ? 'Разблокировать карту' : 'Заблокировать карту'}
+                        </button>
+                    `;
+                } 
+                else if(type === 'gold') {
+                    lab.innerText = "GOLD CREDIT LIMIT";
+                    sum.innerText = (u.creditBalance || 0).toLocaleString() + " ₽";
+                    sum.style.color = "#f1c40f";
+                    isFrozen = u.isFrozenGold;
+                    
+                    const debt = (u.creditLimit || 0) - (u.creditBalance || 0);
+                    
+                    act.innerHTML = `
+                        ${debt > 0 ? `<button class="btn-main btn-black" onclick="bank.repay(${debt})" style="margin-bottom:10px">Погасить долг (${debt} ₽)</button>` : ''}
+                        <button class="btn-main btn-red" onclick="bank.toggleFreeze('isFrozenGold', ${!isFrozen})">
+                            ${isFrozen ? 'Разблокировать' : 'Заблокировать'}
                         </button>
                     `;
                 }
 
-                notice.style.display = frozen ? 'block' : 'none';
+                // Показываем плашку если заморожено
+                alertBox.style.display = isFrozen ? 'block' : 'none';
                 
-                document.getElementById('d-hist').innerHTML = hist.length ? hist.map(h => `
+                // Рендер истории
+                const histCont = document.getElementById('d-hist');
+                histCont.innerHTML = hist.length ? hist.map(h => `
                     <div class="hist-item">
                         <div>
-                            <div style="font-weight:800; font-size:15px;">${h.title}</div>
-                            <div style="font-size:12px; color:#bbb;">${new Date(h.date).toLocaleDateString()}</div>
+                            <div style="font-weight:700;">${h.title}</div>
+                            <div style="font-size:12px; color:#aaa;">${new Date(h.date).toLocaleDateString()}</div>
                         </div>
-                        <div style="font-weight:900; color:${h.sum > 0 ? '#2ecc71' : '#000'}">
+                        <div style="font-weight:800; color:${h.sum > 0 ? '#2ecc71' : '#000'}">
                             ${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()}
                         </div>
                     </div>
-                `).join('') : '<div style="padding:40px; text-align:center; color:#ccc;">Нет операций</div>';
+                `).join('') : '<div style="text-align:center; padding:20px; color:#ccc;">История пуста</div>';
 
                 view.nav('screen-details');
             },
@@ -495,36 +680,49 @@
                     const d = s.val();
                     state.all = d ? Object.keys(d).map(k => ({...d[k], fbKey: k})) : [];
                     view.drawClients();
+                    
+                    // Если мы уже внутри аккаунта, обновляем данные в реальном времени
                     if(state.user) {
-                        state.user = state.all.find(x => x.fbKey === state.user.fbKey);
-                        view.drawDash();
+                        const freshData = state.all.find(x => x.fbKey === state.user.fbKey);
+                        if(freshData) {
+                            state.user = freshData;
+                            view.drawDash();
+                        }
                     }
                 });
             },
+            
             pick: (k) => { state.selKey = k; view.drawClients(); },
+            
             goPin: () => {
-                if(!state.selKey) return alert("Выберите аккаунт");
+                if(!state.selKey) return alert("Пожалуйста, выберите пользователя из списка.");
                 const u = state.all.find(x => x.fbKey === state.selKey);
                 document.getElementById('pin-user').innerText = u.name.split(' ')[0];
                 state.pin = "";
                 logic.updPinUI();
                 view.nav('screen-pin-entry');
             },
+            
             tapPin: (v) => {
                 if(state.busy) return;
+                
                 if(v === 'DEL') state.pin = state.pin.slice(0, -1);
                 else if(state.pin.length < 4) state.pin += v;
+                
                 logic.updPinUI();
+
                 if(state.pin.length === 4) {
                     state.busy = true;
+                    // Небольшая задержка для визуализации ввода
                     setTimeout(() => {
                         const u = state.all.find(x => x.fbKey === state.selKey);
                         if(u.clientPin === state.pin) {
-                            state.user = u;
+                            state.user = u; // Логин успешен
                             view.drawDash();
                             view.nav('screen-home');
+                            state.pin = "";
                         } else {
-                            alert("Ошибка кода");
+                            alert("Неверный код доступа");
                             state.pin = "";
                             logic.updPinUI();
                         }
@@ -532,85 +730,144 @@
                     }, 250);
                 }
             },
+            
             updPinUI: () => {
-                document.querySelectorAll('.p-dot').forEach((d, i) => d.classList.toggle('active', i < state.pin.length));
+                document.querySelectorAll('.p-dot').forEach((d, i) => {
+                    d.classList.toggle('active', i < state.pin.length);
+                });
             },
+            
+            // [FIX] Создание пользователя с ИСТОРИЕЙ
             reg: () => {
-                const n = prompt("Имя:");
-                const p = prompt("ПИН (4 цифры):");
+                const n = prompt("Введите Имя Фамилию:");
+                const p = prompt("Придумайте ПИН (4 цифры):");
+                
                 if(n && p && p.length === 4) {
                     rtdb.ref('clients').push({
-                        name: n, clientPin: p, balance: 40000, usd: 0, hasCredit: false,
-                        isFrozen: false, isFrozenUsd: false, isFrozenGold: false
+                        name: n, 
+                        clientPin: p, 
+                        balance: 50000, 
+                        usd: 0, 
+                        hasCredit: false,
+                        // Статусы блокировки
+                        isFrozen: false,
+                        isFrozenUsd: false,
+                        isFrozenGold: false,
+                        // [FIX] Инициализация истории, чтобы не было ошибок при клике на карту
+                        history: {
+                            init: {
+                                title: "Открытие счета",
+                                sum: 50000,
+                                date: Date.now()
+                            }
+                        }
                     });
+                } else {
+                    if(n) alert("Ошибка. ПИН должен быть из 4 цифр.");
                 }
             }
         };
 
         const bank = {
             send: () => {
-                if(state.user.isFrozen) return alert("Карта заблокирована!");
+                if(state.user.isFrozen) return alert("Операция отклонена: Ваша карта заблокирована.");
+                
                 const to = document.getElementById('tr-target').value;
                 const val = parseInt(document.getElementById('tr-val').value);
                 const u = state.user;
                 const target = state.all.find(x => x.fbKey === to);
 
-                if(!val || val <= 0) return;
-                if(u.balance < val) return alert("Мало средств");
+                if(!val || val <= 0) return alert("Введите сумму");
+                if(u.balance < val) return alert("Недостаточно средств");
 
+                // Списание
                 rtdb.ref(`clients/${u.fbKey}`).update({ balance: u.balance - val });
-                rtdb.ref(`clients/${u.fbKey}/history`).push({ title: "Перевод: "+target.name, sum: -val, date: Date.now() });
+                rtdb.ref(`clients/${u.fbKey}/history`).push({ 
+                    title: `Перевод (${target.name})`, sum: -val, date: Date.now() 
+                });
                 
+                // Зачисление
                 rtdb.ref(`clients/${to}`).update({ balance: (target.balance||0) + val });
-                rtdb.ref(`clients/${to}/history`).push({ title: "Входящий от "+u.name, sum: val, date: Date.now() });
+                rtdb.ref(`clients/${to}/history`).push({ 
+                    title: `Входящий (${u.name})`, sum: val, date: Date.now() 
+                });
 
-                view.showSuccess("Отправлено", val+" ₽", "Получатель: "+target.name);
+                view.showSuccess("Перевод выполнен", val+" ₽", "Получатель: "+target.name);
                 document.getElementById('tr-val').value = "";
             },
+            
             exchange: () => {
-                if(state.user.isFrozen) return alert("Рублевый счет заморожен!");
+                if(state.user.isFrozen) return alert("Операция отклонена: Рублевый счет заморожен.");
+                
                 const amt = parseFloat(document.getElementById('ex-val').value);
-                const cost = Math.round(amt * 91.20);
+                const rate = 91.20;
+                const cost = Math.round(amt * rate);
                 const u = state.user;
 
-                if(!amt || amt <= 0) return;
-                if(u.balance < cost) return alert("Недостаточно ₽");
+                if(!amt || amt <= 0) return alert("Введите сумму");
+                if(u.balance < cost) return alert("Недостаточно рублей");
 
                 rtdb.ref(`clients/${u.fbKey}`).update({
                     balance: u.balance - cost,
                     usd: (u.usd || 0) + amt,
-                    isFrozenUsd: false
+                    isFrozenUsd: false // При покупке размораживаем, если была
                 });
-                rtdb.ref(`clients/${u.fbKey}/history`).push({ title: "Покупка USD", sum: -cost, date: Date.now() });
+                rtdb.ref(`clients/${u.fbKey}/history`).push({ 
+                    title: "Покупка USD", sum: -cost, date: Date.now() 
+                });
 
-                view.showSuccess("Куплено", amt+" $", "Списано: "+cost+" ₽");
+                view.showSuccess("Успешно", amt+" $", "Списано: "+cost+" ₽");
                 document.getElementById('ex-val').value = "";
             },
+            
             loan: () => {
                 const s = parseInt(document.getElementById('ln-val').value);
-                if(!s || s < 10000) return alert("Мин. 10 000 ₽");
-                rtdb.ref(`clients/${state.user.fbKey}`).update({ hasCredit: true, creditLimit: s, creditBalance: s, isFrozenGold: false });
-                view.showSuccess("Кредит выдан", s+" ₽", "Карта GOLD добавлена");
+                if(!s || s < 10000) return alert("Минимальная сумма 10 000 ₽");
+                
+                rtdb.ref(`clients/${state.user.fbKey}`).update({ 
+                    hasCredit: true, 
+                    creditLimit: s, 
+                    creditBalance: s,
+                    isFrozenGold: false
+                });
+                rtdb.ref(`clients/${state.user.fbKey}/history`).push({ 
+                    title: "Кредит оформлен", sum: s, date: Date.now() 
+                });
+                
+                view.showSuccess("Кредит выдан", s+" ₽", "Карта GOLD добавлена в кошелек");
             },
+            
             toggleFreeze: (field, status) => {
                 const updates = {};
                 updates[field] = status;
                 rtdb.ref(`clients/${state.user.fbKey}`).update(updates);
-                alert(status ? "Карта успешно заморожена" : "Карта разблокирована");
+                
+                // Небольшой UI feedback
+                alert(status ? "Карта успешно заблокирована." : "Карта разблокирована.");
                 view.nav('screen-home');
             },
-            repay: (d) => {
-                if(state.user.balance < d) return alert("Недостаточно на основном счету");
+            
+            repay: (amount) => {
+                if(state.user.balance < amount) return alert("Недостаточно средств на основном счете.");
+                
                 rtdb.ref(`clients/${state.user.fbKey}`).update({
-                    balance: state.user.balance - d,
+                    balance: state.user.balance - amount,
                     creditBalance: state.user.creditLimit
                 });
-                alert("Долг погашен!");
+                rtdb.ref(`clients/${state.user.fbKey}/history`).push({ 
+                    title: "Погашение долга", sum: -amount, date: Date.now() 
+                });
+                
+                alert("Задолженность полностью погашена!");
                 view.nav('screen-home');
             }
         };
 
-        window.onload = () => { logic.init(); view.nav('screen-auth'); };
+        // ЗАПУСК ПРИЛОЖЕНИЯ
+        window.onload = () => {
+            logic.init();
+            view.nav('screen-auth');
+        };
     </script>
 </body>
 </html>
