@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <title>K-Online</title>
     <meta name="apple-mobile-web-app-title" content="K-Online">
-    <meta name="application-name" content="K-Online">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     
     <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/180/christmas-star.png">
@@ -22,8 +21,10 @@
             --bg-body: #f0f4f8;
             --grad-red: linear-gradient(170deg, #000a1a 0%, #1a0000 40%, #660000 100%);
             --white: #ffffff;
+            --sber-green: #2ecc71;
             --danger: #ff3b30;
             --frozen-overlay: rgba(179, 229, 252, 0.45);
+            --text-dark: #1c1c1e;
             --radius-card: 28px;
             --radius-btn: 22px;
             --anim-screen: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -36,137 +37,80 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
-        #snow-canvas {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 9999;
-        }
+        /* CANVAS SNOW */
+        #snow-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; }
 
+        /* SCREENS */
         .screen { 
             display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
             width: 100%; height: 100%; overflow-y: auto; background: var(--bg-body);
-            opacity: 0; transform: scale(0.96);
+            z-index: 10; opacity: 0; transform: scale(0.96);
             transition: opacity var(--anim-screen), transform var(--anim-screen);
         }
         .screen.active { display: block !important; opacity: 1; transform: scale(1); }
 
-        /* АВТОРИЗАЦИЯ */
-        .auth-wrap { 
-            padding: 80px 30px 40px; text-align: center; 
-            display: flex; flex-direction: column; min-height: 100vh; 
-            background: var(--white);
-        }
-        .logo-text { 
-            font-size: 52px; font-weight: 900; 
-            background: linear-gradient(45deg, #ff0000, #ffcc00); 
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
-            margin: 0; letter-spacing: -3px; 
-        }
-        
-        .client-list { 
-            background: #fff; border-radius: 30px; margin: 40px 0; padding: 10px; 
-            flex-grow: 1; overflow-y: auto; border: 1px solid #eee;
-        }
-        .user-row { 
-            padding: 22px; border-radius: 20px; margin-bottom: 8px; 
-            font-weight: 700; font-size: 18px; color: #333;
-            display: flex; justify-content: space-between; align-items: center; 
-            background: #fff;
-        }
-        .user-row.selected { background: #fff0f0; border: 2px solid #ff3b30; color: #ff3b30; }
+        /* AUTH SCREEN */
+        .auth-wrap { padding: 80px 30px 40px; text-align: center; display: flex; flex-direction: column; min-height: 100vh; background: var(--white); }
+        .logo-text { font-size: 52px; font-weight: 900; background: linear-gradient(45deg, #ff0000, #ffcc00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 0; letter-spacing: -3px; }
+        .client-list { background: #fff; border-radius: 30px; margin: 40px 0; padding: 10px; flex-grow: 1; overflow-y: auto; border: 1px solid #eee; }
+        .user-row { padding: 22px; border-radius: 20px; margin-bottom: 8px; font-weight: 700; font-size: 18px; color: #333; display: flex; justify-content: space-between; align-items: center; background: #fff; border: 1px solid transparent; transition: 0.3s; }
+        .user-row.selected { background: #fff0f0; border-color: #ff3b30; color: #ff3b30; }
 
-        /* ПИН-КОД */
-        #screen-pin-entry { 
-            background: linear-gradient(135deg, #000a1a 0%, #3a0000 100%); 
-            color: white; display: none; flex-direction: column; 
-            align-items: center; justify-content: space-between; 
-            padding: 80px 30px 50px; 
-        }
+        /* PIN SCREEN */
+        #screen-pin-entry { background: linear-gradient(135deg, #000a1a 0%, #3a0000 100%); color: white; display: none; flex-direction: column; align-items: center; justify-content: space-between; padding: 80px 30px 50px; }
         .pin-dots { display: flex; gap: 24px; margin: 50px 0; }
         .p-dot { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-radius: 50%; }
         .p-dot.active { background: #ffcc00; border-color: #ffcc00; box-shadow: 0 0 15px #ffcc00; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 320px; }
-        .k-btn { height: 75px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 500; backdrop-filter: blur(5px); }
+        .k-btn { height: 75px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 30px; font-weight: 500; cursor: pointer; backdrop-filter: blur(5px); }
+        .k-btn:active { background: rgba(255,255,255,0.3); }
 
-        /* ГЛАВНАЯ */
-        .header-top { 
-            background: var(--grad-red); 
-            padding: 60px 0 45px; 
-            border-radius: 0 0 50px 50px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.4); 
-            color: white; position: relative; z-index: 5;
-            overflow: hidden;
-        }
-        .header-top::before {
-            content: "❄️ ✨ ❄️ ✨ ❄️ ✨ ❄️";
-            position: absolute; top: 10px; left:0; width: 100%; 
-            text-align: center; font-size: 14px; opacity: 0.5; letter-spacing: 10px;
-        }
-
+        /* DASHBOARD */
+        .header-top { background: var(--grad-red); padding: 60px 0 45px; border-radius: 0 0 50px 50px; box-shadow: 0 20px 50px rgba(0,0,0,0.4); color: white; position: relative; z-index: 5; overflow: hidden; }
+        .header-top::before { content: "❄️ ✨ ❄️ ✨ ❄️ ✨ ❄️"; position: absolute; top: 10px; left:0; width: 100%; text-align: center; font-size: 14px; opacity: 0.5; letter-spacing: 10px; }
         .user-meta { display: flex; justify-content: space-between; padding: 0 30px; align-items: center; margin-bottom: 30px; }
-        
         .ava-wrapper { position: relative; }
-        .ava-box { 
-            width: 55px; height: 55px; background: rgba(255,255,255,0.2); 
-            border-radius: 50%; display: flex; align-items: center; 
-            justify-content: center; font-weight: 800; font-size: 22px;
-            backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3);
-        }
-        .santa-hat {
-            position: absolute; top: -22px; left: -10px;
-            font-size: 35px; transform: rotate(-15deg);
-            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
-        }
+        .ava-box { width: 55px; height: 55px; background: rgba(255,255,255,0.2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 22px; backdrop-filter: blur(10px); border: 2px solid rgba(255,255,255,0.3); }
+        .santa-hat { position: absolute; top: -22px; left: -10px; font-size: 35px; transform: rotate(-15deg); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); pointer-events: none; }
 
-        .cards-row { display: flex; overflow-x: auto; padding: 10px 30px 40px; gap: 20px; scrollbar-width: none; }
-        .v-card { 
-            min-width: 175px; height: 260px; border-radius: var(--radius-card); 
-            padding: 25px; display: flex; flex-direction: column; 
-            justify-content: space-between; box-shadow: 0 15px 35px rgba(0,0,0,0.4); 
-            position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-        }
-        
+        .cards-row { display: flex; overflow-x: auto; padding: 10px 30px 40px; gap: 20px; scroll-snap-type: x mandatory; scrollbar-width: none; }
+        .cards-row::-webkit-scrollbar { display: none; }
+        .v-card { min-width: 280px; height: 180px; border-radius: var(--radius-card); padding: 25px; display: flex; flex-direction: column; justify-content: space-between; scroll-snap-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); transition: 0.3s; }
         .c-black { background: linear-gradient(160deg, #1a1a1a 0%, #000000 100%); }
         .c-blue { background: linear-gradient(160deg, #001f3f 0%, #003366 100%); }
         .c-gold { background: linear-gradient(160deg, #d4af37 0%, #f1c40f 100%); color: #4a3b00; }
+        .v-card.frozen::after { content: "❄️ КАРТА ЗАМОРОЖЕНА"; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: var(--frozen-overlay); backdrop-filter: blur(4px); display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 14px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+        .c-balance { font-size: 28px; font-weight: 900; }
+        .c-number { font-size: 12px; opacity: 0.6; letter-spacing: 2px; }
 
-        .v-card.frozen::after { 
-            content: "❄️ ЗАМЕРЗЛА"; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            background: var(--frozen-overlay); backdrop-filter: blur(4px);
-            display: flex; align-items: center; justify-content: center; font-weight: 900;
-        }
+        .quick-actions { display: flex; justify-content: center; gap: 25px; margin-top: 5px; }
+        .qa-btn { width: 60px; height: 60px; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center; font-size: 26px; backdrop-filter: blur(10px); cursor: pointer; border: 1px solid rgba(255,255,255,0.1); transition: 0.2s; }
+        .qa-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
 
-        .c-balance { font-size: 24px; font-weight: 900; margin-top: 15px; }
-        .c-number { font-size: 11px; opacity: 0.6; letter-spacing: 2px; margin-top: auto; }
-
-        .quick-actions { display: flex; justify-content: center; gap: 25px; }
-        .qa-btn { 
-            width: 60px; height: 60px; background: rgba(255,255,255,0.1); 
-            border-radius: 20px; display: flex; align-items: center; 
-            justify-content: center; font-size: 26px; backdrop-filter: blur(10px); 
-        }
-
-        .widget { 
-            background: #fff; border-radius: 26px; padding: 22px; margin-bottom: 15px; 
-            display: flex; align-items: center; gap: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        .widget { background: #fff; border-radius: 26px; padding: 22px; margin-bottom: 15px; display: flex; align-items: center; gap: 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); cursor: pointer; }
         .w-ico { width: 52px; height: 52px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
 
-        .btn-main { width: 100%; height: 65px; border: none; border-radius: var(--radius-btn); font-size: 18px; font-weight: 800; cursor: pointer; }
+        /* FORMS */
+        .form-box { padding: 25px; }
+        .form-card { background: #fff; border-radius: 35px; padding: 35px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        input, select { width: 100%; height: 60px; border-radius: 20px; border: 1px solid #e0e0e0; padding: 0 20px; margin-bottom: 25px; font-size: 18px; background: #fafafa; }
+        .btn-main { width: 100%; height: 65px; border: none; border-radius: var(--radius-btn); font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.3s; }
         .btn-black { background: #000; color: #fff; }
         .btn-red { background: var(--danger); color: #fff; margin-top: 15px; }
 
+        /* MODAL */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .modal-in { background: #fff; width: 85%; max-width: 380px; border-radius: 40px; padding: 40px; text-align: center; }
+        .modal-in { background: #fff; width: 85%; max-width: 380px; border-radius: 40px; padding: 40px; text-align: center; animation: pop 0.4s cubic-bezier(0.17, 0.89, 0.32, 1.27); }
+        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        .details-top { background: #fff; padding: 70px 30px 40px; border-radius: 0 0 50px 50px; text-align: center; position: relative; }
+        .details-top { background: #fff; padding: 70px 30px 40px; border-radius: 0 0 50px 50px; text-align: center; position: relative; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .hist-item { display: flex; justify-content: space-between; align-items: center; padding: 20px 15px; border-bottom: 1px solid #f8f8f8; }
-        #frozen-alert { display: none; background: #e3f2fd; color: #1565c0; padding: 15px; border-radius: 18px; margin: 20px 0; font-weight: 700; }
+        #frozen-alert { display: none; background: #feebeb; color: #ff3b30; padding: 15px; border-radius: 18px; margin: 20px 0; font-weight: 700; font-size: 14px; }
     </style>
 </head>
 <body>
-
     <canvas id="snow-canvas"></canvas>
 
     <div id="modal-success" class="modal">
@@ -183,114 +127,96 @@
         <div class="auth-wrap">
             <h1 class="logo-text">K-Online</h1>
             <p style="color:#999; font-weight:600; margin-top:5px;">Happy New Year 2026 ❄️</p>
-            
-            <div class="client-list" id="ui-clients">
-                <div style="padding:40px; color:#ccc;">Загрузка...</div>
-            </div>
-            
-            <div style="display:flex; justify-content: center;">
-                <button class="btn-main" style="width:100%; background:linear-gradient(45deg,#ff0000,#990000); color:white; font-size: 22px; box-shadow: 0 10px 20px rgba(255,0,0,0.3);" onclick="logic.goPin()">Продолжить ➜</button>
-            </div>
+            <div class="client-list" id="ui-clients"><div style="padding:40px; color:#ccc;">Синхронизация данных...</div></div>
+            <button class="btn-main" style="background:linear-gradient(45deg,#ff0000,#990000); color:white; font-size: 20px; box-shadow: 0 10px 20px rgba(255,0,0,0.2);" onclick="logic.goPin()">Продолжить ➜</button>
         </div>
     </div>
 
     <div id="screen-pin-entry" class="screen">
-        <div style="text-align:center;">
-            <h2 id="pin-user" style="font-size:36px; font-weight:900; margin:0; color: white;">Вход</h2>
-            <p style="opacity:0.6; margin-top:10px; color: white;">Введите ПИН-код</p>
-        </div>
-        <div class="pin-dots">
-            <div class="p-dot"></div><div class="p-dot"></div><div class="p-dot"></div><div class="p-dot"></div>
-        </div>
+        <div style="text-align:center;"><h2 style="font-size:32px; color: white; margin-bottom: 5px;">Вход</h2><p style="color: rgba(255,255,255,0.6);">Введите секретный код</p></div>
+        <div class="pin-dots"><div class="p-dot"></div><div class="p-dot"></div><div class="p-dot"></div><div class="p-dot"></div></div>
         <div class="keypad">
             <div class="k-btn" onclick="logic.tapPin('1')">1</div><div class="k-btn" onclick="logic.tapPin('2')">2</div><div class="k-btn" onclick="logic.tapPin('3')">3</div>
             <div class="k-btn" onclick="logic.tapPin('4')">4</div><div class="k-btn" onclick="logic.tapPin('5')">5</div><div class="k-btn" onclick="logic.tapPin('6')">6</div>
             <div class="k-btn" onclick="logic.tapPin('7')">7</div><div class="k-btn" onclick="logic.tapPin('8')">8</div><div class="k-btn" onclick="logic.tapPin('9')">9</div>
             <div class="k-btn" style="opacity:0;"></div><div class="k-btn" onclick="logic.tapPin('0')">0</div><div class="k-btn" onclick="logic.tapPin('DEL')">⌫</div>
         </div>
-        <div onclick="view.nav('screen-auth')" style="opacity:0.6; color: white; text-decoration:underline; margin-top:30px;">Назад</div>
+        <div onclick="view.nav('screen-auth')" style="opacity:0.6; color: white; text-decoration:underline; margin-top:30px; cursor:pointer;">Отмена</div>
     </div>
 
     <div id="screen-home" class="screen">
         <div class="header-top">
             <div class="user-meta">
-                <div>
-                    <div id="h-name" style="font-size:26px; font-weight:900;">...</div>
-                    <div style="font-size:13px; opacity:0.7; margin-top:5px;">Premium Client ❄️</div>
-                </div>
-                <div class="ava-wrapper">
-                    <div class="santa-hat">🎅</div>
-                    <div id="h-ava" class="ava-box">?</div>
-                </div>
+                <div><div id="h-name" style="font-size:26px; font-weight:900;">...</div><div style="font-size:13px; opacity:0.7; margin-top:5px;">Premium Client ❄️</div></div>
+                <div class="ava-wrapper"><div class="santa-hat">🎅</div><div id="h-ava" class="ava-box">?</div></div>
             </div>
             <div class="cards-row" id="h-cards"></div>
             <div class="quick-actions">
                 <div class="qa-btn" onclick="view.nav('screen-transfer')">🎁</div>
                 <div class="qa-btn" onclick="view.nav('screen-exchange')">🔄</div>
                 <div class="qa-btn" onclick="view.nav('screen-loan')">🏦</div>
-                <div class="qa-btn" onclick="alert('История в деталях карты')">🧾</div>
+                <div class="qa-btn" onclick="view.openHistory()">🧾</div>
             </div>
         </div>
-        
         <div style="padding: 35px 25px 100px;">
-            <div class="widget" onclick="view.nav('screen-transfer')">
-                <div class="w-ico" style="background:#fff0f0; color:#e74c3c;">🎄</div>
-                <div style="flex:1;"><b style="font-size:17px;">Подарить перевод</b></div>
-            </div>
-            <div class="widget" onclick="view.nav('screen-exchange')">
-                <div class="w-ico" style="background:#e3f2fd; color:#3498db;">💵</div>
-                <div style="flex:1;"><b style="font-size:17px;">Курс: <span id="w-usd">...</span></b></div>
-            </div>
+            <div class="widget" onclick="view.nav('screen-transfer')"><div class="w-ico" style="background:#fff0f0; color:#e74c3c;">🎄</div><div style="flex:1;"><b style="font-size:17px;">Подарить перевод</b><br><small style="color:#aaa;">Мгновенно по всей стране</small></div></div>
+            <div class="widget" onclick="view.nav('screen-exchange')"><div class="w-ico" style="background:#e3f2fd; color:#3498db;">💵</div><div style="flex:1;"><b style="font-size:17px;">Курс: <span id="w-usd">...</span></b><br><small style="color:#aaa;">Выгодный новогодний обмен</small></div></div>
         </div>
     </div>
 
     <div id="screen-transfer" class="screen">
         <div class="form-box">
-            <div style="font-size:30px; margin-bottom:20px;" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900;">Перевод 🎁</h2>
-            <div class="form-card">
-                <select id="tr-target"></select>
-                <input type="number" id="tr-val" placeholder="Сумма ₽">
-                <button class="btn-main btn-black" onclick="bank.send()">Отправить</button>
-            </div>
+            <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Перевод 🎁</h2>
+            <div class="form-card"><label style="font-size:12px; font-weight:700; color:#ccc;">ПОЛУЧАТЕЛЬ</label><select id="tr-target"></select><label style="font-size:12px; font-weight:700; color:#ccc;">СУММА ₽</label><input type="number" id="tr-val" placeholder="0"><button class="btn-main btn-black" onclick="bank.send()">Отправить подарок</button></div>
         </div>
     </div>
 
     <div id="screen-exchange" class="screen">
         <div class="form-box">
-            <div style="font-size:30px; margin-bottom:20px;" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900;">Обмен ❄️</h2>
-            <div class="form-card">
-                <p>Курс: 91.20 ₽</p>
-                <input type="number" id="ex-val" placeholder="Сколько $ купить?">
-                <button class="btn-main btn-black" onclick="bank.exchange()">Купить</button>
-            </div>
+            <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Обмен ❄️</h2>
+            <div class="form-card" style="text-align:center;"><p style="color:#aaa;">Биржевой курс</p><div style="font-size:42px; font-weight:900; margin-bottom:20px;">91.20 ₽</div><input type="number" id="ex-val" placeholder="Сколько $ купить?"><button class="btn-main btn-black" onclick="bank.exchange()">Купить валюту</button></div>
         </div>
     </div>
 
     <div id="screen-loan" class="screen">
         <div class="form-box">
-            <div style="font-size:30px; margin-bottom:20px;" onclick="view.nav('screen-home')">←</div>
-            <h2 style="font-size:36px; font-weight:900;">Карта Gold 🌟</h2>
-            <div class="form-card">
-                <input type="number" id="ln-val" placeholder="Лимит">
-                <button class="btn-main btn-black" onclick="bank.loan()">Получить</button>
-            </div>
+            <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
+            <h2 style="font-size:36px; font-weight:900; margin-bottom:30px;">Карта Gold 🌟</h2>
+            <div class="form-card"><input type="number" id="ln-val" placeholder="Желаемый лимит"><p style="font-size:13px; color:#f39c12; margin-bottom:20px;">Одобрение под 0% для новых клиентов!</p><button class="btn-main btn-black" onclick="bank.loan()">Получить карту</button></div>
         </div>
     </div>
 
     <div id="screen-details" class="screen">
         <div class="details-top">
-            <div style="font-size:24px; position:absolute; top:20px; right:25px;" onclick="view.nav('screen-home')">✕</div>
-            <h1 id="d-sum" style="font-size:45px; font-weight:900;">0</h1>
-            <div id="frozen-alert">⚠️ ЗАМОРОЖЕНА</div>
-            <div id="d-action-box"></div>
+            <div style="font-size:24px; position:absolute; top:20px; right:25px; cursor:pointer;" onclick="view.nav('screen-home')">✕</div>
+            <div id="d-label" style="font-size:12px; font-weight:800; color:#ccc;">СЧЕТ</div>
+            <h1 id="d-sum" style="font-size:45px; font-weight:900; margin:10px 0;">0</h1>
+            <div id="frozen-alert">⚠️ КАРТА ЗАМОРОЖЕНА</div>
+            <div id="d-action-box" style="margin-top:20px;"></div>
         </div>
-        <div style="padding:30px 25px;"><div id="d-hist"></div></div>
+        <div style="padding:30px 25px;"><h3>История</h3><div id="d-hist"></div></div>
     </div>
 
     <script>
+        // AUDIO & SNOW
         const sound = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
+        let flakes = [];
+        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+        window.onresize = resize; resize();
+        for(let i=0; i<80; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, v: Math.random()*1+0.5 });
+        function drawSnow() {
+            ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = "white"; ctx.beginPath();
+            flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); });
+            ctx.fill(); flakes.forEach(f => { f.y += f.v; if(f.y > canvas.height) f.y = -5; });
+            requestAnimationFrame(drawSnow);
+        }
+        drawSnow();
+
+        // FIREBASE LOGIC
         const config = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
@@ -309,7 +235,7 @@
             },
             drawClients: () => {
                 const box = document.getElementById('ui-clients');
-                box.innerHTML = state.all.map(u => `<div class="user-row ${state.selKey === u.fbKey ? 'selected' : ''}" onclick="logic.pick('${u.fbKey}')">${u.name}</div>`).join('');
+                box.innerHTML = state.all.map(u => `<div class="user-row ${state.selKey === u.fbKey ? 'selected' : ''}" onclick="logic.pick('${u.fbKey}')"><span>${u.name}</span> <span>❄️</span></div>`).join('');
                 const sel = document.getElementById('tr-target');
                 if(sel) sel.innerHTML = state.all.filter(u => u.fbKey !== state.user?.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
             },
@@ -318,15 +244,32 @@
                 document.getElementById('h-name').innerText = u.name;
                 document.getElementById('h-ava').innerText = u.name[0];
                 document.getElementById('w-usd').innerText = (u.usd || 0).toFixed(2) + " $";
-                let h = `<div class="v-card c-black ${u.isFrozen?'frozen':''}" onclick="view.openDet('rub')"><div class="c-balance">${u.balance.toLocaleString()} ₽</div><div class="c-number">•• 4410</div></div>`;
-                if(u.usd > 0) h += `<div class="v-card c-blue ${u.isFrozenUsd?'frozen':''}" onclick="view.openDet('usd')"><div class="c-balance">${u.usd.toFixed(2)} $</div><div class="c-number">•• 8821</div></div>`;
-                if(u.hasCredit) h += `<div class="v-card c-gold ${u.isFrozenGold?'frozen':''}" onclick="view.openDet('gold')"><div class="c-balance">${u.creditBalance.toLocaleString()} ₽</div><div class="c-number">•• 7700</div></div>`;
-                document.getElementById('h-cards').innerHTML = h;
+                let cards = `<div class="v-card c-black ${u.isFrozen?'frozen':''}" onclick="view.openDet('rub')"><div>MIR Premium</div><div class="c-balance">${u.balance.toLocaleString()} ₽</div><div class="c-number">•••• 4410</div></div>`;
+                if(u.usd > 0) cards += `<div class="v-card c-blue ${u.isFrozenUsd?'frozen':''}" onclick="view.openDet('usd')"><div>VISA Digital</div><div class="c-balance">${u.usd.toFixed(2)} $</div><div class="c-number">•••• 8821</div></div>`;
+                if(u.hasCredit) cards += `<div class="v-card c-gold ${u.isFrozenGold?'frozen':''}" onclick="view.openDet('gold')"><div>GOLD Credit</div><div class="c-balance">${u.creditBalance.toLocaleString()} ₽</div><div class="c-number">•••• 7700</div></div>`;
+                document.getElementById('h-cards').innerHTML = cards;
             },
-            openDet: (t) => {
-                const u = state.user; let isF = false;
-                if(t==='rub'){ document.getElementById('d-sum').innerText=u.balance+" ₽"; isF=u.isFrozen; }
+            openDet: (type) => {
+                const u = state.user; let isF = false, lab = "", sum = "", act = "";
+                let hist = u.history ? Object.values(u.history).reverse() : [];
+                if(type==='rub') { lab="RUB MAIN"; sum=u.balance.toLocaleString()+" ₽"; isF=u.isFrozen; act=`<button class="btn-main btn-black" onclick="bank.freeze('isFrozen', ${!isF})">${isF?'Разблокировать':'Заморозить'}</button>`; }
+                else if(type==='usd') { lab="USD DIGITAL"; sum=u.usd.toFixed(2)+" $"; isF=u.isFrozenUsd; act=`<button class="btn-main btn-black" onclick="bank.freeze('isFrozenUsd', ${!isF})">${isF?'Разблокировать':'Заморозить'}</button>`; }
+                else if(type==='gold') { lab="GOLD CREDIT"; sum=u.creditBalance.toLocaleString()+" ₽"; isF=u.isFrozenGold; act=`<button class="btn-main btn-black" onclick="bank.freeze('isFrozenGold', ${!isF})">${isF?'Разблокировать':'Заморозить'}</button>`; }
+                document.getElementById('d-label').innerText = lab;
+                document.getElementById('d-sum').innerText = sum;
+                document.getElementById('d-action-box').innerHTML = act;
                 document.getElementById('frozen-alert').style.display = isF ? 'block' : 'none';
+                document.getElementById('d-hist').innerHTML = hist.map(h => `<div class="hist-item"><div><b>${h.title}</b><br><small>${new Date(h.date).toLocaleDateString()}</small></div><div style="color:${h.sum>0?'#2ecc71':'#000'}">${h.sum>0?'+':''}${h.sum.toLocaleString()}</div></div>`).join('');
+                view.nav('screen-details');
+            },
+            openHistory: () => {
+                const u = state.user;
+                let hist = u.history ? Object.values(u.history).reverse() : [];
+                document.getElementById('d-label').innerText = "ОБЩАЯ ИСТОРИЯ";
+                document.getElementById('d-sum').innerText = "Все операции";
+                document.getElementById('d-action-box').innerHTML = "";
+                document.getElementById('frozen-alert').style.display = 'none';
+                document.getElementById('d-hist').innerHTML = hist.map(h => `<div class="hist-item"><div><b>${h.title}</b><br><small>${new Date(h.date).toLocaleDateString()}</small></div><div style="color:${h.sum>0?'#2ecc71':'#000'}">${h.sum>0?'+':''}${h.sum.toLocaleString()}</div></div>`).join('');
                 view.nav('screen-details');
             },
             showSuccess: (h, v, p) => { sound.play(); document.getElementById('suc-h').innerText=h; document.getElementById('suc-val').innerText=v; document.getElementById('suc-p').innerText=p; document.getElementById('modal-success').style.display='flex'; },
@@ -338,48 +281,59 @@
                 rtdb.ref('clients').on('value', s => {
                     const d = s.val(); state.all = d ? Object.keys(d).map(k => ({...d[k], fbKey: k})) : [];
                     view.drawClients();
-                    if(state.user) state.user = state.all.find(x => x.fbKey === state.user.fbKey);
+                    if(state.user) {
+                        state.user = state.all.find(x => x.fbKey === state.user.fbKey);
+                        view.drawDash();
+                    }
                 });
             },
             pick: (k) => { state.selKey = k; view.drawClients(); },
-            goPin: () => { if(state.selKey) view.nav('screen-pin-entry'); },
+            goPin: () => { if(state.selKey) { state.pin = ""; logic.updPinUI(); view.nav('screen-pin-entry'); } },
             tapPin: (v) => {
                 if(v === 'DEL') state.pin = state.pin.slice(0, -1);
                 else if(state.pin.length < 4) state.pin += v;
-                document.querySelectorAll('.p-dot').forEach((d, i) => d.classList.toggle('active', i < state.pin.length));
+                logic.updPinUI();
                 if(state.pin.length === 4) {
                     const u = state.all.find(x => x.fbKey === state.selKey);
                     if(u.clientPin === state.pin) { state.user = u; view.drawDash(); view.nav('screen-home'); }
-                    else { state.pin = ""; alert("Ошибка"); }
+                    else { state.pin = ""; logic.updPinUI(); alert("Неверный ПИН-код"); }
                 }
-            }
+            },
+            updPinUI: () => document.querySelectorAll('.p-dot').forEach((d, i) => d.classList.toggle('active', i < state.pin.length))
         };
 
         const bank = {
             send: () => {
-                const to = document.getElementById('tr-target').value, v = parseInt(document.getElementById('tr-val').value), u = state.user;
-                if(u.balance < v) return alert("Недостаточно");
+                const to = document.getElementById('tr-target').value, v = parseInt(document.getElementById('tr-val').value), u = state.user, tUser = state.all.find(x => x.fbKey === to);
+                if(u.isFrozen) return alert("Ваш счет заблокирован");
+                if(!v || u.balance < v) return alert("Недостаточно средств");
                 rtdb.ref(`clients/${u.fbKey}`).update({ balance: u.balance - v });
-                rtdb.ref(`clients/${to}`).transaction(curr => { if(curr) curr.balance += v; return curr; });
-                view.showSuccess("Перевод выполнен", v+" ₽", "Успешно");
+                rtdb.ref(`clients/${u.fbKey}/history`).push({ title: `Перевод (${tUser.name})`, sum: -v, date: Date.now() });
+                rtdb.ref(`clients/${to}`).update({ balance: (tUser.balance||0) + v });
+                rtdb.ref(`clients/${to}/history`).push({ title: `Подарок от ${u.name}`, sum: v, date: Date.now() });
+                view.showSuccess("Подарок отправлен", v+" ₽", tUser.name);
+            },
+            exchange: () => {
+                const a = parseFloat(document.getElementById('ex-val').value), c = Math.round(a * 91.2), u = state.user;
+                if(u.isFrozen || u.balance < c) return alert("Ошибка");
+                rtdb.ref(`clients/${u.fbKey}`).update({ balance: u.balance - c, usd: (u.usd||0) + a });
+                rtdb.ref(`clients/${u.fbKey}/history`).push({ title: "Обмен валюты", sum: -c, date: Date.now() });
+                view.showSuccess("Валюта куплена", a+" $", "Списано: "+c+" ₽");
+            },
+            loan: () => {
+                const s = parseInt(document.getElementById('ln-val').value);
+                if(!s) return;
+                rtdb.ref(`clients/${state.user.fbKey}`).update({ hasCredit: true, creditLimit: s, creditBalance: s });
+                view.showSuccess("Кредит одобрен", s+" ₽", "Карта GOLD добавлена");
+            },
+            freeze: (field, val) => {
+                let up = {}; up[field] = val;
+                rtdb.ref(`clients/${state.user.fbKey}`).update(up);
+                view.nav('screen-home');
             }
         };
 
-        // СНЕГ
-        const canvas = document.getElementById('snow-canvas');
-        const ctx = canvas.getContext('2d');
-        let flakes = [];
-        function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-        window.onresize = resize; resize();
-        for(let i=0; i<80; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, v: Math.random()*1+0.5 });
-        function drawSnow() {
-            ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = "white"; ctx.beginPath();
-            flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); });
-            ctx.fill(); flakes.forEach(f => { f.y += f.v; if(f.y > canvas.height) f.y = -5; });
-            requestAnimationFrame(drawSnow);
-        }
-        drawSnow();
-        logic.init();
+        window.onload = () => { logic.init(); view.nav('screen-auth'); };
     </script>
 </body>
 </html>
