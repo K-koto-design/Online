@@ -34,7 +34,6 @@
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-        /* ИСПРАВЛЕННЫЙ СНЕГ ДЛЯ IPA */
         #snow-canvas {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none; z-index: 9999;
@@ -77,19 +76,19 @@
         .widget { background: #fff; border-radius: 24px; padding: 20px; margin: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer;}
         .w-ico { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 
-        .history-box { padding: 0 25px 40px; }
-        .h-item { background: #fff; border-radius: 18px; padding: 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-        .h-ico { font-size: 20px; width: 40px; text-align: center; }
+        /* ИСТОРИЯ */
+        .history-box { padding: 20px 25px; }
+        .h-item { background: #fff; border-radius: 18px; padding: 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+        .h-ico { font-size: 22px; width: 45px; height: 45px; background: #f8f9fa; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .h-info { flex: 1; }
-        .h-name { font-size: 14px; font-weight: 700; }
-        .h-time { font-size: 11px; color: #aaa; }
-        .h-sum { font-weight: 800; font-size: 14px; }
+        .h-name { font-size: 15px; font-weight: 700; color: #333; }
+        .h-status { font-size: 12px; margin-top: 2px; }
+        .h-sum { font-weight: 800; font-size: 16px; }
         .sum-neg { color: #000; }
         .sum-pos { color: #27ae60; }
-        .sum-wait { color: #f1c40f; font-style: italic; }
+        .sum-wait { color: #f39c12; }
 
         input, textarea { width: 100%; height: 60px; border-radius: 18px; border: 1px solid #eee; padding: 0 20px; font-size: 17px; margin-bottom: 15px; background: #f9f9f9; font-family: inherit; }
-        textarea { height: 90px; padding: 15px 20px; resize: none; }
         .btn-main { width: 100%; height: 60px; border: none; border-radius: var(--radius-btn); font-size: 17px; font-weight: 700; cursor: pointer; transition: 0.2s; }
         .btn-black { background: #000; color: #fff; }
         .btn-red { background: var(--danger); color: #fff; }
@@ -98,8 +97,9 @@
         .modal-in { background: #fff; width: 85%; border-radius: 35px; padding: 35px; text-align: center; }
         .form-box { padding: 60px 25px; }
 
-        /* Кнопка истории в углу */
-        .history-btn-fixed { position: absolute; top: 60px; right: 25px; font-size: 28px; cursor: pointer; z-index: 100; }
+        /* Кнопка 📃 */
+        .history-trigger { position: absolute; top: 60px; right: 25px; font-size: 30px; cursor: pointer; z-index: 100; transition: transform 0.2s; }
+        .history-trigger:active { transform: scale(0.8); }
     </style>
 </head>
 <body>
@@ -122,7 +122,6 @@
             <p style="color:#888; font-weight:500; margin: 10px 0 40px;">Введите ваш Telegram ID ❄️</p>
             <input type="number" id="auth-tg-id" placeholder="ID (например: 1234567)">
             <button class="btn-main btn-black" onclick="logic.tryLogin()">Войти в аккаунт</button>
-            <p style="margin-top:20px; font-size:13px; color:#bbb;">Нет ID? Обратитесь в поддержку</p>
         </div>
     </div>
 
@@ -140,15 +139,15 @@
             <div class="k-btn" onclick="logic.tapPin('7')">7</div><div class="k-btn" onclick="logic.tapPin('8')">8</div><div class="k-btn" onclick="logic.tapPin('9')">9</div>
             <div class="k-btn" style="opacity:0;"></div><div class="k-btn" onclick="logic.tapPin('0')">0</div><div class="k-btn" onclick="logic.tapPin('DEL')">⌫</div>
         </div>
-        <div onclick="view.nav('screen-auth')" style="opacity:0.6; text-decoration:underline; cursor:pointer; margin-top: 30px;">Отмена</div>
+        <div onclick="view.nav('screen-auth')" style="opacity:0.6; text-decoration:underline; cursor:pointer; margin-top:20px;">Отмена</div>
     </div>
 
     <div id="screen-home" class="screen">
-        <div class="history-btn-fixed" onclick="view.scrollToHistory()">📃</div>
+        <div class="history-trigger" onclick="view.nav('screen-history')">📃</div>
         <div class="header-top">
             <div class="user-meta">
                 <div>
-                    <div id="h-name" style="font-size:24px; font-weight:900;">Пользователь</div>
+                    <div id="h-name" style="font-size:24px; font-weight:900;">Загрузка...</div>
                     <div id="h-tg" style="font-size:12px; opacity:0.6;">ID: ---</div>
                 </div>
                 <div class="ava-box">
@@ -171,34 +170,28 @@
 
         <div class="widget" onclick="view.nav('screen-loan')">
             <div class="w-ico" style="background:#fff9e6; color:#f1c40f;">🌟</div>
-            <div style="flex:1;"><b>Карта Gold</b><div style="font-size:12px; color:#aaa;">Праздничный лимит до 500к</div></div>
+            <div style="flex:1;"><b>Карта Gold</b><div style="font-size:12px; color:#aaa;">Лимит до 500к</div></div>
         </div>
+    </div>
 
-        <div id="history-anchor" style="padding: 10px 25px;"><h3 style="margin:0;">История</h3></div>
-        <div class="history-box" id="h-history-list"></div>
+    <div id="screen-history" class="screen">
+        <div class="form-box" style="padding-top: 60px;">
+            <div style="font-size:30px; margin-bottom:10px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
+            <h2 style="font-size:32px; font-weight:900; margin-bottom:20px;">История</h2>
+            <div class="history-box" id="full-history-list" style="padding:0;">
+                <p style="color:#aaa; text-align:center;">Загрузка операций...</p>
+            </div>
+        </div>
     </div>
 
     <div id="screen-transfer" class="screen">
         <div class="form-box">
             <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
             <h2 style="font-size:32px; font-weight:900;">Перевод 🎄</h2>
-            <label style="font-size:12px; color:#888; margin-left:10px;">ПОЛУЧАТЕЛЬ (ИМЯ ИЛИ ID)</label>
-            <input type="text" id="tr-target" placeholder="Кому отправляем?">
-            <label style="font-size:12px; color:#888; margin-left:10px;">СУММА (₽)</label>
-            <input type="number" id="tr-val" placeholder="0.00">
-            <label style="font-size:12px; color:#888; margin-left:10px;">СООБЩЕНИЕ (НЕОБЯЗАТЕЛЬНО)</label>
-            <textarea id="tr-msg" placeholder="Напишите пожелание..."></textarea>
-            <button class="btn-main btn-black" onclick="bank.send()">Отправить подарок</button>
-        </div>
-    </div>
-
-    <div id="screen-settings" class="screen">
-        <div class="form-box">
-            <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
-            <h2>Безопасность 🛡️</h2>
-            <input type="text" id="set-old-id" readonly style="color:#aaa;">
-            <input type="number" id="set-new-id" placeholder="Введите новый ID">
-            <button class="btn-main btn-red" onclick="logic.updateId()">Привязать новый ID</button>
+            <input type="text" id="tr-target" placeholder="ID или Имя получателя">
+            <input type="number" id="tr-val" placeholder="Сумма (₽)">
+            <textarea id="tr-msg" placeholder="Сообщение (необязательно)"></textarea>
+            <button class="btn-main btn-black" onclick="bank.send()">Отправить</button>
         </div>
     </div>
 
@@ -206,10 +199,11 @@
         <div class="form-box">
             <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
             <h2>Обмен ❄️</h2>
-            <div style="text-align:center; padding:20px; background:#fff; border-radius:30px;">
+            <div style="text-align:center; padding:30px; background:#fff; border-radius:30px; box-shadow:0 10px 20px rgba(0,0,0,0.05);">
                 <div style="font-size:42px; font-weight:900;">91.20 ₽</div>
+                <p style="color:#aaa; margin-bottom:20px;">Курс за 1 $</p>
                 <input type="number" id="ex-val" placeholder="Сколько $ купить?">
-                <button class="btn-main btn-black" onclick="bank.exchange()">Купить валюту</button>
+                <button class="btn-main btn-black" onclick="bank.exchange()">Купить</button>
             </div>
         </div>
     </div>
@@ -218,8 +212,9 @@
         <div class="form-box">
             <div style="font-size:30px; margin-bottom:20px; cursor:pointer;" onclick="view.nav('screen-home')">←</div>
             <h2>Карта Gold 🌟</h2>
-            <input type="number" id="ln-val" placeholder="Желаемый лимит">
-            <button class="btn-main btn-black" onclick="bank.loan()">Запросить лимит</button>
+            <p style="color:#666; margin-bottom:20px;">Запросите кредитный лимит для праздничных покупок.</p>
+            <input type="number" id="ln-val" placeholder="Желаемая сумма">
+            <button class="btn-main btn-black" onclick="bank.loan()">Получить Gold</button>
         </div>
     </div>
 
@@ -236,48 +231,27 @@
 
         let state = { all: [], user: null, pin: "" };
 
-        // СНЕЖИНКИ - ОПТИМИЗИРОВАНО ДЛЯ IPA
+        // СНЕГ (ИСПРАВЛЕНО ДЛЯ IPA)
         const canvas = document.getElementById('snow-canvas');
         const ctx = canvas.getContext('2d');
         let flakes = [];
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
-        for(let i=0; i<60; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, v: Math.random()*0.8+0.4, o: Math.random() });
+        for(let i=0; i<70; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*2+1, v: Math.random()*1+0.3 });
         function drawSnow() {
-            ctx.clearRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-            ctx.beginPath();
-            flakes.forEach(f => {
-                ctx.moveTo(f.x, f.y);
-                ctx.arc(f.x, f.y, f.r, 0, Math.PI*2);
-            });
-            ctx.fill();
-            flakes.forEach(f => {
-                f.y += f.v;
-                f.x += Math.sin(f.y/30)*0.5;
-                if(f.y > canvas.height) f.y = -10;
-                if(f.x > canvas.width) f.x = 0;
-                else if(f.x < 0) f.x = canvas.width;
-            });
-            requestAnimationFrame(drawSnow);
+            ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.beginPath();
+            flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); }); ctx.fill();
+            flakes.forEach(f => { f.y += f.v; if(f.y > canvas.height) f.y = -5; }); requestAnimationFrame(drawSnow);
         }
         drawSnow();
 
         const view = {
             nav: (id) => {
-                document.querySelectorAll('.screen').forEach(s => { 
-                    s.classList.remove('active'); 
-                    setTimeout(()=>s.style.display='none', 400); 
-                });
+                document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); setTimeout(()=>s.style.display='none', 400); });
                 const t = document.getElementById(id);
                 t.style.display = (id==='screen-pin-entry')?'flex':'block';
                 setTimeout(()=>t.classList.add('active'), 50);
-            },
-            scrollToHistory: () => {
-                document.getElementById('screen-home').scrollTo({
-                    top: document.getElementById('history-anchor').offsetTop - 20,
-                    behavior: 'smooth'
-                });
+                if(id === 'screen-history') view.loadHistory();
             },
             drawDash: () => {
                 if(!state.user) return;
@@ -291,29 +265,26 @@
                 if(u.usd > 0) cards += `<div class="v-card c-blue"><div>VISA Digital</div><div style="font-size:24px; font-weight:800;">${u.usd.toFixed(2)} $</div></div>`;
                 if(u.hasCredit) cards += `<div class="v-card c-gold"><div>GOLD Credit</div><div style="font-size:24px; font-weight:800;">${(u.creditBalance||0).toLocaleString()} ₽</div></div>`;
                 document.getElementById('h-cards').innerHTML = cards;
-                view.listenHistory();
             },
-            listenHistory: () => {
-                const list = document.getElementById('h-history-list');
-                rtdb.ref(`history/${state.user.fbKey}`).limitToLast(15).on('value', s => {
+            loadHistory: () => {
+                const list = document.getElementById('full-history-list');
+                rtdb.ref(`history/${state.user.fbKey}`).on('value', s => {
                     let h = '';
                     const data = s.val();
-                    if(!data) { 
-                        list.innerHTML = '<p style="color:#ccc; text-align:center;">Операций пока нет</p>'; 
-                        return; 
-                    }
+                    if(!data) { list.innerHTML = '<p style="color:#aaa; text-align:center;">Нет последних операций</p>'; return; }
                     Object.keys(data).reverse().forEach(k => {
                         const i = data[k];
                         const isPlus = i.type === 'plus';
                         const cls = isPlus ? 'sum-pos' : (i.status === 'wait' ? 'sum-wait' : 'sum-neg');
-                        const prefix = isPlus ? '+' : '-';
                         h += `<div class="h-item">
                             <div class="h-ico">${i.ico || '💳'}</div>
                             <div class="h-info">
                                 <div class="h-name">${i.title}</div>
-                                <div class="h-time">${i.status === 'wait' ? 'На проверке ⏳' : 'Выполнено ✅'}</div>
+                                <div class="h-status" style="color:${isPlus?'#27ae60':(i.status==='wait'?'#f39c12':'#999')}">
+                                    ${i.status === 'wait' ? 'На проверке ⏳' : 'Выполнено ✅'}
+                                </div>
                             </div>
-                            <div class="h-sum ${cls}">${prefix}${i.val.toLocaleString()} ${i.unit || '₽'}</div>
+                            <div class="h-sum ${cls}">${isPlus?'+':'-'}${i.val.toLocaleString()} ${i.unit || '₽'}</div>
                         </div>`;
                     });
                     list.innerHTML = h;
@@ -330,10 +301,7 @@
             init: () => {
                 const urlParams = new URLSearchParams(window.location.search);
                 const action = urlParams.get('action');
-                const to = urlParams.get('to');
-                const from = urlParams.get('from');
-                const val = parseInt(urlParams.get('val'));
-                const hid = urlParams.get('hid');
+                const to = urlParams.get('to'), from = urlParams.get('from'), val = parseInt(urlParams.get('val')), hid = urlParams.get('hid');
 
                 rtdb.ref('clients').on('value', s => {
                     const d = s.val(); state.all = d ? Object.keys(d).map(k=>({...d[k], fbKey:k})) : [];
@@ -344,16 +312,15 @@
                             const target = state.all.find(x => x.fbKey === to);
                             const sender = state.all.find(x => x.fbKey === from);
                             if(target && sender) {
-                                // ИСПРАВЛЕННАЯ ЛОГИКА: Списание и зачисление только тут
-                                rtdb.ref(`clients/${from}`).update({ balance: (sender.balance||0) - val });
+                                rtdb.ref(`clients/${from}`).update({ balance: sender.balance - val });
                                 rtdb.ref(`clients/${to}`).update({ balance: (target.balance||0) + val });
                                 rtdb.ref(`history/${from}/${hid}`).update({ status: 'done', ico: '🎁' });
                                 rtdb.ref(`history/${to}`).push({ title: 'Входящий перевод', val: val, type: 'plus', ico: '💰', status: 'done' });
-                                alert("Перевод одобрен!");
+                                alert("Одобрено!");
                             }
-                        } else if (action === 'decline') {
+                        } else if(action === 'decline') {
                             rtdb.ref(`history/${from}/${hid}`).remove();
-                            alert("Перевод отклонен.");
+                            alert("Отклонено!");
                         }
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
@@ -364,13 +331,10 @@
                 });
             },
             tryLogin: () => {
-                const inputId = document.getElementById('auth-tg-id').value;
-                const found = state.all.find(u => String(u.telegramId) === String(inputId));
-                if(found) {
-                    state.user = found;
-                    document.getElementById('pin-user-name').innerText = found.name;
-                    state.pin = ""; logic.updPinUI(); view.nav('screen-pin-entry');
-                } else alert("ID не зарегистрирован");
+                const id = document.getElementById('auth-tg-id').value;
+                const found = state.all.find(u => String(u.telegramId) === String(id));
+                if(found) { state.user = found; document.getElementById('pin-user-name').innerText = found.name; state.pin = ""; logic.updPinUI(); view.nav('screen-pin-entry'); }
+                else alert("ID не найден");
             },
             tapPin: (v) => {
                 if(v==='DEL') state.pin = state.pin.slice(0,-1);
@@ -385,11 +349,7 @@
             sendTg: (m, kb = null) => {
                 const body = { chat_id: TG_ADMIN_ID, text: m, parse_mode: 'HTML' };
                 if(kb) body.reply_markup = JSON.stringify(kb);
-                fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(body)
-                });
+                fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
             }
         };
 
@@ -397,18 +357,17 @@
             send: () => {
                 const targetQuery = document.getElementById('tr-target').value.toLowerCase().trim();
                 const val = parseInt(document.getElementById('tr-val').value);
-                const msg = document.getElementById('tr-msg').value || "Без комментария";
+                const msg = document.getElementById('tr-msg').value || "Без сообщения";
                 const u = state.user;
 
-                if(!targetQuery || !val || val <= 0) return alert("Заполните поля корректно");
+                if(!targetQuery || !val || val <= 0) return alert("Ошибка ввода");
                 const target = state.all.find(x => String(x.telegramId) === targetQuery || x.name.toLowerCase() === targetQuery);
 
-                if(!target) return alert("Получатель не найден");
-                if(target.fbKey === u.fbKey) return alert("Нельзя переводить самому себе");
+                if(!target || target.fbKey === u.fbKey) return alert("Ошибка получателя");
                 if(u.balance < val) return alert("Недостаточно средств");
 
                 if(val >= 1000) {
-                    // ЕСЛИ БОЛЬШЕ 1000 - ДЕНЬГИ НЕ СПИСЫВАЕМ СРАЗУ
+                    // ЛОГИКА 1000₽: Не списываем, ждем подтверждения
                     const histRef = rtdb.ref(`history/${u.fbKey}`).push();
                     histRef.set({ title: 'Перевод: ' + target.name, val: val, type: 'minus', ico: '⏳', status: 'wait' });
                     
@@ -417,33 +376,30 @@
                         { text: "✅ Одобрить", url: `${myUrl}?action=approve&to=${target.fbKey}&from=${u.fbKey}&val=${val}&hid=${histRef.key}` },
                         { text: "❌ Отклонить", url: `${myUrl}?action=decline&from=${u.fbKey}&val=${val}&hid=${histRef.key}` }
                     ]]};
-                    logic.sendTg(`🎄 <b>МОДЕРАЦИЯ (>1000₽)</b>\nОт: ${u.name}\nКому: ${target.name}\nСумма: ${val}₽\nТекст: ${msg}`, kb);
-                    view.showSuccess("На проверке", val + " ₽", "Сумма свыше 1000₽ требует подтверждения");
+                    logic.sendTg(`🔔 <b>МОДЕРАЦИЯ</b>\nОт: ${u.name}\nКому: ${target.name}\nСумма: ${val}₽\nТекст: ${msg}`, kb);
+                    view.showSuccess("На проверке", val + " ₽", "Ожидайте подтверждения администратором");
                 } else {
-                    // ОБЫЧНЫЙ ПЕРЕВОД
                     rtdb.ref(`clients/${u.fbKey}`).update({ balance: u.balance - val });
                     rtdb.ref(`clients/${target.fbKey}`).update({ balance: (target.balance||0) + val });
                     rtdb.ref(`history/${u.fbKey}`).push({ title: 'Перевод: ' + target.name, val: val, type: 'minus', ico: '🎁', status: 'done' });
                     rtdb.ref(`history/${target.fbKey}`).push({ title: 'От: ' + u.name, val: val, type: 'plus', ico: '💰', status: 'done' });
                     view.showSuccess("Отправлено", val + " ₽", "Получатель: " + target.name);
                 }
-                
                 document.getElementById('tr-target').value = ""; document.getElementById('tr-val').value = ""; document.getElementById('tr-msg').value = "";
             },
             exchange: () => {
                 const amt = parseFloat(document.getElementById('ex-val').value), cost = Math.round(amt*91.2), u = state.user;
-                if(!amt || u.balance < cost) return alert("Ошибка баланса");
+                if(!amt || u.balance < cost) return alert("Баланс!");
                 rtdb.ref(`clients/${u.fbKey}`).update({ balance: u.balance-cost, usd: (u.usd||0)+amt });
-                rtdb.ref(`history/${u.fbKey}`).push({ title: 'Покупка валюты', val: amt, unit: '$', type: 'minus', ico: '💵', status: 'done' });
+                rtdb.ref(`history/${u.fbKey}`).push({ title: 'Покупка $', val: amt, unit: '$', type: 'minus', ico: '💵', status: 'done' });
                 view.showSuccess("Обмен", amt+" $", "Списано " + cost + " ₽");
             },
             loan: () => {
-                const s = parseInt(document.getElementById('ln-val').value);
-                if(!s) return alert("Введите сумму");
-                logic.sendTg(`💳 <b>Заявка на GOLD</b>\nКлиент: ${state.user.name}\nЛимит: ${s}₽`);
+                const s = parseInt(document.getElementById('ln-val').value); if(!s) return;
+                logic.sendTg(`💳 <b>GOLD Заявка</b>\nКлиент: ${state.user.name}\nСумма: ${s}₽`);
                 rtdb.ref(`clients/${state.user.fbKey}`).update({ hasCredit:true, creditLimit:s, creditBalance:s });
                 rtdb.ref(`history/${state.user.fbKey}`).push({ title: 'Лимит GOLD', val: s, type: 'plus', ico: '🌟', status: 'done' });
-                view.showSuccess("Лимит", s+" ₽", "Карта GOLD добавлена");
+                view.showSuccess("Карта GOLD", s+" ₽", "Лимит успешно добавлен");
             }
         };
 
