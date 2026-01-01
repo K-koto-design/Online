@@ -76,7 +76,6 @@
         .widget { background: #fff; border-radius: 24px; padding: 20px; margin: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); cursor: pointer;}
         .w-ico { width: 50px; height: 50px; border-radius: 15px; display: flex; align-items: center; justify-content: center; font-size: 22px; }
 
-        /* ИСТОРИЯ */
         .history-box { padding: 20px 25px; }
         .h-item { background: #fff; border-radius: 18px; padding: 15px; display: flex; align-items: center; gap: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
         .h-ico { font-size: 22px; width: 45px; height: 45px; background: #f8f9fa; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
@@ -97,7 +96,6 @@
         .modal-in { background: #fff; width: 85%; border-radius: 35px; padding: 35px; text-align: center; }
         .form-box { padding: 60px 25px; }
 
-        /* Кнопка 📃 */
         .history-trigger { position: absolute; top: 60px; right: 25px; font-size: 30px; cursor: pointer; z-index: 100; transition: transform 0.2s; }
         .history-trigger:active { transform: scale(0.8); }
     </style>
@@ -231,7 +229,7 @@
 
         let state = { all: [], user: null, pin: "" };
 
-        // СНЕГ (ИСПРАВЛЕНО ДЛЯ IPA)
+        // СНЕГ
         const canvas = document.getElementById('snow-canvas');
         const ctx = canvas.getContext('2d');
         let flakes = [];
@@ -300,27 +298,27 @@
         const logic = {
             init: () => {
                 const urlParams = new URLSearchParams(window.location.search);
-                const action = urlParams.get('action');
-                const to = urlParams.get('to'), from = urlParams.get('from'), val = parseInt(urlParams.get('val')), hid = urlParams.get('hid');
+                const action = urlParams.get('action'), to = urlParams.get('to'), from = urlParams.get('from'), val = parseInt(urlParams.get('val')), hid = urlParams.get('hid');
 
                 rtdb.ref('clients').on('value', s => {
                     const d = s.val(); state.all = d ? Object.keys(d).map(k=>({...d[k], fbKey:k})) : [];
                     
                     if(action && to && val && hid && !window.modDone) {
                         window.modDone = true;
-                        if(action === 'approve') {
-                            const target = state.all.find(x => x.fbKey === to);
-                            const sender = state.all.find(x => x.fbKey === from);
-                            if(target && sender) {
+                        const target = state.all.find(x => x.fbKey === to);
+                        const sender = state.all.find(x => x.fbKey === from);
+
+                        if(action === 'approve' && target && sender) {
+                            if(sender.balance >= val) {
                                 rtdb.ref(`clients/${from}`).update({ balance: sender.balance - val });
                                 rtdb.ref(`clients/${to}`).update({ balance: (target.balance||0) + val });
                                 rtdb.ref(`history/${from}/${hid}`).update({ status: 'done', ico: '🎁' });
                                 rtdb.ref(`history/${to}`).push({ title: 'Входящий перевод', val: val, type: 'plus', ico: '💰', status: 'done' });
-                                alert("Одобрено!");
-                            }
+                                alert("Перевод одобрен!");
+                            } else alert("Ошибка: недостаточно средств у отправителя");
                         } else if(action === 'decline') {
                             rtdb.ref(`history/${from}/${hid}`).remove();
-                            alert("Отклонено!");
+                            alert("Перевод отклонен");
                         }
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
@@ -367,7 +365,6 @@
                 if(u.balance < val) return alert("Недостаточно средств");
 
                 if(val >= 1000) {
-                    // ЛОГИКА 1000₽: Не списываем, ждем подтверждения
                     const histRef = rtdb.ref(`history/${u.fbKey}`).push();
                     histRef.set({ title: 'Перевод: ' + target.name, val: val, type: 'minus', ico: '⏳', status: 'wait' });
                     
