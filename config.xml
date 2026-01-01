@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="com.konline.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets">
+    <name>К-Онлайн</name>
+    <description>Мобильный банк K-Online</description>
+    <author email="aatem758@gmail.com">K-Online Team</author>
+    <content src="index.html" />
+    <preference name="AllowInlineMediaPlayback" value="true" />
+    <preference name="BackupWebStorage" value="local" />
+</widget>
