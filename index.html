@@ -42,23 +42,19 @@
         }
         .screen.active { display: block !important; opacity: 1; transform: scale(1); }
 
-        /* Auth UI */
         .auth-screen { background: var(--white); height: 100vh; display: flex; flex-direction: column; justify-content: space-between; padding: 60px 40px 40px; text-align: center; }
         .logo-title { font-size: 60px; font-weight: 900; background: linear-gradient(45deg, #ff0000, #ffcc00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: -4px; margin: 0; }
-        .input-field { width: 100%; height: 70px; border-radius: 22px; border: 2px solid #f2f2f2; background: #fafafa; padding: 0 25px; font-size: 18px; margin-bottom: 15px; font-weight: 600; transition: 0.3s; outline: none; }
-        .input-field:focus { border-color: var(--blue); }
+        .input-field { width: 100%; height: 70px; border-radius: 22px; border: 2px solid #f2f2f2; background: #fafafa; padding: 0 25px; font-size: 18px; margin-bottom: 15px; font-weight: 600; transition: 0.3s; }
         .btn-primary { width: 100%; height: 70px; border-radius: 22px; border: none; font-size: 18px; font-weight: 800; cursor: pointer; transition: 0.2s; }
-        .btn-primary:active { transform: scale(0.95); }
         .btn-dark { background: var(--black); color: var(--white); }
 
-        /* App Header & Cards */
         .app-header { background: var(--red-grad); padding: 65px 0 40px; border-radius: 0 0 50px 50px; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.25); }
         .user-row { display: flex; justify-content: space-between; align-items: center; padding: 0 30px; color: white; margin-bottom: 25px; }
         .card-scroller { display: flex; gap: 18px; padding: 0 30px; overflow-x: auto; scrollbar-width: none; padding-bottom: 10px; }
         .card-scroller::-webkit-scrollbar { display: none; }
 
         .bank-card { 
-            min-width: 280px; height: 170px; border-radius: 30px; padding: 25px; 
+            min-width: 160px; height: 250px; border-radius: 30px; padding: 25px; 
             display: flex; flex-direction: column; justify-content: space-between;
             position: relative; flex-shrink: 0; box-shadow: var(--card-shadow);
         }
@@ -66,28 +62,27 @@
         .card-gold { background: var(--gold-grad); color: #4a3500; }
         .chip { width: 42px; height: 32px; background: linear-gradient(135deg, #d4af37, #fcf6ba); border-radius: 8px; }
 
-        /* Main Elements */
         .analytics-box { background: var(--white); margin: 25px; padding: 25px; border-radius: 35px; box-shadow: var(--block-shadow); }
         .stats-sum { font-size: 34px; font-weight: 900; color: var(--black); margin: 10px 0; }
         .progress-bg { width: 100%; height: 10px; background: #f0f0f0; border-radius: 10px; overflow: hidden; }
-        .progress-fill { height: 100%; background: var(--black); width: 0%; border-radius: 10px; transition: 1.5s cubic-bezier(0.1, 0.5, 0.1, 1); }
+        .progress-fill { height: 100%; background: var(--black); width: 0%; border-radius: 10px; transition: 1s ease-out; }
 
-        .actions-row { display: flex; justify-content: center; gap: 20px; margin-top: 25px; }
+        .actions-row { display: flex; justify-content: center; gap: 20px; margin-top: 15px; }
         .action-circle { 
             width: 62px; height: 62px; background: rgba(255,255,255,0.15); 
             border-radius: 20px; display: flex; align-items: center; justify-content: center; 
             font-size: 26px; backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1);
         }
 
+        #frozen-overlay { position: fixed; inset: 0; background: var(--white); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
+        .modal-body { background: var(--white); width: 88%; max-width: 400px; border-radius: 40px; padding: 40px; text-align: center; }
+
         .history-item { 
             background: var(--white); margin: 0 25px 12px; padding: 20px; 
             border-radius: 25px; display: flex; justify-content: space-between; align-items: center;
             box-shadow: var(--block-shadow);
         }
-
-        #frozen-overlay { position: fixed; inset: 0; background: var(--white); z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 40px; }
-        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(15px); }
-        .modal-body { background: var(--white); width: 88%; max-width: 400px; border-radius: 40px; padding: 40px; text-align: center; }
     </style>
 </head>
 <body>
@@ -97,7 +92,6 @@
     <div id="frozen-overlay">
         <div style="font-size: 100px;">❄️</div>
         <h1>Доступ заблокирован</h1>
-        <p>Ваш аккаунт временно заморожен администрацией.</p>
         <button class="btn-primary btn-dark" onclick="location.reload()">Обновить</button>
     </div>
 
@@ -107,36 +101,27 @@
             <div>
                 <input type="number" id="auth-tg-id" class="input-field" placeholder="Ваш Telegram ID">
                 <button class="btn-primary btn-dark" onclick="bankApp.startAuth()">Войти</button>
-                <button style="border:none; background:none; color:var(--blue); margin-top:20px; font-weight:600;" onclick="bankApp.toggleModal('modal-reg', true)">Создать аккаунт</button>
+                <button style="border:none; background:none; color:var(--blue); margin-top:20px;" onclick="bankApp.toggleModal('modal-reg', true)">Регистрация</button>
             </div>
-            <div style="color:#ccc; font-size:12px;">v.4.0.1 Stable Edition</div>
+            <div style="color:#ccc; font-size:12px;">v.4.0.1 Stable</div>
         </div>
     </div>
 
     <div id="screen-otp" class="screen">
         <div class="auth-screen">
-            <div style="font-size: 34px;" onclick="bankApp.nav('screen-auth')">←</div>
-            <h2>Код подтверждения</h2>
-            <p>Мы отправили 6-значный код в ваш Telegram</p>
-            <input type="number" id="auth-otp-input" class="input-field" style="text-align:center; font-size:32px; letter-spacing:8px;">
+            <h2>Введите код</h2>
+            <input type="number" id="auth-otp-input" class="input-field" style="text-align:center; font-size:32px;">
             <button class="btn-primary btn-dark" onclick="bankApp.verifyOTP()">Подтвердить</button>
-            <div style="height: 100px;"></div>
         </div>
     </div>
 
     <div id="screen-home" class="screen">
         <div class="app-header">
             <div class="user-row">
-                <div>
-                    <small style="opacity:0.7;">Привет,</small>
-                    <h2 id="display-user-name" style="margin:0;">Загрузка...</h2>
-                </div>
-                <div id="display-user-ava" style="width:50px; height:50px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:20px;">?</div>
+                <div><h2 id="display-user-name">Загрузка...</h2></div>
+                <div id="display-user-ava" style="width:50px; height:50px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">?</div>
             </div>
-            
-            <div class="card-scroller" id="card-scroller-inner">
-                </div>
-
+            <div class="card-scroller" id="card-scroller-inner"></div>
             <div class="actions-row">
                 <div class="action-circle" onclick="bankApp.nav('screen-transfer')">🎁</div>
                 <div class="action-circle" onclick="bankApp.nav('screen-history')">📜</div>
@@ -144,30 +129,24 @@
                 <div class="action-circle" onclick="location.reload()">🚪</div>
             </div>
         </div>
-
         <div class="analytics-box">
-            <div style="color:var(--light-grey); font-size:12px; font-weight:700;">ТРАТЫ ЗА МЕСЯЦ</div>
+            <div style="color:var(--light-grey); font-size:12px;">ТРАТЫ (МЕСЯЦ)</div>
             <div class="stats-sum" id="stats-spent-val">0 ₽</div>
             <div class="progress-bg"><div class="progress-fill" id="stats-progress"></div></div>
         </div>
-
-        <div style="padding: 0 25px;">
-            <button class="btn-primary" style="background:var(--gold-grad); color:#4a3500;" onclick="bankApp.takeCredit()">Получить быстрый кредит</button>
-        </div>
+        <div style="padding: 0 25px;"><button class="btn-primary" style="background:var(--gold-grad);" onclick="bankApp.takeCredit()">Взять кредит</button></div>
     </div>
 
     <div id="screen-transfer" class="screen">
         <div style="padding: 60px 30px;">
             <div style="font-size: 34px;" onclick="bankApp.nav('screen-home')">←</div>
-            <h2>Новый перевод</h2>
-            <div style="background:white; padding:25px; border-radius:35px; box-shadow:var(--block-shadow); margin-top:20px;">
-                <label style="font-size:12px; color:var(--light-grey); font-weight:700;">ПОЛУЧАТЕЛЬ</label>
+            <h2>Перевод</h2>
+            <div style="background:white; padding:25px; border-radius:30px; box-shadow:var(--block-shadow);">
+                <label>ПОЛУЧАТЕЛЬ</label>
                 <select id="transfer-target" class="input-field" style="margin-top:10px;"></select>
-                
-                <label style="font-size:12px; color:var(--light-grey); font-weight:700;">СУММА (₽)</label>
-                <input type="number" id="transfer-amount" class="input-field" placeholder="0">
-                
-                <button class="btn-primary btn-dark" onclick="bankApp.processTransfer()">Отправить деньги</button>
+                <label>СУММА (₽)</label>
+                <input type="number" id="transfer-amount" class="input-field">
+                <button class="btn-primary btn-dark" onclick="bankApp.processTransfer()">Отправить</button>
             </div>
         </div>
     </div>
@@ -176,30 +155,29 @@
         <div style="padding: 60px 25px;">
             <div style="font-size: 34px;" onclick="bankApp.nav('screen-home')">←</div>
             <h2>История операций</h2>
-            <div id="history-list-full" style="margin-top:20px;"></div>
+            <div id="history-list-full"></div>
         </div>
     </div>
 
     <div id="screen-admin" class="screen">
         <div style="padding: 60px 25px;">
             <div style="font-size: 34px;" onclick="bankApp.nav('screen-home')">←</div>
-            <h2>Модерация платежей</h2>
-            <div id="admin-pending-list" style="margin-top:20px;"></div>
+            <h2>Модерация</h2>
+            <div id="admin-pending-list"></div>
         </div>
     </div>
 
     <div id="modal-reg" class="modal-overlay">
         <div class="modal-body">
-            <h2 style="margin-top:0;">Новый клиент</h2>
-            <input type="text" id="reg-name" class="input-field" placeholder="Ваше Имя">
+            <h3>Регистрация</h3>
+            <input type="text" id="reg-name" class="input-field" placeholder="Имя">
             <input type="number" id="reg-tg" class="input-field" placeholder="Telegram ID">
-            <button class="btn-primary btn-dark" onclick="bankApp.register()">Зарегистрироваться</button>
-            <p style="color:var(--light-grey); margin-top:20px;" onclick="bankApp.toggleModal('modal-reg', false)">Отмена</p>
+            <button class="btn-primary btn-dark" onclick="bankApp.register()">Создать</button>
+            <p onclick="bankApp.toggleModal('modal-reg', false)">Отмена</p>
         </div>
     </div>
 
     <script>
-        // Конфигурация
         const BOT_TOKEN = "8548215166:AAHhHo_ODrDZl-6Lg5Zi-BpBIpeMzXdOEFE";
         const ADMIN_ID = "7597506775";
 
@@ -215,10 +193,7 @@
             state: { allUsers: [], user: null, otp: null, candidate: null },
 
             nav: (id) => {
-                document.querySelectorAll('.screen').forEach(s => {
-                    s.classList.remove('active');
-                    setTimeout(() => { if(!s.classList.contains('active')) s.style.display = 'none' }, 400);
-                });
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
                 const el = document.getElementById(id);
                 el.style.display = 'block';
                 setTimeout(() => el.classList.add('active'), 50);
@@ -228,45 +203,29 @@
 
             startAuth: async () => {
                 const tid = document.getElementById('auth-tg-id').value;
-                if(!tid) return alert("Введите ID");
                 const user = bankApp.state.allUsers.find(u => u.tg_id == tid);
-                if (!user) return alert("Пользователь не найден в базе");
-                
+                if (!user) return alert("Пользователь не найден");
                 bankApp.state.otp = Math.floor(100000 + Math.random() * 900000);
                 bankApp.state.candidate = user;
-                
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${tid}&text=Ваш код авторизации в K-Online: ${bankApp.state.otp}`);
-                    bankApp.nav('screen-otp');
-                } catch(e) { alert("Ошибка связи с Telegram"); }
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${tid}&text=Код: ${bankApp.state.otp}`);
+                bankApp.nav('screen-otp');
             },
 
             verifyOTP: () => {
-                const input = document.getElementById('auth-otp-input').value;
-                if (input == bankApp.state.otp) {
+                if (document.getElementById('auth-otp-input').value == bankApp.state.otp) {
                     bankApp.state.user = bankApp.state.candidate;
                     bankApp.renderUI();
                     bankApp.nav('screen-home');
-                } else {
-                    alert("Неверный код");
-                }
+                } else alert("Ошибка");
             },
 
             register: () => {
                 const name = document.getElementById('reg-name').value;
                 const tg = document.getElementById('reg-tg').value;
-                if (!name || !tg) return alert("Заполните поля");
-                
-                db.ref('clients').push({ 
-                    name, 
-                    tg_id: tg, 
-                    balance: 1000, 
-                    isFrozen: false, 
-                    hasCredit: false,
-                    history: { "init": {title: "Бонус за регистрацию", sum: 1000, date: Date.now()} }
-                });
+                if (!name || !tg) return;
+                db.ref('clients').push({ name, tg_id: tg, balance: 1000, isFrozen: false, hasCredit: false });
                 bankApp.toggleModal('modal-reg', false);
-                alert("Аккаунт создан! Теперь войдите по ID.");
+                alert("Готово! Теперь входите.");
             },
 
             processTransfer: async () => {
@@ -275,49 +234,54 @@
                 const sender = bankApp.state.user;
                 const receiver = bankApp.state.allUsers.find(u => u.fbKey === targetKey);
 
-                if (!amount || amount <= 0) return alert("Введите сумму");
-                if (sender.balance < amount) return alert("Недостаточно средств");
+                if (!amount || amount <= 0 || sender.balance < amount) return alert("Недостаточно средств");
+
+                // Списываем сразу, чтобы избежать дублей
+                await db.ref(`clients/${sender.fbKey}/balance`).set(sender.balance - amount);
 
                 if (amount >= 1000) {
-                    // Модерация
-                    await db.ref(`clients/${sender.fbKey}/balance`).set(sender.balance - amount);
+                    // Создаем запись в истории отправителя (на проверке)
+                    db.ref(`clients/${sender.fbKey}/history`).push({ 
+                        title: `Проверка: ${receiver.name}`, 
+                        sum: -amount, 
+                        date: Date.now(),
+                        status: 'pending'
+                    });
+                    
+                    // Отправляем в модерацию
                     db.ref('moderation').push({
                         from: sender.fbKey, fromN: sender.name, fromT: sender.tg_id,
                         to: targetKey, toN: receiver.name, toT: receiver.tg_id,
                         sum: amount, date: Date.now()
                     });
-                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=💳 Крупный перевод! \nОт: ${sender.name} (${amount}₽)\nКому: ${receiver.name}\nТребуется подтверждение в панели.`);
-                    alert("Переводы свыше 1000₽ проходят модерацию. Ожидайте подтверждения.");
-                } else {
-                    // Мгновенный
-                    await db.ref(`clients/${sender.fbKey}/balance`).set(sender.balance - amount);
-                    await db.ref(`clients/${targetKey}/balance`).transaction(c => (c || 0) + amount);
                     
+                    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${ADMIN_ID}&text=💳 Проверка: ${amount}₽ от ${sender.name} для ${receiver.name}`);
+                    alert("Сумма свыше 1000₽. Перевод отправлен на проверку модератором.");
+                } else {
+                    // Мгновенный перевод
+                    await db.ref(`clients/${targetKey}/balance`).transaction(c => (c || 0) + amount);
                     db.ref(`clients/${sender.fbKey}/history`).push({ title: `Перевод: ${receiver.name}`, sum: -amount, date: Date.now() });
-                    db.ref(`clients/${targetKey}/history`).push({ title: `Входящий: ${sender.name}`, sum: amount, date: Date.now() });
+                    db.ref(`clients/${targetKey}/history`).push({ title: `От: ${sender.name}`, sum: amount, date: Date.now() });
                     alert("Перевод успешно выполнен!");
                 }
                 bankApp.nav('screen-home');
             },
 
             takeCredit: () => {
-                if(bankApp.state.user.hasCredit) return alert("У вас уже есть активный кредит");
-                db.ref(`clients/${bankApp.state.user.fbKey}`).update({ 
-                    hasCredit: true,
-                    balance: bankApp.state.user.balance + 50000 
-                });
-                db.ref(`clients/${bankApp.state.user.fbKey}/history`).push({ title: "Выдача кредита", sum: 50000, date: Date.now() });
-                alert("Вам одобрен кредит на 50,000 ₽");
+                db.ref(`clients/${bankApp.state.user.fbKey}`).update({ hasCredit: true });
+                alert("Кредит выдан!");
             },
 
             adminAction: async (key, data, isApprove) => {
                 if (isApprove) {
                     await db.ref(`clients/${data.to}/balance`).transaction(c => (c || 0) + data.sum);
-                    db.ref(`clients/${data.from}/history`).push({ title: `Исполнено: ${data.toN}`, sum: -data.sum, date: Date.now() });
                     db.ref(`clients/${data.to}/history`).push({ title: `От: ${data.fromN}`, sum: data.sum, date: Date.now() });
+                    // Обновляем статус в истории отправителя (опционально можно просто добавить новую запись)
+                    db.ref(`clients/${data.from}/history`).push({ title: `Одобрено: ${data.toN}`, sum: 0, date: Date.now(), note: 'Проверка пройдена' });
                 } else {
+                    // Возврат средств при отказе
                     await db.ref(`clients/${data.from}/balance`).transaction(c => (c || 0) + data.sum);
-                    db.ref(`clients/${data.from}/history`).push({ title: `Отмена (возврат): ${data.sum}₽`, sum: 0, date: Date.now() });
+                    db.ref(`clients/${data.from}/history`).push({ title: `Отказ: возврат`, sum: data.sum, date: Date.now() });
                 }
                 db.ref(`moderation/${key}`).remove();
             },
@@ -325,65 +289,30 @@
             renderUI: () => {
                 const u = bankApp.state.user;
                 if (!u) return;
-
-                if (u.isFrozen) {
-                    document.getElementById('frozen-overlay').style.display = 'flex';
-                } else {
-                    document.getElementById('frozen-overlay').style.display = 'none';
-                }
-
+                if (u.isFrozen) document.getElementById('frozen-overlay').style.display = 'flex';
                 document.getElementById('display-user-name').innerText = u.name;
-                document.getElementById('display-user-ava').innerText = u.name[0].toUpperCase();
+                document.getElementById('display-user-ava').innerText = u.name[0];
                 document.getElementById('admin-trigger').style.display = (u.tg_id == ADMIN_ID) ? 'flex' : 'none';
 
-                // Карты
-                let cardsHTML = `
-                    <div class="bank-card card-black">
-                        <div class="chip"></div>
-                        <div>
-                            <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Основной баланс</div>
-                            <div style="font-size:28px; font-weight:800;">${(u.balance || 0).toLocaleString()} ₽</div>
-                        </div>
-                    </div>
-                `;
-                if (u.hasCredit) {
-                    cardsHTML += `
-                        <div class="bank-card card-gold">
-                            <div class="chip"></div>
-                            <div>
-                                <div style="font-size:12px; opacity:0.6; margin-bottom:5px;">Кредитный лимит</div>
-                                <div style="font-size:28px; font-weight:800;">50,000 ₽</div>
-                            </div>
-                        </div>
-                    `;
-                }
-                document.getElementById('card-scroller-inner').innerHTML = cardsHTML;
+                let cards = `<div class="bank-card card-black"><div class="chip"></div><div><div style="font-size:24px;">${(u.balance || 0).toLocaleString()} ₽</div></div></div>`;
+                if (u.hasCredit) cards += `<div class="bank-card card-gold"><div class="chip"></div><div><div style="font-size:24px;">50,000 ₽</div></div></div>`;
+                document.getElementById('card-scroller-inner').innerHTML = cards;
 
-                // История
-                const hData = u.history ? Object.values(u.history).sort((a,b) => b.date - a.date) : [];
+                const hData = u.history ? Object.values(u.history).reverse() : [];
                 document.getElementById('history-list-full').innerHTML = hData.map(h => `
                     <div class="history-item">
-                        <div><b>${h.title}</b><br><small style="color:#aaa">${new Date(h.date).toLocaleDateString()}</small></div>
-                        <div style="font-weight:900; color:${h.sum > 0 ? '#2ecc71' : (h.sum < 0 ? '#ff3b30' : '#000')}">
-                            ${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()} ₽
-                        </div>
+                        <div><b>${h.title}</b><br><small>${new Date(h.date).toLocaleDateString()}</small></div>
+                        <div style="font-weight:900; color:${h.sum > 0 ? '#2ecc71' : (h.status === 'pending' ? '#f39c12' : '#000')}">${h.sum > 0 ? '+' : ''}${h.sum}</div>
                     </div>
-                `).join('') || "<p style='text-align:center; color:#888;'>История пуста</p>";
+                `).join('') || "Нет операций";
 
-                // Аналитика (траты)
                 const spent = hData.filter(h => h.sum < 0).reduce((a, b) => a + Math.abs(b.sum), 0);
                 document.getElementById('stats-spent-val').innerText = spent.toLocaleString() + " ₽";
-                document.getElementById('stats-progress').style.width = Math.min(spent / 1000, 100) + "%";
-
-                // Список для перевода
-                document.getElementById('transfer-target').innerHTML = bankApp.state.allUsers
-                    .filter(x => x.fbKey !== u.fbKey)
-                    .map(x => `<option value="${x.fbKey}">${x.name}</option>`)
-                    .join('');
+                document.getElementById('stats-progress').style.width = Math.min(spent/50, 100) + "%";
+                document.getElementById('transfer-target').innerHTML = bankApp.state.allUsers.filter(x => x.fbKey !== u.fbKey).map(x => `<option value="${x.fbKey}">${x.name}</option>`).join('');
             }
         };
 
-        // Listeners
         db.ref('clients').on('value', snap => {
             const d = snap.val();
             bankApp.state.allUsers = d ? Object.keys(d).map(k => ({...d[k], fbKey: k})) : [];
@@ -396,41 +325,28 @@
         db.ref('moderation').on('value', snap => {
             const mod = snap.val();
             const box = document.getElementById('admin-pending-list');
-            if(!mod) return box.innerHTML = "<p style='text-align:center;'>Нет активных заявок</p>";
-            
+            if(!mod) return box.innerHTML = "Заявок нет";
             box.innerHTML = Object.keys(mod).map(k => `
                 <div class="history-item">
-                    <div style="text-align:left;">
-                        <b style="color:var(--blue);">${mod[k].sum}₽</b><br>
-                        <small>${mod[k].fromN} ⮕ ${mod[k].toN}</small>
-                    </div>
-                    <div style="display:flex; gap:10px;">
-                        <button style="border:none; background:#e1ffed; border-radius:10px; padding:10px;" onclick='bankApp.adminAction("${k}", ${JSON.stringify(mod[k])}, true)'>✅</button>
-                        <button style="border:none; background:#ffe1e1; border-radius:10px; padding:10px;" onclick='bankApp.adminAction("${k}", ${JSON.stringify(mod[k])}, false)'>❌</button>
+                    <div><b>${mod[k].sum}₽</b><br>${mod[k].fromN} ⮕ ${mod[k].toN}</div>
+                    <div style="display:flex; gap:5px;">
+                        <button style="border:none;background:none;font-size:20px;" onclick='bankApp.adminAction("${k}", ${JSON.stringify(mod[k])}, true)'>✅</button>
+                        <button style="border:none;background:none;font-size:20px;" onclick='bankApp.adminAction("${k}", ${JSON.stringify(mod[k])}, false)'>❌</button>
                     </div>
                 </div>
             `).join('');
         });
 
-        // Snow Animation
         const canvas = document.getElementById('snow-canvas');
         const ctx = canvas.getContext('2d');
         let flakes = [];
         function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
         window.onresize = resize; resize();
-        for(let i=0; i<60; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, v: Math.random()*0.8+0.2 });
+        for(let i=0; i<50; i++) flakes.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, r: Math.random()*3+1, v: Math.random()*1+0.5 });
         function draw() {
-            ctx.clearRect(0,0,canvas.width,canvas.height); 
-            ctx.fillStyle = "rgba(255,255,255,0.7)"; 
-            ctx.beginPath();
-            flakes.forEach(f => { 
-                ctx.moveTo(f.x, f.y); 
-                ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); 
-                f.y += f.v; 
-                if(f.y > canvas.height) f.y = -5; 
-            });
-            ctx.fill(); 
-            requestAnimationFrame(draw);
+            ctx.clearRect(0,0,canvas.width,canvas.height); ctx.fillStyle = "white"; ctx.beginPath();
+            flakes.forEach(f => { ctx.moveTo(f.x, f.y); ctx.arc(f.x, f.y, f.r, 0, Math.PI*2); f.y += f.v; if(f.y > canvas.height) f.y = -5; });
+            ctx.fill(); requestAnimationFrame(draw);
         }
         draw();
     </script>
