@@ -82,15 +82,23 @@
         .login-tab.active { background: #fff; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         body.dark .login-tab.active { background: #1c1c1e; color: #fff; }
 
-        /* Стиль для кредитной карты */
         .credit-card-style {
             background: linear-gradient(135deg, #34c759 0%, #248a3d 100%);
             color: white;
         }
         .credit-card-style .small { color: rgba(255,255,255,0.8); }
+
+        /* Новые системные стили */
+        #system-blocker { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; }
     </style> 
 </head> 
 <body> 
+
+    <div id="system-blocker">
+        <div class="logo-box">⚙️</div>
+        <h2 id="system-title">Технические работы</h2>
+        <p id="system-msg">Мы скоро вернемся. Пожалуйста, подождите.</p>
+    </div>
 
     <button class="refresh-btn" onclick="hardReset()">🔄</button> 
 
@@ -334,17 +342,61 @@
 
         firebase.initializeApp(firebaseConfig); 
         const dbRef = firebase.database().ref('clients'); 
+        const settingsRef = firebase.database().ref('settings'); // Путь для системных настроек
 
         let db = []; 
         let curUser = null; 
         let enteredPin = ""; 
         let activeLoginTab = 'Клиент'; 
+        let isSystemSlow = false; // Состояние замедления
 
         const services = {
             mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
             transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
             internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
         };
+
+        // --- НОВАЯ СИСТЕМА УПРАВЛЕНИЯ ---
+        settingsRef.on('value', (snap) => {
+            const s = snap.val() || {};
+            const blocker = document.getElementById('system-blocker');
+            
+            // 1. Техническое обслуживание / Обновление
+            if (s.app_status === 'maintenance') {
+                blocker.style.display = 'flex';
+                document.getElementById('system-title').innerText = "Обновление системы";
+                document.getElementById('system-msg').innerText = s.maintenance_msg || "Мы проводим плановые работы. Попробуйте позже.";
+            } else {
+                blocker.style.display = 'none';
+            }
+
+            // 2. Замедление
+            isSystemSlow = !!s.slowdown;
+
+            // 3. Гео-блокировка (если текущая страна в черном списке)
+            checkGeoLock(s.blocked_countries || []);
+        });
+
+        async function checkGeoLock(blockedList) {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                if (blockedList.includes(data.country_code)) {
+                    document.getElementById('system-blocker').style.display = 'flex';
+                    document.getElementById('system-title').innerText = "Доступ ограничен";
+                    document.getElementById('system-msg').innerText = "Приложение недоступно в вашем регионе.";
+                }
+            } catch (e) { console.log("Geo check skipped"); }
+        }
+
+        function withDelay(fn) {
+            if (isSystemSlow) {
+                setTimeout(fn, 2000); // Задержка 2 секунды
+            } else {
+                fn();
+            }
+        }
+        // ---------------------------------
 
         dbRef.on('value', (snapshot) => { 
             const data = snapshot.val(); 
@@ -393,20 +445,22 @@
         }
 
         function processExchange() {
-            const amount = parseFloat(document.getElementById('ex-amount').value);
-            if (!amount || amount <= 0) return alert("Введите сумму");
-            if (amount > curUser.balance) return alert("Недостаточно средств");
-            const rate = document.getElementById('currency-select').value;
-            const names = { "92.5": "USD", "101.2": "EUR", "28.4": "BYN" };
-            const resValue = (amount / rate).toFixed(2);
-            const newUpdate = {
-                balance: curUser.balance - amount,
-                spentMonth: (curUser.spentMonth || 0) + amount,
-                history: [...(curUser.history || []), { t: `Обмен на ${names[rate]} (${resValue})`, a: -amount }]
-            };
-            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
-                document.getElementById('ex-amount').value = "";
-                alert(`Успешно обменяно! Вы получили ${resValue} ${names[rate]}`);
+            withDelay(() => {
+                const amount = parseFloat(document.getElementById('ex-amount').value);
+                if (!amount || amount <= 0) return alert("Введите сумму");
+                if (amount > curUser.balance) return alert("Недостаточно средств");
+                const rate = document.getElementById('currency-select').value;
+                const names = { "92.5": "USD", "101.2": "EUR", "28.4": "BYN" };
+                const resValue = (amount / rate).toFixed(2);
+                const newUpdate = {
+                    balance: curUser.balance - amount,
+                    spentMonth: (curUser.spentMonth || 0) + amount,
+                    history: [...(curUser.history || []), { t: `Обмен на ${names[rate]} (${resValue})`, a: -amount }]
+                };
+                firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                    document.getElementById('ex-amount').value = "";
+                    alert(`Успешно обменяно! Вы получили ${resValue} ${names[rate]}`);
+                });
             });
         }
 
@@ -436,21 +490,23 @@
         }
 
         function findClient() { 
-            const v = loginInp.value.trim().toLowerCase(); 
-            error.innerText = ""; variants.innerHTML = ""; 
-            if(!v) return; 
-            const matches = db.filter(c => {
-                const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
-                const nameMatch = c.name?.toLowerCase().includes(v);
-                const phoneMatch = c.phone?.toString().includes(v);
-                return isCorrectType && (nameMatch || phoneMatch);
+            withDelay(() => {
+                const v = loginInp.value.trim().toLowerCase(); 
+                error.innerText = ""; variants.innerHTML = ""; 
+                if(!v) return; 
+                const matches = db.filter(c => {
+                    const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
+                    const nameMatch = c.name?.toLowerCase().includes(v);
+                    const phoneMatch = c.phone?.toString().includes(v);
+                    return isCorrectType && (nameMatch || phoneMatch);
+                });
+                matches.forEach(c => { 
+                    const d = document.createElement("div"); 
+                    d.className = "card"; d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone || ''}</small>`; 
+                    d.onclick = () => { curUser = c; enteredPin = ""; pinUser.innerText = c.name; navTo('screen-pin'); };  
+                    variants.appendChild(d); 
+                }); 
             });
-            matches.forEach(c => { 
-                const d = document.createElement("div"); 
-                d.className = "card"; d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone || ''}</small>`; 
-                d.onclick = () => { curUser = c; enteredPin = ""; pinUser.innerText = c.name; navTo('screen-pin'); };  
-                variants.appendChild(d); 
-            }); 
         } 
 
         function buildKeypad() { 
@@ -483,7 +539,6 @@
             const badge = document.getElementById('ipBadge');
             if(badge) badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
 
-            // Отрисовка личного счета
             document.getElementById('accounts-container').innerHTML = `
                 <div class="card" onclick="navTo('screen-card')"> 
                     <div class="small">Личный счет</div> 
@@ -491,15 +546,13 @@
                     <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
                 </div>`; 
 
-            // ЛОГИКА КРЕДИТНОЙ КАРТЫ
             const creditContainer = document.getElementById('credit-container');
             const creditApplyBlock = document.getElementById('apply-credit-card');
             
-            // Если в БД есть credit_limit и он > 0
             if (curUser.credit_limit && Number(curUser.credit_limit) > 0) {
                 const limit = Number(curUser.credit_limit);
-                const spent = Number(curUser.credit_debt) || 0; // сколько осталось выплатить
-                const onCard = limit - spent; // сколько сейчас на карте
+                const spent = Number(curUser.credit_debt) || 0;
+                const onCard = limit - spent;
 
                 creditContainer.innerHTML = `
                     <div class="card credit-card-style">
@@ -517,7 +570,7 @@
                         </div>
                     </div>
                 `;
-                if(creditApplyBlock) creditApplyBlock.style.display = 'none'; // Скрываем кнопку "Взять кредит", так как он уже есть
+                if(creditApplyBlock) creditApplyBlock.style.display = 'none';
             } else {
                 creditContainer.innerHTML = "";
                 if(creditApplyBlock) creditApplyBlock.style.display = 'block';
@@ -543,16 +596,18 @@
         } 
 
         function navTo(id, el) { 
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
-            document.getElementById(id).classList.add('active'); 
-            if(el) { 
-                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
-                el.classList.add('active'); 
-            } 
-            const nav = document.getElementById('main-nav'); 
-            nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card', 'screen-exchange'].includes(id) ? 'flex' : 'none'; 
-            if(id === 'screen-home' || id === 'screen-card') showHome(); 
-            if(id === 'screen-chat') renderChat(); 
+            withDelay(() => {
+                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+                document.getElementById(id).classList.add('active'); 
+                if(el) { 
+                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
+                    el.classList.add('active'); 
+                } 
+                const nav = document.getElementById('main-nav'); 
+                nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card', 'screen-exchange'].includes(id) ? 'flex' : 'none'; 
+                if(id === 'screen-home' || id === 'screen-card') showHome(); 
+                if(id === 'screen-chat') renderChat(); 
+            });
         } 
 
         function submitReg() {
@@ -575,41 +630,45 @@
         }
 
         function processTransfer() {
-            const targetKey = document.getElementById('transfer-target').value;
-            const amount = parseFloat(document.getElementById('transfer-amount').value);
-            if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму");
-            if (amount > curUser.balance) return alert("Недостаточно средств");
-            const targetUser = db.find(u => u.fbKey === targetKey);
-            const updates = {};
-            updates['/clients/' + curUser.fbKey + '/balance'] = curUser.balance - amount;
-            updates['/clients/' + curUser.fbKey + '/spentMonth'] = (curUser.spentMonth || 0) + amount;
-            updates['/clients/' + curUser.fbKey + '/history'] = [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }];
-            updates['/clients/' + targetKey + '/balance'] = (targetUser.balance || 0) + amount;
-            updates['/clients/' + targetKey + '/history'] = [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }];
-            firebase.database().ref().update(updates).then(() => {
-                closeTransfer();
-                document.getElementById('check-amount').innerText = amount + " ₽";
-                document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
-                document.getElementById('success-modal').style.display = 'flex';
+            withDelay(() => {
+                const targetKey = document.getElementById('transfer-target').value;
+                const amount = parseFloat(document.getElementById('transfer-amount').value);
+                if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму");
+                if (amount > curUser.balance) return alert("Недостаточно средств");
+                const targetUser = db.find(u => u.fbKey === targetKey);
+                const updates = {};
+                updates['/clients/' + curUser.fbKey + '/balance'] = curUser.balance - amount;
+                updates['/clients/' + curUser.fbKey + '/spentMonth'] = (curUser.spentMonth || 0) + amount;
+                updates['/clients/' + curUser.fbKey + '/history'] = [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }];
+                updates['/clients/' + targetKey + '/balance'] = (targetUser.balance || 0) + amount;
+                updates['/clients/' + targetKey + '/history'] = [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }];
+                firebase.database().ref().update(updates).then(() => {
+                    closeTransfer();
+                    document.getElementById('check-amount').innerText = amount + " ₽";
+                    document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
+                    document.getElementById('success-modal').style.display = 'flex';
+                });
             });
         }
 
         function processServicePayment() {
-            const sum = parseFloat(document.getElementById('service-sum').value);
-            const provider = document.getElementById('service-provider').value;
-            const account = document.getElementById('service-account').value;
-            if (isNaN(sum) || sum <= 0 || !account) return alert("Заполните все поля");
-            if (sum > curUser.balance) return alert("Недостаточно средств");
-            const newUpdate = {
-                balance: curUser.balance - sum,
-                spentMonth: (curUser.spentMonth || 0) + sum,
-                history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
-            };
-            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
-                closeServiceModal();
-                document.getElementById('check-amount').innerText = sum + " ₽";
-                document.getElementById('check-names').innerText = `Оплата ${provider}`;
-                document.getElementById('success-modal').style.display = 'flex';
+            withDelay(() => {
+                const sum = parseFloat(document.getElementById('service-sum').value);
+                const provider = document.getElementById('service-provider').value;
+                const account = document.getElementById('service-account').value;
+                if (isNaN(sum) || sum <= 0 || !account) return alert("Заполните все поля");
+                if (sum > curUser.balance) return alert("Недостаточно средств");
+                const newUpdate = {
+                    balance: curUser.balance - sum,
+                    spentMonth: (curUser.spentMonth || 0) + sum,
+                    history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
+                };
+                firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                    closeServiceModal();
+                    document.getElementById('check-amount').innerText = sum + " ₽";
+                    document.getElementById('check-names').innerText = `Оплата ${provider}`;
+                    document.getElementById('success-modal').style.display = 'flex';
+                });
             });
         }
 
