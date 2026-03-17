@@ -1,164 +1,965 @@
-<!doctype html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="theme-color" content="#000000" />
-        <meta name="description" content="A product of emergent.sh" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@600&display=swap" rel="stylesheet" />
-        <!--
-        manifest.json provides metadata used when your web app is installed on a
-        user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-        -->
-        <!--
-        Notice the use of  in the tags above.
-        It will be replaced with the URL of the `public` folder during the build.
-        Only files inside the `public` folder can be referenced from the HTML.
 
-        Unlike "/favicon.ico" or "favicon.ico", "/favicon.ico" will
-        work correctly both with client-side routing and a non-root public URL.
-        Learn how to configure a non-root public URL by running `npm run build`.
-        -->
-        <title>Emergent | Fullstack App</title>
-        <script>window.addEventListener("error",function(e){if(e.error instanceof DOMException&&e.error.name==="DataCloneError"&&e.message&&e.message.includes("PerformanceServerTiming")){e.stopImmediatePropagation();e.preventDefault()}},true);</script>
-        <script src="https://assets.emergent.sh/scripts/emergent-main.js"></script>
-    <script defer src="static/js/bundle.js"></script><script>
-if(window.self!==window.top){
-  var s=document.createElement("script");s.src="/visual-edit-overlay.js";document.head.appendChild(s);
-  window.tailwind=window.tailwind||{};tailwind.config={corePlugins:{preflight:false}};var t=document.createElement("script");t.src="https://cdn.tailwindcss.com";document.head.appendChild(t);
-}
-</script>
-</head>
-    <body>
-        <noscript>You need to enable JavaScript to run this app.</noscript>
-        <div id="root"></div>
-        <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
-
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-        <a
-            id="emergent-badge"
-            target="_blank"
-            href="https://app.emergent.sh/?utm_source=emergent-badge"
-            style="
-                display: inline-flex !important;
-                box-sizing: border-box;
-                width: 178px;
-                height: 40px;
-                padding: 8px 12px 8px 12px;
-                align-items: center !important;
-                gap: 8px;
-                border-radius: 50px !important;
-                background: #000 !important;
-                position: fixed !important;
-                bottom: 16px;
-                right: 16px;
-                text-decoration: none;
-                font-family: -apple-system, BlinkMacSystemFont,
-                    &quot;Segoe UI&quot;, Roboto, Oxygen, Ubuntu, Cantarell,
-                    &quot;Open Sans&quot;, &quot;Helvetica Neue&quot;,
-                    sans-serif !important;
-                font-size: 12px !important;
-                z-index: 9999 !important;
-            "
-        >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M15.5702 8.13142C15.7729 8.0412 16.0007 8.18878 15.9892 8.4103C15.8374 11.3192 14.0965 14.0405 11.2531 15.3065C8.40964 16.5725 5.2224 16.0453 2.95912 14.2117C2.78676 14.072 2.82955 13.804 3.03219 13.7137L4.95677 12.8568C5.04866 12.8159 5.15446 12.823 5.24204 12.8725C6.73377 13.7153 8.59176 13.8649 10.2772 13.1145C11.9626 12.3641 13.0947 10.8833 13.4665 9.21075C13.4883 9.11256 13.5539 9.02918 13.6457 8.98827L15.5702 8.13142Z" fill="white"/>
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M15.3066 4.74698L15.5067 5.19653C15.5759 5.35178 15.5061 5.53366 15.3508 5.60278L1.29992 11.8586C1.14467 11.9278 0.962794 11.8579 0.893675 11.7027L0.701732 11.2716L0.693457 11.2531C-1.10317 7.21778 0.711626 2.49007 4.74692 0.693443C8.78221 -1.10318 13.51 0.711693 15.3066 4.74698ZM2.82356 8.55367C2.63552 8.63739 2.41991 8.51617 2.40853 8.31065C2.28373 6.05724 3.53858 3.85787 5.72286 2.88536C7.90715 1.91286 10.3813 2.45199 11.9724 4.05256C12.1175 4.19854 12.0633 4.43988 11.8753 4.5236L2.82356 8.55367Z" fill="white"/>
-            </svg>
-            <p
-                style="
-                    color: #FFF !important;
-                    font-family: 'Inter', sans-serif !important;
-                    font-size: 13px !important;
-                    font-style: normal !important;
-                    font-weight: 600 !important;
-                    line-height: 20px !important;
-                    margin: 0 !important;
-                    white-space: nowrap !important;
-                "
-            >
-                Made with Emergent
-            </p>
-        </a>
-        <script>
-            !(function (t, e) {
-                var o, n, p, r;
-                e.__SV ||
-                    ((window.posthog = e),
-                    (e._i = []),
-                    (e.init = function (i, s, a) {
-                        function g(t, e) {
-                            var o = e.split(".");
-                            2 == o.length && ((t = t[o[0]]), (e = o[1])),
-                                (t[e] = function () {
-                                    t.push(
-                                        [e].concat(
-                                            Array.prototype.slice.call(
-                                                arguments,
-                                                0,
-                                            ),
-                                        ),
-                                    );
-                                });
-                        }
-                        ((p = t.createElement("script")).type =
-                            "text/javascript"),
-                            (p.crossOrigin = "anonymous"),
-                            (p.async = !0),
-                            (p.src =
-                                s.api_host.replace(
-                                    ".i.posthog.com",
-                                    "-assets.i.posthog.com",
-                                ) + "/static/array.js"),
-                            (r =
-                                t.getElementsByTagName(
-                                    "script",
-                                )[0]).parentNode.insertBefore(p, r);
-                        var u = e;
-                        for (
-                            void 0 !== a ? (u = e[a] = []) : (a = "posthog"),
-                                u.people = u.people || [],
-                                u.toString = function (t) {
-                                    var e = "posthog";
-                                    return (
-                                        "posthog" !== a && (e += "." + a),
-                                        t || (e += " (stub)"),
-                                        e
-                                    );
-                                },
-                                u.people.toString = function () {
-                                    return u.toString(1) + ".people (stub)";
-                                },
-                                o =
-                                    "init me ws ys ps bs capture je Di ks register register_once register_for_session unregister unregister_for_session Ps getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSurveysLoaded onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey canRenderSurveyAsync identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty Es $s createPersonProfile Is opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing Ss debug xs getPageViewId captureTraceFeedback captureTraceMetric".split(
-                                        " ",
-                                    ),
-                                n = 0;
-                            n < o.length;
-                            n++
-                        )
-                            g(u, o[n]);
-                        e._i.push([i, s, a]);
-                    }),
-                    (e.__SV = 1));
-            })(document, window.posthog || []);
-            posthog.init("phc_xAvL2Iq4tFmANRE7kzbKwaSqp1HJjN7x48s3vr0CMjs", {
-                api_host: "https://us.i.posthog.com",
-                person_profiles: "identified_only", // or 'always' to create profiles for anonymous users as well,
-                session_recording: {
-                    recordCrossOriginIframes: true,
-                    capturePerformance: false,
-                },
-            });
-        </script>
-    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ddede8c3c949a97',t:'MTc3Mzc4MDYyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-</html>
+Action: file_editor view /app/fixed_bank_code_v3.html
+Observation: [Showing lines 1-961 of 961 total] /app/fixed_bank_code_v3.html:
+1|<!DOCTYPE html> 
+2|<html lang="ru"> 
+3|<head> 
+4|    <meta charset="UTF-8"> 
+5|    <title>КотоБанк</title> 
+6|    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+7|    <meta name="apple-mobile-web-app-capable" content="yes"> 
+8|    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
+9|    <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg"> 
+10|
+11|    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script> 
+12|    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script> 
+13|
+14|    <style> 
+15|        :root {  
+16|            --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e;  
+17|            --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; --tab-bg: #ffffff; 
+18|        } 
+19|        body.dark { 
+20|            --bg: #000000; --card: #1c1c1e; --text: #ffffff; --secondary: #8e8e93; --tab-bg: #121212; 
+21|        } 
+22|        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; } 
+23|        body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; } 
+24|        
+25|        .btn:disabled { opacity: 0.5; background: #ccc !important; color: #888 !important; cursor: not-allowed; } 
+26|        .lock-badge { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 5px; } 
+27|
+28|        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }  
+29|        
+30|        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }  
+31|        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }  
+32|        
+33|        .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }  
+34|        .screen.active { display: block; animation: fadeIn 0.3s ease; }  
+35|        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }  
+36|        
+37|        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; }  
+38|        .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }  
+39|        .small { color: var(--secondary); font-size: 13px; }  
+40|          
+41|        .ip-badge { display: none; position: absolute; top: 20px; right: 20px; background: #000; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 1px; }  
+42|
+43|        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }  
+44|        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }  
+45|        .primary { background: #ffdd2d; color: #000; }  
+46|        .secondary { background: #e8f0ff; color: #007aff; }  
+47|        .danger { background: var(--red); color: white; }  
+48|        
+49|        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }  
+50|        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }  
+51|        .dot.filled { background: var(--text); border-color: var(--text); }  
+52|        
+53|        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }  
+54|        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }  
+55|        
+56|        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }  
+57|        
+58|        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }  
+59|        .history-amount { font-weight: 700; font-size: 15px; }  
+60|        
+61|        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: none; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }  
+62|        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }  
+63|        .tab-item.active { color: var(--accent); }  
+64|        .tab-icon { font-size: 24px; margin-bottom: 4px; }  
+65|        
+66|        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }  
+67|        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }  
+68|        
+69|        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }  
+70|        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }  
+71|        
+72|        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }  
+73|        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; }  
+74|        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }  
+75|        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }  
+76|        body.dark .msg.admin { background: #3a3a3c; color: #fff; }  
+77|        .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
+78|
+79|        .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
+80|        body.dark .login-tabs { background: #3a3a3c; }
+81|        .login-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--secondary); }
+82|        .login-tab.active { background: #fff; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+83|        body.dark .login-tab.active { background: #1c1c1e; color: #fff; }
+84|
+85|        .credit-card-style {
+86|            background: linear-gradient(135deg, #34c759 0%, #248a3d 100%);
+87|            color: white;
+88|        }
+89|        .credit-card-style .small { color: rgba(255,255,255,0.8); }
+90|
+91|        /* ============ КРАСИВЫЙ ЭКРАН ОБНОВЛЕНИЯ ============ */
+92|        #system-blocker { 
+93|            display: none; 
+94|            position: fixed; 
+95|            top: 0; left: 0; 
+96|            width: 100%; height: 100%; 
+97|            z-index: 10000; 
+98|            flex-direction: column; 
+99|            align-items: center; 
+100|            justify-content: center; 
+101|            text-align: center; 
+102|            padding: 30px;
+103|        }
+104|
+105|        #system-blocker.maintenance-mode {
+106|            background: linear-gradient(145deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+107|            color: white;
+108|        }
+109|        
+110|        #system-blocker.maintenance-mode .blocker-icon {
+111|            width: 120px;
+112|            height: 120px;
+113|            background: rgba(255,255,255,0.2);
+114|            border-radius: 30px;
+115|            display: flex;
+116|            align-items: center;
+117|            justify-content: center;
+118|            font-size: 60px;
+119|            margin-bottom: 30px;
+120|            animation: pulse 2s ease-in-out infinite;
+121|        }
+122|        
+123|        @keyframes pulse {
+124|            0%, 100% { transform: scale(1); }
+125|            50% { transform: scale(1.05); }
+126|        }
+127|        
+128|        #system-blocker.maintenance-mode .blocker-title {
+129|            font-size: 28px;
+130|            font-weight: 800;
+131|            margin-bottom: 15px;
+132|            letter-spacing: -0.5px;
+133|        }
+134|        
+135|        #system-blocker.maintenance-mode .blocker-text {
+136|            font-size: 16px;
+137|            opacity: 0.9;
+138|            max-width: 280px;
+139|            line-height: 1.5;
+140|            margin-bottom: 40px;
+141|        }
+142|        
+143|        #system-blocker.maintenance-mode .blocker-loader {
+144|            display: flex;
+145|            gap: 8px;
+146|        }
+147|        
+148|        #system-blocker.maintenance-mode .blocker-loader span {
+149|            width: 12px;
+150|            height: 12px;
+151|            background: rgba(255,255,255,0.8);
+152|            border-radius: 50%;
+153|            animation: bounce 1.4s ease-in-out infinite;
+154|        }
+155|        
+156|        #system-blocker.maintenance-mode .blocker-loader span:nth-child(1) { animation-delay: 0s; }
+157|        #system-blocker.maintenance-mode .blocker-loader span:nth-child(2) { animation-delay: 0.2s; }
+158|        #system-blocker.maintenance-mode .blocker-loader span:nth-child(3) { animation-delay: 0.4s; }
+159|        
+160|        @keyframes bounce {
+161|            0%, 80%, 100% { transform: translateY(0); }
+162|            40% { transform: translateY(-15px); }
+163|        }
+164|
+165|        /* ============ ПЛАШКИ СВЕРХУ (гео-блок и замедление) ============ */
+166|        .top-banner {
+167|            display: none;
+168|            position: fixed;
+169|            top: 0;
+170|            left: 0;
+171|            width: 100%;
+172|            padding: 14px 20px;
+173|            font-size: 13px;
+174|            font-weight: 600;
+175|            text-align: center;
+176|            z-index: 9999;
+177|            line-height: 1.4;
+178|        }
+179|        
+180|        #geo-banner {
+181|            background: #ff3b30;
+182|            color: white;
+183|        }
+184|        
+185|        #slowdown-banner {
+186|            background: #ff9500;
+187|            color: white;
+188|        }
+189|        
+190|        /* Сдвиг контента когда баннер активен */
+191|        body.banner-active .screen {
+192|            padding-top: 70px !important;
+193|        }
+194|        
+195|        body.banner-active .refresh-btn {
+196|            top: 70px;
+197|        }
+198|        
+199|        body.banner-active #screen-pin > div {
+200|            margin-top: 50px !important;
+201|        }
+202|
+203|        /* ============ ВЕЧНАЯ ЗАГРУЗКА ============ */
+204|        #loading-overlay {
+205|            display: none;
+206|            position: fixed;
+207|            top: 0;
+208|            left: 0;
+209|            width: 100%;
+210|            height: 100%;
+211|            background: rgba(255,255,255,0.9);
+212|            z-index: 8000;
+213|            flex-direction: column;
+214|            align-items: center;
+215|            justify-content: center;
+216|        }
+217|        
+218|        body.dark #loading-overlay {
+219|            background: rgba(0,0,0,0.9);
+220|        }
+221|        
+222|        .spinner {
+223|            width: 50px;
+224|            height: 50px;
+225|            border: 4px solid #e5e5ea;
+226|            border-top-color: var(--accent);
+227|            border-radius: 50%;
+228|            animation: spin 1s linear infinite;
+229|        }
+230|        
+231|        @keyframes spin {
+232|            to { transform: rotate(360deg); }
+233|        }
+234|        
+235|        .loading-text {
+236|            margin-top: 20px;
+237|            color: var(--secondary);
+238|            font-size: 14px;
+239|        }
+240|    </style> 
+241|</head> 
+242|<body> 
+243|
+244|    <!-- Плашка гео-блокировки -->
+245|    <div id="geo-banner" class="top-banner">
+246|        Вы находитесь в стране, где КотоБанк заблокирован, либо отключите VPN
+247|    </div>
+248|
+249|    <!-- Плашка замедления -->
+250|    <div id="slowdown-banner" class="top-banner">
+251|        Высокая нагрузка на сервера. Некоторые функции могут работать нестабильно.
+252|    </div>
+253|
+254|    <!-- Вечная загрузка -->
+255|    <div id="loading-overlay">
+256|        <div class="spinner"></div>
+257|        <div class="loading-text">Загрузка...</div>
+258|    </div>
+259|
+260|    <!-- Блокировщик (maintenance) -->
+261|    <div id="system-blocker">
+262|        <div class="blocker-icon" id="blocker-icon">🔧</div>
+263|        <div class="blocker-title" id="blocker-title">Технические работы</div>
+264|        <div class="blocker-text" id="blocker-text">Мы скоро вернемся</div>
+265|        <div class="blocker-loader" id="blocker-loader">
+266|            <span></span><span></span><span></span>
+267|        </div>
+268|    </div>
+269|
+270|    <button class="refresh-btn" onclick="hardReset()">🔄</button> 
+271|
+272|    <div id="install-view"> 
+273|        <div class="logo-box">👤</div> 
+274|        <h1>Активация доступа</h1> 
+275|        <p>Нажмите «Поделиться», затем «На экран Домой».</p> 
+276|    </div> 
+277|
+278|    <div id="reg-modal" class="modal">
+279|        <div class="modal-content">
+280|            <h2 style="margin-top:0">Регистрация</h2>
+281|            <select id="reg-type" onchange="toggleRegFields()">
+282|                <option value="client">Я Клиент</option>
+283|                <option value="ip">Я ИП</option>
+284|            </select>
+285|            <div id="reg-fields">
+286|                <input type="text" id="reg-name" placeholder="Ваше имя">
+287|                <input type="text" id="reg-phone" placeholder="Ваш телефон">
+288|                <div id="ip-fields" style="display:none">
+289|                    <input type="text" id="reg-company" placeholder="Название компании">
+290|                    <input type="text" id="reg-inn" placeholder="ИНН">
+291|                </div>
+292|                <input type="password" id="reg-pin" placeholder="Пин-код для входа (4 цифры)" maxlength="4">
+293|            </div>
+294|            <button class="btn primary" style="width:100%" onclick="submitReg()">Создать аккаунт</button>
+295|            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeReg()">Отмена</button>
+296|        </div>
+297|    </div>
+298|
+299|    <div id="transfer-modal" class="modal"> 
+300|        <div class="modal-content"> 
+301|            <h2 style="margin-top:0">Перевод</h2> 
+302|            <select id="transfer-target"></select> 
+303|            <input type="number" id="transfer-amount" placeholder="0 ₽"> 
+304|            <input type="text" id="transfer-message" placeholder="Сообщение получателю"> 
+305|            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button> 
+306|            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
+307|        </div> 
+308|    </div> 
+309|
+310|    <div id="service-modal" class="modal"> 
+311|        <div class="modal-content"> 
+312|            <h2 id="service-title" style="margin-top:0">Оплата</h2> 
+313|            <select id="service-provider"></select> 
+314|            <input type="text" id="service-account" placeholder="Номер счета / Телефона"> 
+315|            <input type="number" id="service-sum" placeholder="Сумма ₽"> 
+316|            <button class="btn primary" style="width:100%" onclick="processServicePayment()">Оплатить</button> 
+317|            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeServiceModal()">Отмена</button> 
+318|        </div> 
+319|    </div>
+320|
+321|    <div id="credit-modal" class="modal"> 
+322|        <div class="modal-content"> 
+323|            <h2 style="margin-top:0">Заявка на кредит</h2> 
+324|            <p class="small" style="margin-bottom:20px">Укажите желаемую сумму кредитного лимита</p>
+325|            <input type="number" id="credit-amount" placeholder="Сумма ₽"> 
+326|            <button class="btn primary" style="width:100%" onclick="alert('Заявка отправлена на рассмотрение')">Отправить заявку</button> 
+327|            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="document.getElementById('credit-modal').style.display='none'">Отмена</button> 
+328|        </div> 
+329|    </div> 
+330|
+331|    <div id="success-modal" class="modal"> 
+332|        <div class="modal-content"> 
+333|            <div class="check-icon">✓</div> 
+334|            <div class="check-sum" id="check-amount">0 ₽</div> 
+335|            <div id="check-names" style="margin: 20px 0;"></div> 
+336|            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button> 
+337|        </div> 
+338|    </div> 
+339|
+340|    <div id="screen-name" class="screen"> 
+341|        <h1 style="margin-top:60px">Вход</h1> 
+342|        <div class="login-tabs">
+343|            <div class="login-tab active" id="tab-client" onclick="switchLoginTab('Клиент')">Клиенты</div>
+344|            <div class="login-tab" id="tab-ip" onclick="switchLoginTab('ИП')">ИП</div>
+345|        </div>
+346|        <div class="card"> 
+347|            <input type="text" id="loginInp" placeholder="Имя или номер телефона" oninput="findClient()"> 
+348|            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Найти аккаунт</button> 
+349|            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div> 
+350|        </div> 
+351|        <div id="variants"></div> 
+352|        <p style="text-align:center; color:var(--accent); cursor:pointer; font-weight:600" onclick="openReg()">Создать аккаунт</p>
+353|    </div> 
+354|
+355|    <div id="screen-pin" class="screen"> 
+356|        <div style="text-align:center; margin-top:80px;"> 
+357|            <div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div> 
+358|            <h2 id="pinUser"></h2> 
+359|            <div class="dots" id="pinDots"> 
+360|                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div> 
+361|            </div> 
+362|            <div class="keypad" id="keypad"></div> 
+363|        </div> 
+364|    </div> 
+365|
+366|    <div id="screen-home" class="screen"> 
+367|        <h1 id="homeUser" style="margin-top:10px"></h1> 
+368|        <div class="card"> 
+369|            <div class="small">Всего средств</div> 
+370|            <div class="balance" id="hBal">0 ₽</div> 
+371|            <div id="hLockStatus"></div> <div class="small" id="hSpend">Траты за период: 0 ₽</div> 
+372|        </div> 
+373|        <div id="accounts-container"></div> 
+374|        <div id="credit-container"></div> 
+375|        <div class="card" id="apply-credit-card" onclick="document.getElementById('credit-modal').style.display='flex'">
+376|            <div style="display:flex; align-items:center; gap:15px">
+377|                <div style="font-size:24px">💳</div>
+378|                <div>
+379|                    <div style="font-weight:600">Взять кредит</div>
+380|                    <div class="small">Решение за 1 минуту</div>
+381|                </div>
+382|            </div>
+383|        </div>
+384|        <div class="card">
+385|            <div style="font-weight:700; margin-bottom:15px">Платежи и сервисы</div>
+386|            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+387|                <div onclick="openService('mobile')" style="text-align:center;">
+388|                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">📱</div>
+389|                    <div style="font-size:10px; margin-top:5px;">Связь</div>
+390|                </div>
+391|                <div onclick="openService('transport')" style="text-align:center;">
+392|                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🚌</div>
+393|                    <div style="font-size:10px; margin-top:5px;">Транспорт</div>
+394|                </div>
+395|                <div onclick="openService('internet')" style="text-align:center;">
+396|                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🌐</div>
+397|                    <div style="font-size:10px; margin-top:5px;">Интернет</div>
+398|                </div>
+399|            </div>
+400|        </div>
+401|    </div> 
+402|
+403|    <div id="screen-exchange" class="screen"> 
+404|        <h1>Обмен валюты</h1> 
+405|        <div class="card">
+406|            <div class="small">Ваш баланс</div>
+407|            <div class="balance" id="ex-balance">0 ₽</div>
+408|        </div>
+409|        <div class="card">
+410|            <label class="small">Выберите валюту</label>
+411|            <select id="currency-select" onchange="calcExchange()">
+412|                <option value="92.5">Доллар США ($)</option>
+413|                <option value="101.2">Евро (€)</option>
+414|                <option value="28.4">Белорусский рубль (Br)</option>
+415|            </select>
+416|            <label class="small">Сумма в рублях (₽)</label>
+417|            <input type="number" id="ex-amount" placeholder="Сколько отдаете" oninput="calcExchange()">
+418|            <div style="margin: 20px 0; text-align: center;">
+419|                <div class="small">Вы получите примерно:</div>
+420|                <div id="ex-result" style="font-size: 28px; font-weight: 800; color: var(--accent); margin-top:10px;">0</div>
+421|            </div>
+422|            <button class="btn primary action-btn" onclick="processExchange()">Обменять</button>
+423|        </div>
+424|    </div>
+425|
+426|    <div id="screen-chat" class="screen"> 
+427|        <h1>Поддержка</h1> 
+428|        <div class="card" style="padding: 15px;"> 
+429|            <div id="chat-container"></div> 
+430|            <div class="chat-input-area"> 
+431|                <input type="text" id="chatInput" placeholder="Ваш вопрос..." style="margin-bottom: 0;"> 
+432|                <button class="btn primary" style="flex: 0 0 60px; height: 54px;" onclick="sendChatMsg()">➤</button> 
+433|            </div> 
+434|        </div> 
+435|    </div> 
+436|
+437|    <div id="screen-settings" class="screen"> 
+438|        <h1>Настройки</h1> 
+439|        <div class="card"> 
+440|            <p class="small">Тема</p> 
+441|            <select id="themeSelect" onchange="applyTheme(this.value)"> 
+442|                <option value="light">Светлая</option> 
+443|                <option value="dark">Темная</option> 
+444|            </select> 
+445|        </div> 
+446|        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button> 
+447|        <footer id="version-label" style="text-align: center; padding: 20px; color: var(--secondary); font-size: 11px;"></footer> 
+448|    </div> 
+449|
+450|    <div id="screen-card" class="screen"> 
+451|        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
+452|        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
+453|            <div id="ipBadge" class="ip-badge">ИП</div> 
+454|            <div class="small" style="color:#aaa">Текущий баланс</div> 
+455|            <div class="balance" id="cBal">0 ₽</div> 
+456|            <div id="cLockStatus"></div> <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
+457|        </div> 
+458|        <div class="btn-row"> 
+459|            <button class="btn secondary action-btn" onclick="alert('Сервис временно недоступен')">QR-оплата</button> 
+460|            <button class="btn primary action-btn" onclick="showTransfer()">Перевести</button> 
+461|        </div> 
+462|        <div id="block-card-section">
+463|            <h3 style="margin-left:10px">Управление картой</h3>
+464|            <div class="card">
+465|                <p class="small">В случае утери или кражи вы можете мгновенно заблокировать карту.</p>
+466|                <button id="lock-btn" class="btn danger" style="width:100%" onclick="lockCard()">Заблокировать карту</button>
+467|            </div>
+468|        </div>
+469|        <h3 style="margin-left:10px">История операций</h3> 
+470|        <div class="card" id="historyList"></div> 
+471|    </div> 
+472|
+473|    <div class="tab-bar" id="main-nav"> 
+474|        <div class="tab-item active" id="nav-home" onclick="navTo('screen-home', this)"> 
+475|            <span class="tab-icon">🏠</span><span>Главная</span> 
+476|        </div> 
+477|        <div class="tab-item" id="nav-exchange" onclick="navTo('screen-exchange', this)"> 
+478|            <span class="tab-icon">💱</span><span>Обмен</span> 
+479|        </div> 
+480|        <div class="tab-item" id="nav-chat" onclick="navTo('screen-chat', this)"> 
+481|            <span class="tab-icon">💬</span><span>Чат</span> 
+482|        </div> 
+483|        <div class="tab-item" id="nav-settings" onclick="navTo('screen-settings', this)"> 
+484|            <span class="tab-icon">⚙️</span><span>Настройки</span> 
+485|        </div> 
+486|    </div> 
+487|
+488|    <script> 
+489|        const firebaseConfig = { 
+490|            apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
+491|            authDomain: "webapp-b7149.firebaseapp.com", 
+492|            databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
+493|            projectId: "webapp-b7149", 
+494|            storageBucket: "webapp-b7149.firebasestorage.app", 
+495|            messagingSenderId: "1034835242406", 
+496|            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367" 
+497|        }; 
+498|
+499|        firebase.initializeApp(firebaseConfig); 
+500|        const dbRef = firebase.database().ref('clients'); 
+501|        const settingsRef = firebase.database().ref('settings');
+502|
+503|        let db = []; 
+504|        let curUser = null; 
+505|        let enteredPin = ""; 
+506|        let activeLoginTab = 'Клиент'; 
+507|        let isSystemSlow = false;
+508|        let isGeoBlocked = false;
+509|        let isBlocked = false;
+510|
+511|        const services = {
+512|            mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
+513|            transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
+514|            internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
+515|        };
+516|
+517|        // ============ СИСТЕМА УПРАВЛЕНИЯ ============
+518|        function showMaintenanceMode(message) {
+519|            const blocker = document.getElementById('system-blocker');
+520|            blocker.className = 'maintenance-mode';
+521|            blocker.style.display = 'flex';
+522|            
+523|            document.getElementById('blocker-icon').innerText = '🔧';
+524|            document.getElementById('blocker-title').innerText = 'Обновление системы';
+525|            document.getElementById('blocker-text').innerText = message || 'Мы проводим технические работы. Пожалуйста, подождите немного.';
+526|            document.getElementById('blocker-loader').style.display = 'flex';
+527|            
+528|            isBlocked = true;
+529|        }
+530|        
+531|        function showGeoBanner() {
+532|            document.getElementById('geo-banner').style.display = 'block';
+533|            document.getElementById('slowdown-banner').style.display = 'none';
+534|            document.body.classList.add('banner-active');
+535|            isGeoBlocked = true;
+536|            
+537|            // Показываем вечную загрузку
+538|            document.getElementById('loading-overlay').style.display = 'flex';
+539|        }
+540|        
+541|        function showSlowdownBanner() {
+542|            document.getElementById('slowdown-banner').style.display = 'block';
+543|            document.getElementById('geo-banner').style.display = 'none';
+544|            document.body.classList.add('banner-active');
+545|            isSystemSlow = true;
+546|        }
+547|        
+548|        function hideAllBanners() {
+549|            document.getElementById('geo-banner').style.display = 'none';
+550|            document.getElementById('slowdown-banner').style.display = 'none';
+551|            document.getElementById('loading-overlay').style.display = 'none';
+552|            document.body.classList.remove('banner-active');
+553|            isGeoBlocked = false;
+554|            isSystemSlow = false;
+555|        }
+556|        
+557|        function hideBlocker() {
+558|            document.getElementById('system-blocker').style.display = 'none';
+559|            isBlocked = false;
+560|        }
+561|
+562|        settingsRef.on('value', (snap) => {
+563|            const s = snap.val() || {};
+564|            
+565|            console.log('Firebase settings:', s);
+566|            
+567|            // Сброс всего
+568|            hideBlocker();
+569|            hideAllBanners();
+570|            
+571|            // Проверка режима обслуживания (приоритет)
+572|            if (s.app_status === 'maintenance') {
+573|                showMaintenanceMode(s.maintenance_msg);
+574|                return;
+575|            }
+576|            
+577|            // Проверка замедления
+578|            const slowdown = (s.slowdown === true || s.slowdown === 'true');
+579|            if (slowdown) {
+580|                showSlowdownBanner();
+581|            }
+582|            
+583|            // Проверка гео-блокировки
+584|            let blockedCountries = [];
+585|            if (s.blocked_countries) {
+586|                if (Array.isArray(s.blocked_countries)) {
+587|                    blockedCountries = s.blocked_countries;
+588|                } else if (typeof s.blocked_countries === 'object') {
+589|                    blockedCountries = Object.values(s.blocked_countries);
+590|                }
+591|            }
+592|            
+593|            if (blockedCountries.length > 0) {
+594|                checkGeoLock(blockedCountries);
+595|            }
+596|        });
+597|
+598|        async function checkGeoLock(blockedList) {
+599|            try {
+600|                const res = await fetch('https://ipapi.co/json/');
+601|                const data = await res.json();
+602|                
+603|                const userCountry = data.country_code;
+604|                const isCountryBlocked = blockedList.some(code => 
+605|                    code.toUpperCase() === userCountry.toUpperCase()
+606|                );
+607|                
+608|                if (isCountryBlocked) {
+609|                    showGeoBanner();
+610|                }
+611|            } catch (e) { 
+612|                console.log("Geo check error:", e);
+613|            }
+614|        }
+615|
+616|        // Функция замедления - иногда работает, иногда вечная загрузка
+617|        function withSlowdown(fn, canFail = true) {
+618|            if (isGeoBlocked) {
+619|                // Гео-блок - вечная загрузка, ничего не делаем
+620|                document.getElementById('loading-overlay').style.display = 'flex';
+621|                return;
+622|            }
+623|            
+624|            if (isSystemSlow) {
+625|                // Замедление - случайное поведение
+626|                const random = Math.random();
+627|                
+628|                if (random < 0.3 && canFail) {
+629|                    // 30% - вечная загрузка
+630|                    document.getElementById('loading-overlay').style.display = 'flex';
+631|                    // Не вызываем fn - операция "зависает"
+632|                } else if (random < 0.5 && canFail) {
+633|                    // 20% - ошибка
+634|                    setTimeout(() => {
+635|                        alert('Произошла ошибка. Попробуйте позже.');
+636|                    }, 2000);
+637|                } else {
+638|                    // 50% - работает с задержкой 3-6 секунд
+639|                    document.getElementById('loading-overlay').style.display = 'flex';
+640|                    const delay = 3000 + Math.random() * 3000;
+641|                    setTimeout(() => {
+642|                        document.getElementById('loading-overlay').style.display = 'none';
+643|                        fn();
+644|                    }, delay);
+645|                }
+646|            } else {
+647|                fn();
+648|            }
+649|        }
+650|
+651|        dbRef.on('value', (snapshot) => { 
+652|            const data = snapshot.val(); 
+653|            db = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : []; 
+654|            if (curUser) { 
+655|                const freshData = db.find(u => u.fbKey === curUser.fbKey); 
+656|                if (freshData) { curUser = freshData; updateUI(); } 
+657|            } 
+658|        }); 
+659|
+660|        function updateUI() { 
+661|            if (!curUser) return;
+662|            const isFrozen = curUser.frozen === true;
+663|            const lockHTML = isFrozen ? `<div class="lock-badge">🔒 Карта заблокирована</div>` : '';
+664|            
+665|            const hLS = document.getElementById('hLockStatus');
+666|            const cLS = document.getElementById('cLockStatus');
+667|            if(hLS) hLS.innerHTML = lockHTML;
+668|            if(cLS) cLS.innerHTML = lockHTML;
+669|            
+670|            document.querySelectorAll('.action-btn').forEach(btn => btn.disabled = isFrozen);
+671|            const mainLockBtn = document.getElementById('lock-btn');
+672|            if(mainLockBtn) {
+673|                mainLockBtn.innerText = isFrozen ? "Карта заблокирована" : "Заблокировать карту";
+674|                mainLockBtn.disabled = isFrozen;
+675|            }
+676|
+677|            if (document.getElementById('ex-balance')) {
+678|                document.getElementById('ex-balance').innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽";
+679|            }
+680|
+681|            const cBalEl = document.getElementById('cBal');
+682|            const cBonusEl = document.getElementById('cBonus');
+683|            if(cBalEl) cBalEl.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+684|            if(cBonusEl) cBonusEl.innerText = "Бонусы: " + (Number(curUser.bonuses) || 0).toLocaleString(); 
+685|             
+686|            const hList = document.getElementById('historyList'); 
+687|            if(hList) {
+688|                hList.innerHTML = ""; 
+689|                if(curUser.history) { 
+690|                    curUser.history.slice().reverse().forEach(h => { 
+691|                        hList.innerHTML += `<div class="history-item"> 
+692|                            <div><div style="font-weight:600;">${h.t}</div></div>
+693|                            <span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span> 
+694|                        </div>`; 
+695|                    }); 
+696|                } 
+697|            }
+698|        } 
+699|
+700|        function navTo(id, el) { 
+701|            withSlowdown(() => {
+702|                document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+703|                document.getElementById(id).classList.add('active'); 
+704|                if(el) { 
+705|                    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
+706|                    el.classList.add('active'); 
+707|                } 
+708|                const nav = document.getElementById('main-nav'); 
+709|                const showNav = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card', 'screen-exchange'].includes(id);
+710|                nav.style.display = showNav ? 'flex' : 'none'; 
+711|                
+712|                if(id === 'screen-home' || id === 'screen-card') showHome(); 
+713|                if(id === 'screen-chat') renderChat(); 
+714|            }, false); // навигация не должна полностью ломаться
+715|        } 
+716|
+717|        function findClient() { 
+718|            withSlowdown(() => {
+719|                const v = loginInp.value.trim().toLowerCase(); 
+720|                error.innerText = ""; variants.innerHTML = ""; 
+721|                if(!v) return; 
+722|                const matches = db.filter(c => {
+723|                    const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
+724|                    const nameMatch = c.name?.toLowerCase().includes(v);
+725|                    const phoneMatch = c.phone?.toString().includes(v);
+726|                    return isCorrectType && (nameMatch || phoneMatch);
+727|                });
+728|                matches.forEach(c => { 
+729|                    const d = document.createElement("div"); 
+730|                    d.className = "card"; d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone || ''}</small>`; 
+731|                    d.onclick = () => { curUser = c; enteredPin = ""; pinUser.innerText = c.name; navTo('screen-pin'); };  
+732|                    variants.appendChild(d); 
+733|                }); 
+734|            });
+735|        } 
+736|
+737|        function buildKeypad() { 
+738|            const keypadElement = document.getElementById('keypad');
+739|            const keys = [1,2,3,4,5,6,7,8,9,'',0,'←']; 
+740|            keypadElement.innerHTML = "";
+741|            keys.forEach(k => { 
+742|                const b = document.createElement('button'); 
+743|                b.className = 'key'; b.innerText = k; 
+744|                b.onclick = () => { 
+745|                    if(k === '←') enteredPin = enteredPin.slice(0, -1); 
+746|                    else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k; 
+747|                    const d = pinDots.children;
+748|                    for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
+749|                    if(enteredPin.length === 4) { 
+750|                        if(enteredPin === curUser.clientPin) navTo('screen-home'); 
+751|                        else { enteredPin = ""; alert("Неверный ПИН"); } 
+752|                    } 
+753|                }; 
+754|                keypadElement.appendChild(b); 
+755|            }); 
+756|        } 
+757|
+758|        function showHome() { 
+759|            if (!curUser) return; 
+760|            homeUser.innerText = `Здравствуйте, ${curUser.name}`; 
+761|            hBal.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+762|            hSpend.innerText = `Траты: ${(Number(curUser.spentMonth) || 0).toLocaleString()} ₽`; 
+763|            const badge = document.getElementById('ipBadge');
+764|            if(badge) badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
+765|
+766|            document.getElementById('accounts-container').innerHTML = `
+767|                <div class="card" onclick="navTo('screen-card')"> 
+768|                    <div class="small">Личный счет</div> 
+769|                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${(Number(curUser.balance) || 0).toLocaleString()} ₽</div> 
+770|                    <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
+771|                </div>`; 
+772|            updateUI();
+773|        }
+774|
+775|        function sendChatMsg() {
+776|            withSlowdown(() => {
+777|                const input = document.getElementById('chatInput');
+778|                const text = input.value.trim();
+779|                if (!text || !curUser) return;
+780|                const newMessage = { text: text, sender: 'user', timestamp: Date.now() };
+781|                firebase.database().ref(`clients/${curUser.fbKey}/messages`).push(newMessage).then(() => {
+782|                    input.value = "";
+783|                    renderChat();
+784|                });
+785|            });
+786|        }
+787|
+788|        function renderChat() {
+789|            const container = document.getElementById('chat-container');
+790|            if (!curUser || !container) return;
+791|            const msgs = curUser.messages ? Object.values(curUser.messages) : [];
+792|            container.innerHTML = msgs.length ? "" : "<p class='small' style='text-align:center'>Поддержка ответит в ближайшее время.</p>";
+793|            msgs.forEach(m => {
+794|                const d = document.createElement('div');
+795|                d.className = `msg ${m.sender === 'admin' ? 'admin' : 'user'}`;
+796|                d.innerText = m.text;
+797|                container.appendChild(d);
+798|            });
+799|            container.scrollTop = container.scrollHeight;
+800|        }
+801|
+802|        function calcExchange() {
+803|            const rate = parseFloat(document.getElementById('currency-select').value);
+804|            const amount = parseFloat(document.getElementById('ex-amount').value) || 0;
+805|            const res = (amount / rate).toFixed(2);
+806|            const symbols = { "92.5": "$", "101.2": "€", "28.4": "Br" };
+807|            document.getElementById('ex-result').innerText = res + " " + (symbols[rate] || "");
+808|        }
+809|
+810|        function processExchange() {
+811|            withSlowdown(() => {
+812|                const amount = parseFloat(document.getElementById('ex-amount').value);
+813|                if (!amount || amount <= 0) return alert("Введите сумму");
+814|                if (amount > curUser.balance) return alert("Недостаточно средств");
+815|                const rate = document.getElementById('currency-select').value;
+816|                const names = { "92.5": "USD", "101.2": "EUR", "28.4": "BYN" };
+817|                const resValue = (amount / rate).toFixed(2);
+818|                const newUpdate = {
+819|                    balance: curUser.balance - amount,
+820|                    spentMonth: (curUser.spentMonth || 0) + amount,
+821|                    history: [...(curUser.history || []), { t: `Обмен на ${names[rate]}`, a: -amount }]
+822|                };
+823|                firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+824|                    document.getElementById('ex-amount').value = "";
+825|                    alert(`Успешно! Получено ${resValue} ${names[rate]}`);
+826|                });
+827|            });
+828|        }
+829|
+830|        function submitReg() {
+831|            withSlowdown(() => {
+832|                const type = document.getElementById('reg-type').value;
+833|                const name = document.getElementById('reg-name').value;
+834|                const phone = document.getElementById('reg-phone').value;
+835|                const pin = document.getElementById('reg-pin').value;
+836|                if(!name || !phone || pin.length < 4) return alert("Заполните все поля");
+837|                const newUser = {
+838|                    name: name, 
+839|                    phone: phone, 
+840|                    clientPin: pin,
+841|                    orgType: type === 'ip' ? 'ИП' : 'Клиент',
+842|                    balance: 0, 
+843|                    spentMonth: 0, 
+844|                    bonuses: 0, 
+845|                    frozen: false,
+846|                    history: [{t: "Открытие счета", a: 0}],
+847|                    messages: { 
+848|                        "init": { 
+849|                            text: "Добро пожаловать!", 
+850|                            sender: "admin", 
+851|                            timestamp: Date.now() 
+852|                        } 
+853|                    }
+854|                };
+855|                firebase.database().ref('applications').push(newUser).then(() => {
+856|                    alert("Заявка отправлена!"); closeReg();
+857|                });
+858|            });
+859|        }
+860|
+861|        function processTransfer() {
+862|            withSlowdown(() => {
+863|                const targetKey = document.getElementById('transfer-target').value;
+864|                const amount = parseFloat(document.getElementById('transfer-amount').value);
+865|                if (isNaN(amount) || amount <= 0) return alert("Введите сумму");
+866|                if (amount > curUser.balance) return alert("Недостаточно средств");
+867|                const targetUser = db.find(u => u.fbKey === targetKey);
+868|                const updates = {};
+869|                updates['/clients/' + curUser.fbKey + '/balance'] = curUser.balance - amount;
+870|                updates['/clients/' + curUser.fbKey + '/spentMonth'] = (curUser.spentMonth || 0) + amount;
+871|                updates['/clients/' + curUser.fbKey + '/history'] = [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }];
+872|                updates['/clients/' + targetKey + '/balance'] = (targetUser.balance || 0) + amount;
+873|                updates['/clients/' + targetKey + '/history'] = [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }];
+874|                firebase.database().ref().update(updates).then(() => {
+875|                    closeTransfer();
+876|                    document.getElementById('check-amount').innerText = amount + " ₽";
+877|                    document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
+878|                    document.getElementById('success-modal').style.display = 'flex';
+879|                });
+880|            });
+881|        }
+882|
+883|        function processServicePayment() {
+884|            withSlowdown(() => {
+885|                const sum = parseFloat(document.getElementById('service-sum').value);
+886|                const provider = document.getElementById('service-provider').value;
+887|                if (isNaN(sum) || sum <= 0) return alert("Заполните поля");
+888|                if (sum > curUser.balance) return alert("Недостаточно средств");
+889|                const newUpdate = {
+890|                    balance: curUser.balance - sum,
+891|                    spentMonth: (curUser.spentMonth || 0) + sum,
+892|                    history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
+893|                };
+894|                firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+895|                    closeServiceModal();
+896|                    document.getElementById('check-amount').innerText = sum + " ₽";
+897|                    document.getElementById('check-names').innerText = `Оплата ${provider}`;
+898|                    document.getElementById('success-modal').style.display = 'flex';
+899|                });
+900|            });
+901|        }
+902|
+903|        function switchLoginTab(type) {
+904|            activeLoginTab = type;
+905|            document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
+906|            document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
+907|            findClient();
+908|        }
+909|
+910|        function toggleRegFields() {
+911|            const isIp = document.getElementById('reg-type').value === 'ip';
+912|            document.getElementById('ip-fields').style.display = isIp ? 'block' : 'none';
+913|        }
+914|
+915|        function openService(type) {
+916|            if(curUser.frozen) return alert("Карта заблокирована");
+917|            const data = services[type];
+918|            document.getElementById('service-title').innerText = data.title;
+919|            const select = document.getElementById('service-provider');
+920|            select.innerHTML = data.providers.map(p => `<option value="${p}">${p}</option>`).join('');
+921|            document.getElementById('service-modal').style.display = 'flex';
+922|        }
+923|
+924|        function showTransfer() { 
+925|            if(curUser.frozen) return alert("Карта заблокирована");
+926|            const select = document.getElementById('transfer-target'); 
+927|            const others = db.filter(u => u.fbKey !== curUser.fbKey); 
+928|            select.innerHTML = others.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join(''); 
+929|            document.getElementById('transfer-modal').style.display = 'flex'; 
+930|        } 
+931|
+932|        function lockCard() {
+933|            withSlowdown(() => {
+934|                if(curUser.frozen) return;
+935|                if(confirm("Заблокировать карту?")) {
+936|                    firebase.database().ref('clients/' + curUser.fbKey).update({ frozen: true });
+937|                }
+938|            });
+939|        }
+940|
+941|        function applyTheme(t) { 
+942|            document.body.classList.remove('dark');
+943|            if (t === 'dark') document.body.classList.add('dark');
+944|            localStorage.setItem('app_theme', t); 
+945|        }
+946|        function logout() { curUser = null; location.reload(); }
+947|        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
+948|        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+949|        function closeTransfer() { document.getElementById('transfer-modal').style.display='none'; }
+950|        function closeSuccess() { document.getElementById('success-modal').style.display='none'; }
+951|        function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
+952|        function hardReset() { location.reload(); } 
+953|
+954|        document.getElementById('version-label').innerText = "КотоБанк v2.1"; 
+955|        buildKeypad(); 
+956|        applyTheme(localStorage.getItem('app_theme') || 'light'); 
+957|        navTo('screen-name'); 
+958|    </script> 
+959|</body> 
+960|</html>
+961|
+[End of file]
