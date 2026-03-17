@@ -1,637 +1,668 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>K-Online</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="К-Онлайн">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#3494e6">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+<!DOCTYPE html> 
+<html lang="ru"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <title>Онлайн Банк</title> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
+    <meta name="apple-mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
+    <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg"> 
 
-    <style>
-        :root {
-            --bg-main: #f2f5f7;
-            --sber-green: #21a038;
-            --sber-dark-green: #1a802d;
-            --dark-panel: #020b0d;
-            --gold: #f1c40f;
-            --gray-form: #e0e0e0;
-            --accent-yellow: #ffcc00;
-            --t-yellow: #FFDD2D;
-            --text-main: #333;
-            --white: #ffffff;
-            --shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script> 
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script> 
 
-        html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            overflow: hidden; background: var(--bg-main); 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: var(--text-main);
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
-
-        .screen { 
-            display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; height: 100%; overflow-y: auto; background: var(--bg-main);
-            animation: screenFadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); 
-            z-index: 10;
-        }
-        .screen.active { display: block; }
-
-        @keyframes screenFadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* --- СТИЛИ МОДАЛЬНЫХ ОКОН --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 3000; align-items: center; justify-content: center;
-            backdrop-filter: blur(5px); padding: 20px;
-        }
-        .modal-card {
-            background: white; width: 100%; max-width: 340px; border-radius: 30px;
-            padding: 30px 20px; text-align: center; position: relative;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        @keyframes modalPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    <style> 
+        :root {  
+            --bg: #f2f3f7; --accent: #007aff; --card: #ffffff; --text: #1c1c1e;  
+            --secondary: #8e8e93; --credit: #34c759; --red: #ff3b30; --tab-bg: #ffffff; 
+        } 
+        body.dark { 
+            --bg: #000000; --card: #1c1c1e; --text: #ffffff; --secondary: #8e8e93; --tab-bg: #121212; 
+        } 
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; } 
+        body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior: none; transition: background 0.3s; } 
         
-        .success-icon {
-            width: 70px; height: 70px; background: var(--sber-green); color: white;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 35px; margin: 0 auto 20px;
-        }
+        .btn:disabled { opacity: 0.5; background: #ccc !important; color: #888 !important; cursor: not-allowed; } 
+        .lock-badge { display: flex; align-items: center; gap: 5px; color: var(--red); font-size: 13px; font-weight: 600; margin-top: 5px; } 
 
-        #screen-install { background: #fff; text-align: center; z-index: 1000; }
-        .hero-banner {
-            background: linear-gradient(180deg, #3494e6 0%, #2ecc71 100%);
-            padding: 60px 20px 40px; color: white; border-radius: 0 0 40px 40px;
-        }
-        .hero-banner h1 { font-size: 32px; font-weight: 800; margin: 0; }
-        .hero-banner p { opacity: 0.9; font-size: 16px; margin-top: 10px; }
-
-        .promo-section { padding: 30px 20px; }
-        .promo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; }
-        .promo-card {
-            background: #f9f9f9; padding: 20px; border-radius: 20px; text-align: left;
-            border: 1px solid #eee; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-        }
-        .promo-card i { font-size: 24px; display: block; margin-bottom: 10px; }
-        .promo-card h3 { font-size: 14px; margin: 0; color: #000; }
-        .promo-card p { font-size: 12px; margin: 5px 0 0; color: #777; line-height: 1.4; }
-
-        .install-guide { background: #f0f7ff; margin: 20px; padding: 25px; border-radius: 25px; text-align: left; }
-        .guide-title { font-weight: 800; font-size: 18px; margin-bottom: 20px; color: #1a73e8; display: flex; align-items: center; gap: 10px; }
-        .guide-step { display: flex; align-items: flex-start; gap: 15px; margin-bottom: 18px; }
-        .guide-num { 
-            width: 28px; height: 28px; background: #1a73e8; color: white; 
-            border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-            font-size: 14px; font-weight: bold; flex-shrink: 0; 
-        }
-        .guide-text { font-size: 14px; line-height: 1.5; color: #333; }
-        .guide-text b { color: #000; }
-
-        #screen-auth { 
-            background: radial-gradient(circle at top right, #3494e6, #2c3e50);
-            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-            padding-top: 80px;
-        }
-        .auth-logo { font-size: 48px; font-weight: 900; color: white; letter-spacing: -2px; margin-bottom: 10px; }
-        .auth-subtitle { color: rgba(255,255,255,0.7); margin-bottom: 50px; font-size: 14px; }
+        .refresh-btn { position: fixed; top: 20px; right: 20px; width: 45px; height: 45px; background: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 1000; font-size: 22px; border: none; cursor: pointer; color: var(--text); }  
         
-        .auth-toggle {
-            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
-            width: 85%; border-radius: 16px; display: flex; padding: 5px; margin-bottom: 30px;
-        }
-        .toggle-btn { 
-            flex: 1; text-align: center; padding: 12px; border-radius: 12px; 
-            font-weight: 600; color: white; cursor: pointer; transition: 0.3s;
-        }
-        .toggle-btn.active { background: white; color: #2c3e50; }
-
-        .auth-card {
-            background: var(--white); width: 85%; border-radius: 28px;
-            padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            display: flex; flex-direction: column; max-height: 400px;
-        }
-        .input-label { font-size: 12px; text-transform: uppercase; color: #999; margin-bottom: 8px; font-weight: 700; }
-        .user-scroll-area { flex-grow: 1; overflow-y: auto; margin-top: 10px; border-top: 1px solid #eee; }
-        .user-row {
-            padding: 15px 0; border-bottom: 1px solid #f5f5f5; 
-            font-size: 20px; font-weight: 700; color: #333; cursor: pointer;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .user-row:last-child { border-bottom: none; }
-        .user-row.selected { color: var(--sber-green); }
-
-        .auth-actions { display: flex; width: 85%; gap: 12px; margin-top: 25px; }
-        .btn-reg { 
-            background: rgba(0,0,0,0.8); color: white; flex: 1; height: 55px; 
-            border-radius: 16px; border: none; font-weight: 700; font-size: 15px; 
-        }
-        .btn-go { 
-            background: var(--accent-yellow); width: 70px; height: 55px; 
-            border-radius: 16px; border: none; font-size: 24px; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(255, 204, 0, 0.3);
-        }
-
-        .top-nav {
-            background: var(--dark-panel); padding: 60px 20px 30px;
-            border-radius: 0 0 35px 35px; color: white;
-        }
-        .user-info-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        .avatar-stub { width: 45px; height: 45px; background: #333; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        #install-view { display: none; padding: 40px 24px; text-align: center; min-height: 100vh; background: #fff; }  
+        .logo-box { width: 80px; height: 80px; background: var(--accent); border-radius: 20px; margin: 0 auto 24px; display: flex; align-items: center; justify-content: center; color: white; font-size: 32px; }  
         
-        .card-slider { display: flex; gap: 15px; overflow-x: auto; padding: 5px 0 15px; scroll-snap-type: x mandatory; }
-        .card-slider::-webkit-scrollbar { display: none; }
-        .bank-card {
-            min-width: 160px; height: 210px; background: linear-gradient(135deg, #444, #111);
-            border-radius: 22px; padding: 20px; display: flex; flex-direction: column;
-            justify-content: space-between; scroll-snap-align: start; position: relative;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        }
-        .bank-card.credit { background: linear-gradient(135deg, #d4af37, #8a6d3b); }
-        .bank-card.credit::after { content: 'PREMIUM'; position: absolute; top: 20px; right: 20px; font-size: 8px; opacity: 0.5; }
+        .screen { display: none; padding: 20px 20px 100px 20px; min-height: 100vh; position: relative; }  
+        .screen.active { display: block; animation: fadeIn 0.3s ease; }  
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }  
         
-        .card-name { font-size: 10px; font-weight: 900; letter-spacing: 1px; opacity: 0.8; }
-        .card-balance { font-size: 22px; font-weight: 800; margin-top: 5px; }
-        .card-number { font-size: 12px; opacity: 0.5; font-family: monospace; }
+        .card { background: var(--card); border-radius: 24px; padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); position: relative; }  
+        .balance { font-size: 32px; font-weight: 700; margin: 5px 0; }  
+        .small { color: var(--secondary); font-size: 13px; }  
+          
+        .ip-badge { display: none; position: absolute; top: 20px; right: 20px; background: #000; color: #fff; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 800; letter-spacing: 1px; }  
 
-        .main-content { padding: 25px 20px; }
-        .widget { 
-            background: var(--white); border-radius: 24px; padding: 20px; 
-            margin-bottom: 15px; box-shadow: var(--shadow);
-            display: flex; align-items: center; gap: 15px;
-        }
-        .widget-icon { width: 45px; height: 45px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .widget-info { flex: 1; }
-        .widget-title { font-size: 13px; color: #888; margin-bottom: 2px; }
-        .widget-value { font-size: 17px; font-weight: 800; }
-
-        .header-detail { padding: 20px; display: flex; align-items: center; justify-content: space-between; }
-        .btn-back { font-size: 24px; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
+        .btn-row { display: flex; gap: 8px; margin-bottom: 20px; justify-content: space-between; }  
+        .btn { flex: 1; padding: 18px 5px; border-radius: 18px; border: none; font-size: 14px; font-weight: 600; cursor: pointer; text-align: center; display: flex; justify-content: center; align-items: center; }  
+        .primary { background: #ffdd2d; color: #000; }  
+        .secondary { background: #e8f0ff; color: #007aff; }  
+        .danger { background: var(--red); color: white; }  
         
-        .amount-big { text-align: center; padding: 40px 0 10px; font-size: 42px; font-weight: 900; }
-        .bonus-badge {
-            background: #e8f5e9; color: var(--sber-green); width: fit-content;
-            margin: 0 auto 35px; padding: 10px 20px; border-radius: 50px;
-            font-weight: 800; font-size: 14px;
-        }
+        .dots { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }  
+        .dot { width: 12px; height: 12px; border: 2px solid #ccc; border-radius: 50%; }  
+        .dot.filled { background: var(--text); border-color: var(--text); }  
+        
+        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 300px; margin: 0 auto; }  
+        .key { height: 70px; font-size: 26px; border: none; background: none; border-radius: 35px; cursor: pointer; color: var(--text); }  
+        
+        input, select { width: 100%; padding: 18px; border-radius: 18px; border: 1px solid #ddd; font-size: 16px; margin-bottom: 15px; outline: none; background: var(--card); color: var(--text); }  
+        
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f2; }  
+        .history-amount { font-weight: 700; font-size: 15px; }  
+        
+        .tab-bar { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--tab-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #e5e5ea; z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }  
+        .tab-item { display: flex; flex-direction: column; align-items: center; font-size: 10px; color: var(--secondary); cursor: pointer; }  
+        .tab-item.active { color: var(--accent); }  
+        .tab-icon { font-size: 24px; margin-bottom: 4px; }  
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(5px); }  
+        .modal-content { background: var(--card); width: 90%; max-width: 350px; padding: 25px; border-radius: 28px; text-align: center; }  
+        
+        .check-icon { width: 60px; height: 60px; background: #34c759; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 30px; }  
+        .check-sum { font-size: 36px; font-weight: 800; margin: 10px 0; }  
+        
+        #chat-container { height: 60vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 10px 0; }  
+        .msg { max-width: 80%; padding: 12px 16px; border-radius: 20px; font-size: 15px; line-height: 1.4; position: relative; word-wrap: break-word; }  
+        .msg.user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }  
+        .msg.admin { align-self: flex-start; background: #e5e5ea; color: #000; border-bottom-left-radius: 4px; }  
+        body.dark .msg.admin { background: #3a3a3c; color: #fff; }  
+        .chat-input-area { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
 
-        .action-grid { 
-            display: grid; grid-template-columns: repeat(4, 1fr); 
-            gap: 15px; padding: 0 20px 30px; 
-        }
-        .action-item { text-align: center; font-size: 11px; font-weight: 700; color: #555; }
-        .action-btn {
-            width: 60px; height: 60px; background: #f0f2f5; border-radius: 50%;
-            margin: 0 auto 8px; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; transition: 0.2s;
-        }
-        .action-btn:active { transform: scale(0.9); background: #e2e4e7; }
+        .login-tabs { display: flex; background: #e5e5ea; border-radius: 12px; padding: 2px; margin-bottom: 20px; }
+        body.dark .login-tabs { background: #3a3a3c; }
+        .login-tab { flex: 1; padding: 10px; text-align: center; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--secondary); }
+        .login-tab.active { background: #fff; color: #000; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        body.dark .login-tab.active { background: #1c1c1e; color: #fff; }
 
-        .history-section { background: var(--white); border-radius: 35px 35px 0 0; min-height: 400px; padding: 30px 20px; }
-        .history-title { font-size: 20px; font-weight: 800; margin-bottom: 20px; }
-        .op-item {
-            display: flex; align-items: center; gap: 15px; padding: 15px 0;
-            border-bottom: 1px solid #f2f2f2;
+        /* Стиль для кредитной карты */
+        .credit-card-style {
+            background: linear-gradient(135deg, #34c759 0%, #248a3d 100%);
+            color: white;
         }
-        .op-icon { width: 45px; height: 45px; background: #f9f9f9; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
-        .op-info { flex: 1; }
-        .op-name { font-weight: 700; font-size: 15px; margin-bottom: 2px; }
-        .op-date { font-size: 12px; color: #aaa; }
-        .op-amount { font-weight: 800; font-size: 16px; }
-        .op-amount.plus { color: var(--sber-green); }
+        .credit-card-style .small { color: rgba(255,255,255,0.8); }
+    </style> 
+</head> 
+<body> 
 
-        .form-container { padding: 30px 20px; }
-        .form-group { margin-bottom: 20px; text-align: left; }
-        label { display: block; font-size: 13px; font-weight: 700; color: #777; margin-bottom: 8px; margin-left: 5px; }
-        input, select {
-            width: 100%; height: 60px; background: #f5f5f5; border: 1px solid #eee;
-            border-radius: 18px; padding: 0 20px; font-size: 16px; font-weight: 600;
-        }
-        .submit-btn {
-            width: 100%; height: 65px; background: var(--sber-green); color: white;
-            border: none; border-radius: 20px; font-size: 18px; font-weight: 800;
-            margin-top: 20px; box-shadow: 0 5px 15px rgba(33, 160, 56, 0.3);
-            cursor: pointer;
-        }
-        .submit-btn:active { transform: scale(0.98); }
+    <button class="refresh-btn" onclick="hardReset()">🔄</button> 
 
-        .loader-dots { display: flex; justify-content: center; gap: 5px; padding: 40px; }
-        .dot { width: 8px; height: 8px; background: #ccc; border-radius: 50%; animation: dotPulse 1s infinite alternate; }
-        .dot:nth-child(2) { animation-delay: 0.3s; }
-        .dot:nth-child(3) { animation-delay: 0.6s; }
-        @keyframes dotPulse { from { opacity: 0.3; } to { opacity: 1; } }
-    </style>
-</head>
-<body>
+    <div id="install-view"> 
+        <div class="logo-box">👤</div> 
+        <h1>Активация доступа</h1> 
+        <p>Нажмите «Поделиться», затем «На экран Домой».</p> 
+    </div> 
 
-    <div id="modal-success" class="modal-overlay" onclick="closeSuccessModal()">
-        <div class="modal-card" onclick="event.stopPropagation()">
-            <div class="success-icon">✓</div>
-            <h2 id="success-title" style="margin:0; font-size: 22px;">Готово!</h2>
-            <div id="success-amount" style="font-size: 32px; font-weight: 900; margin: 15px 0;">0 ₽</div>
-            <div id="success-path" style="font-size: 14px; color: #666; font-weight: 600; margin-bottom: 25px;">...</div>
-            <button class="submit-btn" onclick="closeSuccessModal()">Вернуться</button>
+    <div id="reg-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-top:0">Регистрация</h2>
+            <select id="reg-type" onchange="toggleRegFields()">
+                <option value="client">Я Клиент</option>
+                <option value="ip">Я ИП</option>
+            </select>
+            <div id="reg-fields">
+                <input type="text" id="reg-name" placeholder="Ваше имя">
+                <input type="text" id="reg-phone" placeholder="Ваш телефон">
+                <div id="ip-fields" style="display:none">
+                    <input type="text" id="reg-company" placeholder="Название компании">
+                    <input type="text" id="reg-inn" placeholder="ИНН">
+                </div>
+                <input type="password" id="reg-pin" placeholder="Пин-код для входа (4 цифры)" maxlength="4">
+            </div>
+            <button class="btn primary" style="width:100%" onclick="submitReg()">Создать аккаунт</button>
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeReg()">Отмена</button>
         </div>
     </div>
 
-    <div id="modal-service" class="modal-overlay">
-        <div class="modal-card" style="text-align: left;">
-            <h3 id="srv-modal-title" style="margin-top:0; text-align: center;">Оплата</h3>
-            <div class="form-group">
-                <label id="srv-select-label">Провайдер</label>
-                <select id="srv-provider"></select>
-            </div>
-            <div class="form-group">
-                <label id="srv-acc-label">Реквизиты</label>
-                <input type="text" id="srv-account" placeholder="Введите данные">
-            </div>
-            <div class="form-group">
-                <label>Сумма</label>
-                <input type="number" id="srv-sum" placeholder="0 ₽">
-            </div>
-            <button class="submit-btn" onclick="confirmServicePayment()">Оплатить</button>
-            <button class="submit-btn" style="background:#eee; color:#333; margin-top:10px; box-shadow:none;" onclick="closeServiceModal()">Отмена</button>
-        </div>
+    <div id="transfer-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Перевод</h2> 
+            <select id="transfer-target"></select> 
+            <input type="number" id="transfer-amount" placeholder="0 ₽"> 
+            <input type="text" id="transfer-message" placeholder="Сообщение получателю"> 
+            <button class="btn primary" style="width:100%" onclick="processTransfer()">Отправить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeTransfer()">Отмена</button> 
+        </div> 
+    </div> 
+
+    <div id="service-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 id="service-title" style="margin-top:0">Оплата</h2> 
+            <select id="service-provider"></select> 
+            <input type="text" id="service-account" placeholder="Номер счета / Телефона"> 
+            <input type="number" id="service-sum" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="processServicePayment()">Оплатить</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="closeServiceModal()">Отмена</button> 
+        </div> 
     </div>
 
-    <div id="screen-install" class="screen">
-        <div class="hero-banner">
-            <h1>K-Online Pro</h1>
-            <p>Онлайн всегда под рукой</p>
-        </div>
-        <div class="promo-section">
-            <div class="promo-grid">
-                <div class="promo-card"><i>⚡</i><h3>Быстро</h3><p>Платежи и переводы за считанные секунды</p></div>
-                <div class="promo-card"><i>🛡️</i><h3>Безопасно</h3><p>Защита ваших данных по стандарту AES-256</p></div>
-                <div class="promo-card"><i>💎</i><h3>Выгодно</h3><p>Повышенный кэшбэк в категориях месяца</p></div>
-                <div class="promo-card"><i>📊</i><h3>Удобно</h3><p>Аналитика расходов и управление лимитами</p></div>
-            </div>
-        </div>
-        <div class="install-guide">
-            <div class="guide-title">📲 Установка приложения</div>
-            <div class="guide-step"><div class="guide-num">1</div><div class="guide-text">Нажмите на иконку <b>«Поделиться»</b>.</div></div>
-            <div class="guide-step"><div class="guide-num">2</div><div class="guide-text">Выберите <b>«На экран „Домой“»</b>.</div></div>
-        </div>
-        <p style="font-size: 11px; color: #999; margin-bottom: 40px;">Версия 4.0.5 (Stable)</p>
-    </div>
+    <div id="credit-modal" class="modal"> 
+        <div class="modal-content"> 
+            <h2 style="margin-top:0">Заявка на кредит</h2> 
+            <p class="small" style="margin-bottom:20px">Укажите желаемую сумму кредитного лимита</p>
+            <input type="number" id="credit-amount" placeholder="Сумма ₽"> 
+            <button class="btn primary" style="width:100%" onclick="alert('Заявка отправлена на рассмотрение')">Отправить заявку</button> 
+            <button class="btn" style="width:100%; background:none; color:var(--secondary)" onclick="document.getElementById('credit-modal').style.display='none'">Отмена</button> 
+        </div> 
+    </div> 
 
-    <div id="screen-auth" class="screen">
-        <div class="auth-logo">K-Online</div>
-        <div class="auth-subtitle">Цифровой банкинг нового поколения</div>
-        <div class="auth-toggle">
-            <div class="toggle-btn active" onclick="setAuthTab('private')">Частное лицо</div>
-            <div class="toggle-btn" onclick="setAuthTab('business')">Бизнес</div>
-        </div>
-        <div class="auth-card">
-            <div class="input-label">Выберите ваш аккаунт</div>
-            <div class="user-scroll-area" id="userListUI">
-                <div class="loader-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-            </div>
-        </div>
-        <div class="auth-actions">
-            <button class="btn-reg" onclick="registerNew()">Регистрация</button>
-            <button class="btn-go" onclick="loginAction()">➜</button>
-        </div>
-    </div>
+    <div id="success-modal" class="modal"> 
+        <div class="modal-content"> 
+            <div class="check-icon">✓</div> 
+            <div class="check-sum" id="check-amount">0 ₽</div> 
+            <div id="check-names" style="margin: 20px 0;"></div> 
+            <button class="btn primary" style="width:100%" onclick="closeSuccess()">Закрыть</button> 
+        </div> 
+    </div> 
 
-    <div id="screen-home" class="screen">
-        <div class="top-nav">
-            <div class="user-info-row">
+    <div id="screen-name" class="screen"> 
+        <h1 style="margin-top:60px">Вход</h1> 
+         
+        <div class="login-tabs">
+            <div class="login-tab active" id="tab-client" onclick="switchLoginTab('Клиент')">Клиенты</div>
+            <div class="login-tab" id="tab-ip" onclick="switchLoginTab('ИП')">ИП</div>
+        </div>
+
+        <div class="card"> 
+            <input type="text" id="loginInp" placeholder="Имя или номер телефона" oninput="findClient()"> 
+            <button class="btn primary" style="width: 100%; font-size: 16px;" onclick="findClient()">Найти аккаунт</button> 
+            <div id="error" style="color:red; margin-top:10px; font-size:14px; text-align:center;"></div> 
+        </div> 
+        <div id="variants"></div> 
+        <p style="text-align:center; color:var(--accent); cursor:pointer; font-weight:600" onclick="openReg()">Создать аккаунт</p>
+    </div> 
+
+    <div id="screen-pin" class="screen"> 
+        <div style="text-align:center; margin-top:80px;"> 
+            <div class="logo-box" style="background:#e5e7eb; color:#000;">👤</div> 
+            <h2 id="pinUser"></h2> 
+            <div class="dots" id="pinDots"> 
+                <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div> 
+            </div> 
+            <div class="keypad" id="keypad"></div> 
+        </div> 
+    </div> 
+
+    <div id="screen-home" class="screen"> 
+        <h1 id="homeUser" style="margin-top:10px"></h1> 
+        <div class="card"> 
+            <div class="small">Всего средств</div> 
+            <div class="balance" id="hBal">0 ₽</div> 
+            <div id="hLockStatus"></div> <div class="small" id="hSpend">Траты за период: 0 ₽</div> 
+        </div> 
+
+        <div id="accounts-container"></div> 
+        <div id="credit-container"></div> 
+         
+        <div class="card" id="apply-credit-card" onclick="document.getElementById('credit-modal').style.display='flex'">
+            <div style="display:flex; align-items:center; gap:15px">
+                <div style="font-size:24px">💳</div>
                 <div>
-                    <div style="opacity: 0.6; font-size: 12px;">Доброе утро,</div>
-                    <div id="helloName" style="font-size: 20px; font-weight: 800;">Загрузка...</div>
-                </div>
-                <div class="avatar-stub" id="avatarName">?</div>
-            </div>
-            <div id="frozenMsg" style="display:none; background:rgba(255,0,0,0.2); padding:15px; border-radius:15px; margin-bottom:20px; border:1px solid rgba(255,0,0,0.3);">
-                <b>⚠️ Доступ ограничен.</b> Свяжитесь с поддержкой.
-            </div>
-            <div id="cardsLayout" class="card-slider">
-                <div class="bank-card" onclick="viewCardDetail('debit')">
-                    <span class="card-name">MIR DEBIT</span>
-                    <div><div class="card-balance" id="mainBal">0 ₽</div><div class="card-number">•••• 4002</div></div>
-                </div>
-                <div id="creditCardItem" class="bank-card credit" style="display:none;" onclick="viewCardDetail('credit')">
-                    <span class="card-name">GOLD CREDIT</span>
-                    <div><div class="card-balance" id="creditBal">0 ₽</div><div id="creditDebt" style="font-size:10px; color:#fff; opacity:0.8;">Лимит: 0 ₽</div></div>
+                    <div style="font-weight:600">Взять кредит</div>
+                    <div class="small">Решение за 1 минуту</div>
                 </div>
             </div>
         </div>
-        <div class="main-content">
-            <div class="widget" onclick="nav('screen-payments')">
-                <div class="widget-icon" style="background: #e3f2fd; color: #1976d2;">📱</div>
-                <div class="widget-info"><div class="widget-title">Оплата услуг</div><div class="widget-value">Связь, Интернет, ЖКХ</div></div>
-                <div style="color: #ccc;">➜</div>
-            </div>
-            <div class="widget" onclick="nav('screen-exchange')">
-                <div class="widget-icon" style="background: #fff9c4; color: #fbc02d;">💵</div>
-                <div class="widget-info"><div class="widget-title">Валютный счет (USD)</div><div class="widget-value" id="usdHome">0.00 $</div></div>
-                <div style="color: #ccc;">➜</div>
-            </div>
-            <div class="widget">
-                <div class="widget-icon" style="background: #e8f5e9; color: #2e7d32;">⭐</div>
-                <div class="widget-info"><div class="widget-title">Бонусы</div><div class="widget-value" id="bonusHome">0</div></div>
-            </div>
-            <div class="widget" id="loanTrigger" onclick="nav('screen-loan')">
-                <div class="widget-icon" style="background: #ede7f6; color: #512da8;">📈</div>
-                <div class="widget-info"><div class="widget-title">Кредитный потенциал</div><div class="widget-value" style="color:#512da8">Узнать лимит</div></div>
+
+        <div class="card">
+            <div style="font-weight:700; margin-bottom:15px">Платежи и сервисы</div>
+            <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                <div onclick="openService('mobile')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">📱</div>
+                    <div style="font-size:10px; margin-top:5px;">Связь</div>
+                </div>
+                <div onclick="openService('transport')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🚌</div>
+                    <div style="font-size:10px; margin-top:5px;">Транспорт</div>
+                </div>
+                <div onclick="openService('internet')" style="text-align:center;">
+                    <div style="font-size:24px; background:var(--bg); padding:10px; border-radius:15px;">🌐</div>
+                    <div style="font-size:10px; margin-top:5px;">Интернет</div>
+                </div>
             </div>
         </div>
-    </div>
+    </div> 
 
-    <div id="screen-card-detail" class="screen">
-        <div class="header-detail">
-            <div class="btn-back" onclick="nav('screen-home')">←</div>
-            <b id="cardDetailTitle">Карта</b>
-            <div style="width:40px;"></div>
+    <div id="screen-exchange" class="screen"> 
+        <h1>Обмен валюты</h1> 
+        <div class="card">
+            <div class="small">Ваш баланс</div>
+            <div class="balance" id="ex-balance">0 ₽</div>
         </div>
-        <div class="amount-big" id="detailSum">0 ₽</div>
-        <div id="creditDebtLabel" style="text-align: center; color: #ff4757; font-weight: 800; font-size: 14px; margin-top: -10px; margin-bottom: 20px; display: none;">Долг: 0 ₽</div>
-        <div class="bonus-badge">⭐ <span id="detailBonus">0</span> Бонусов</div>
-        <div class="action-grid">
-            <div class="action-item" onclick="nav('screen-transfer')"><div class="action-btn" style="color:#1a73e8;">💸</div>Перевести</div>
-            <div class="action-item" onclick="topUpBalance()"><div class="action-btn" style="color:#34a853;">➕</div>Пополнить</div>
-            <div class="action-item" onclick="alert('Ваш лимит на сегодня: 500 000 ₽')"><div class="action-btn">📊</div>Лимиты</div>
-            <div class="action-item" onclick="alert('Безопасность: Настройте PIN и уведомления')"><div class="action-btn">⚙️</div>Настройки</div>
-        </div>
-        <div class="history-section">
-            <div class="history-title">История операций</div>
-            <div id="historyUI"></div>
-            <div id="extraActions" style="margin-top: 30px;"></div>
-        </div>
-    </div>
-
-    <div id="screen-payments" class="screen">
-        <div class="header-detail"><div class="btn-back" onclick="nav('screen-home')">←</div><b>Оплата услуг</b><div></div></div>
-        <div class="form-container">
-            <div class="widget" onclick="openSrv('mobile')"><div class="widget-icon">📱</div><div class="widget-info"><b>Связь</b></div></div>
-            <div class="widget" onclick="openSrv('internet')"><div class="widget-icon">🌐</div><div class="widget-info"><b>Интернет</b></div></div>
-            <div class="widget" onclick="openSrv('transport')"><div class="widget-icon">🚌</div><div class="widget-info"><b>Транспорт</b></div></div>
-        </div>
-    </div>
-
-    <div id="screen-transfer" class="screen">
-        <div class="header-detail"><div class="btn-back" onclick="nav('screen-home')">←</div><b>Перевод по номеру</b><div></div></div>
-        <div class="form-container">
-            <div class="form-group"><label>Получатель</label><select id="transferTarget"></select></div>
-            <div class="form-group"><label>Сумма перевода</label><input type="number" id="transferSum" placeholder="0.00 ₽"></div>
-            <button class="submit-btn" onclick="doTransfer()">Перевести</button>
-        </div>
-    </div>
-
-    <div id="screen-loan" class="screen">
-        <div class="header-detail"><div class="btn-back" onclick="nav('screen-home')">←</div><b>Оформить кредит</b><div></div></div>
-        <div class="form-container">
-            <p style="color:#666; font-size:14px; margin-bottom:25px;">Мы проанализировали ваши доходы и подготовили предложение.</p>
-            <div class="form-group"><label>Нужная сумма</label><input type="number" id="loanSum" placeholder="от 10 000 ₽"></div>
-            <button class="submit-btn" style="background:#512da8" onclick="getLoan()">Получить деньги</button>
-        </div>
-    </div>
-
-    <div id="screen-exchange" class="screen">
-        <div class="header-detail"><div class="btn-back" onclick="nav('screen-home')">←</div><b>Обмен валюты</b><div></div></div>
-        <div class="form-container">
-            <div style="background:var(--white); padding:20px; border-radius:15px; margin-bottom:20px; text-align:center;">
-                <div style="font-size:12px; color:#999;">Курс продажи</div><div style="font-size:28px; font-weight:900;">1 $ = 91.20 ₽</div>
+        
+        <div class="card">
+            <label class="small">Выберите валюту</label>
+            <select id="currency-select" onchange="calcExchange()">
+                <option value="92.5">Доллар США ($)</option>
+                <option value="101.2">Евро (€)</option>
+                <option value="28.4">Белорусский рубль (Br)</option>
+            </select>
+            
+            <label class="small">Сумма в рублях (₽)</label>
+            <input type="number" id="ex-amount" placeholder="Сколько отдаете" oninput="calcExchange()">
+            
+            <div style="margin: 20px 0; text-align: center;">
+                <div class="small">Вы получите примерно:</div>
+                <div id="ex-result" style="font-size: 28px; font-weight: 800; color: var(--accent); margin-top:10px;">0</div>
             </div>
-            <div class="form-group"><label>Сколько купить (USD)</label><input type="number" id="buyUsdAmount" placeholder="0.00 $"></div>
-            <button class="submit-btn" onclick="doExchange()">Купить валюту</button>
+            
+            <button class="btn primary action-btn" onclick="processExchange()">Обменять</button>
         </div>
     </div>
 
-    <script>
+    <div id="screen-chat" class="screen"> 
+        <h1>Поддержка</h1> 
+        <div class="card" style="padding: 15px;"> 
+            <div id="chat-container"></div> 
+            <div class="chat-input-area"> 
+                <input type="text" id="chatInput" placeholder="Ваш вопрос..." style="margin-bottom: 0;"> 
+                <button class="btn primary" style="flex: 0 0 60px; height: 54px;" onclick="sendChatMsg()">➤</button> 
+            </div> 
+        </div> 
+    </div> 
+
+    <div id="screen-settings" class="screen"> 
+        <h1>Настройки</h1> 
+        <div class="card"> 
+            <p class="small">Тема</p> 
+            <select id="themeSelect" onchange="applyTheme(this.value)"> 
+                <option value="light">Светлая</option> 
+                <option value="dark">Темная</option> 
+            </select> 
+        </div> 
+        <button class="btn secondary" style="width:100%" onclick="logout()">Выйти из аккаунта</button> 
+        <footer id="version-label" style="text-align: center; padding: 20px; color: var(--secondary); font-size: 11px;"></footer> 
+    </div> 
+
+    <div id="screen-card" class="screen"> 
+        <button style="background:none; border:none; color:var(--accent); font-size:18px; padding:10px 0; cursor:pointer;" onclick="navTo('screen-home')">← Назад</button> 
+        <div class="card" style="background: linear-gradient(135deg, #1c1c1e, #3a3a3c); color: #fff;"> 
+            <div id="ipBadge" class="ip-badge">ИП</div> 
+            <div class="small" style="color:#aaa">Текущий баланс</div> 
+            <div class="balance" id="cBal">0 ₽</div> 
+            <div id="cLockStatus"></div> <div style="margin-top:10px; font-size:14px;" id="cBonus">Бонусы: 0</div> 
+        </div> 
+        <div class="btn-row"> 
+            <button class="btn secondary action-btn" onclick="alert('Сервис временно недоступен')">QR-оплата</button> 
+            <button class="btn primary action-btn" onclick="showTransfer()">Перевести</button> 
+        </div> 
+
+        <div id="block-card-section">
+            <h3 style="margin-left:10px">Управление картой</h3>
+            <div class="card">
+                <p class="small">В случае утери или кражи вы можете мгновенно заблокировать карту.</p>
+                <button id="lock-btn" class="btn danger" style="width:100%" onclick="lockCard()">Заблокировать карту</button>
+            </div>
+        </div>
+
+        <h3 style="margin-left:10px">История операций</h3> 
+        <div class="card" id="historyList"></div> 
+    </div> 
+
+    <div class="tab-bar" id="main-nav" style="display: none;"> 
+        <div class="tab-item active" id="nav-home" onclick="navTo('screen-home', this)"> 
+            <span class="tab-icon">🏠</span><span>Главная</span> 
+        </div> 
+        <div class="tab-item" id="nav-exchange" onclick="navTo('screen-exchange', this)"> 
+            <span class="tab-icon">💱</span><span>Обмен</span> 
+        </div> 
+        <div class="tab-item" id="nav-chat" onclick="navTo('screen-chat', this)"> 
+            <span class="tab-icon">💬</span><span>Чат</span> 
+        </div> 
+        <div class="tab-item" id="nav-settings" onclick="navTo('screen-settings', this)"> 
+            <span class="tab-icon">⚙️</span><span>Настройки</span> 
+        </div> 
+    </div> 
+
+    <script> 
         const firebaseConfig = { 
             apiKey: "AIzaSyA3J7KnUgxUHZigwRKmndm7xyxJeeLCrxg", 
+            authDomain: "webapp-b7149.firebaseapp.com", 
             databaseURL: "https://webapp-b7149-default-rtdb.europe-west1.firebasedatabase.app", 
-            projectId: "webapp-b7149"
+            projectId: "webapp-b7149", 
+            storageBucket: "webapp-b7149.firebasestorage.app", 
+            messagingSenderId: "1034835242406", 
+            appId: "1:1034835242406:web:98499dc1edbb83e4b8f367" 
+        }; 
+
+        firebase.initializeApp(firebaseConfig); 
+        const dbRef = firebase.database().ref('clients'); 
+
+        let db = []; 
+        let curUser = null; 
+        let enteredPin = ""; 
+        let activeLoginTab = 'Клиент'; 
+
+        const services = {
+            mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
+            transport: { title: "Транспорт", providers: ["Подорожник", "Тройка", "Единая карта"] },
+            internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
         };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
 
-        let allUsers = [];
-        let selectedLoginKey = null;
-        let currentUser = null;
-        let activeCardType = 'debit';
+        dbRef.on('value', (snapshot) => { 
+            const data = snapshot.val(); 
+            db = data ? Object.keys(data).map(key => ({...data[key], fbKey: key})) : []; 
+            if (curUser) { 
+                const freshData = db.find(u => u.fbKey === curUser.fbKey); 
+                if (freshData) { 
+                    curUser = freshData; 
+                    updateUI(); 
+                } 
+            } 
+        }); 
 
-        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ПРОВЕРКИ РЕЖИМА
-        function checkAppMode() {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches;
+        function updateUI() { 
+            if (!curUser) return;
+            const isFrozen = curUser.frozen === true;
+            const lockHTML = isFrozen ? `<div class="lock-badge">🔒 Карта заблокирована</div>` : '';
             
-            // Если это iPhone/iOS и сайт открыт НЕ через иконку на главном экране
-            if (isIOS && !isStandalone) { 
-                nav('screen-install'); 
-            } else { 
-                nav('screen-auth'); 
+            const hLS = document.getElementById('hLockStatus');
+            const cLS = document.getElementById('cLockStatus');
+            if(hLS) hLS.innerHTML = lockHTML;
+            if(cLS) cLS.innerHTML = lockHTML;
+            
+            document.querySelectorAll('.action-btn').forEach(btn => btn.disabled = isFrozen);
+            const mainLockBtn = document.getElementById('lock-btn');
+            if(mainLockBtn) {
+                mainLockBtn.innerText = isFrozen ? "Карта заблокирована" : "Заблокировать карту";
+                mainLockBtn.disabled = isFrozen;
             }
-        }
 
-        function nav(id) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            const target = document.getElementById(id);
-            if (target) target.classList.add('active');
-        }
-
-        db.ref('clients').on('value', snap => {
-            const data = snap.val();
-            allUsers = data ? Object.keys(data).map(k => ({...data[k], fbKey: k})) : [];
-            renderUserList();
-            if(currentUser) {
-                currentUser = allUsers.find(u => u.fbKey === currentUser.fbKey);
-                updateDashboard();
-                if (document.getElementById('screen-card-detail').classList.contains('active')) {
-                    viewCardDetail(activeCardType);
-                }
+            if (document.getElementById('ex-balance')) {
+                document.getElementById('ex-balance').innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽";
             }
-        });
 
-        function renderUserList() {
-            const listUI = document.getElementById('userListUI');
-            listUI.innerHTML = allUsers.map(u => `<div class="user-row ${selectedLoginKey === u.fbKey ? 'selected' : ''}" onclick="selectUser('${u.fbKey}')">${u.name} <span>${selectedLoginKey === u.fbKey ? '✓' : '›'}</span></div>`).join('');
-            const ts = document.getElementById('transferTarget');
-            if(ts) ts.innerHTML = allUsers.filter(u => u.fbKey !== currentUser?.fbKey).map(u => `<option value="${u.fbKey}">${u.name}</option>`).join('');
+            if (document.getElementById('screen-home').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-card').classList.contains('active')) showHome(); 
+            if (document.getElementById('screen-chat').classList.contains('active')) renderChat(); 
+        } 
+
+        function calcExchange() {
+            const rate = parseFloat(document.getElementById('currency-select').value);
+            const amount = parseFloat(document.getElementById('ex-amount').value) || 0;
+            const res = (amount / rate).toFixed(2);
+            const symbols = { "92.5": "$", "101.2": "€", "28.4": "Br" };
+            document.getElementById('ex-result').innerText = res + " " + symbols[rate];
         }
 
-        function selectUser(key) { selectedLoginKey = key; renderUserList(); }
-
-        function loginAction() {
-            if(!selectedLoginKey) return alert("Выберите аккаунт");
-            const pin = prompt("Введите ПИН (4 цифры):");
-            const user = allUsers.find(u => u.fbKey === selectedLoginKey);
-            if(user && user.clientPin === pin) { currentUser = user; updateDashboard(); nav('screen-home'); } else { alert("Неверный ПИН"); }
+        function processExchange() {
+            const amount = parseFloat(document.getElementById('ex-amount').value);
+            if (!amount || amount <= 0) return alert("Введите сумму");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+            const rate = document.getElementById('currency-select').value;
+            const names = { "92.5": "USD", "101.2": "EUR", "28.4": "BYN" };
+            const resValue = (amount / rate).toFixed(2);
+            const newUpdate = {
+                balance: curUser.balance - amount,
+                spentMonth: (curUser.spentMonth || 0) + amount,
+                history: [...(curUser.history || []), { t: `Обмен на ${names[rate]} (${resValue})`, a: -amount }]
+            };
+            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                document.getElementById('ex-amount').value = "";
+                alert(`Успешно обменяно! Вы получили ${resValue} ${names[rate]}`);
+            });
         }
 
-        function registerNew() {
-            const name = prompt("ФИО:"); const pin = prompt("ПИН:");
-            if(name && pin) { db.ref('clients').push({ name: name, clientPin: pin, balance: 5000, bonus: 150, usd: 0, hasCredit: false, frozen: false, history: { "init": { title: "Открытие счета", sum: 5000, date: Date.now() } } }); }
+        function sendChatMsg() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text || !curUser) return;
+            const newMessage = { text: text, sender: 'user', timestamp: Date.now() };
+            firebase.database().ref(`clients/${curUser.fbKey}/messages`).push(newMessage).then(() => {
+                input.value = "";
+                renderChat();
+            });
         }
 
-        function updateDashboard() {
-            if(!currentUser) return;
-            document.getElementById('helloName').innerText = currentUser.name;
-            document.getElementById('avatarName').innerText = currentUser.name.charAt(0);
-            document.getElementById('mainBal').innerText = (currentUser.balance || 0).toLocaleString() + " ₽";
-            document.getElementById('bonusHome').innerText = (currentUser.bonus || 0).toLocaleString();
-            document.getElementById('usdHome').innerText = (currentUser.usd || 0).toFixed(2) + " $";
-            document.getElementById('frozenMsg').style.display = currentUser.frozen ? 'block' : 'none';
-            if(currentUser.hasCredit) {
-                document.getElementById('creditCardItem').style.display = 'flex';
-                document.getElementById('loanTrigger').style.display = 'none';
-                document.getElementById('creditBal').innerText = (currentUser.creditBalance || 0).toLocaleString() + " ₽";
-                document.getElementById('creditDebt').innerText = "Долг: " + (currentUser.creditLimit - currentUser.creditBalance).toLocaleString() + " ₽";
+        function renderChat() {
+            const container = document.getElementById('chat-container');
+            if (!curUser || !container) return;
+            const msgs = curUser.messages ? Object.values(curUser.messages) : [];
+            container.innerHTML = msgs.length ? "" : "<p class='small' style='text-align:center'>История сообщений пуста.</p>";
+            msgs.forEach(m => {
+                const d = document.createElement('div');
+                d.className = `msg ${m.sender === 'admin' ? 'admin' : 'user'}`;
+                d.innerText = m.text;
+                container.appendChild(d);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function findClient() { 
+            const v = loginInp.value.trim().toLowerCase(); 
+            error.innerText = ""; variants.innerHTML = ""; 
+            if(!v) return; 
+            const matches = db.filter(c => {
+                const isCorrectType = activeLoginTab === 'ИП' ? (c.orgType === 'ИП') : (c.orgType !== 'ИП');
+                const nameMatch = c.name?.toLowerCase().includes(v);
+                const phoneMatch = c.phone?.toString().includes(v);
+                return isCorrectType && (nameMatch || phoneMatch);
+            });
+            matches.forEach(c => { 
+                const d = document.createElement("div"); 
+                d.className = "card"; d.innerHTML = `<strong>${c.name}</strong><br><small>${c.phone || ''}</small>`; 
+                d.onclick = () => { curUser = c; enteredPin = ""; pinUser.innerText = c.name; navTo('screen-pin'); };  
+                variants.appendChild(d); 
+            }); 
+        } 
+
+        function buildKeypad() { 
+            const keypadElement = document.getElementById('keypad');
+            const keys = [1,2,3,4,5,6,7,8,9,'',0,'←']; 
+            keypadElement.innerHTML = "";
+            keys.forEach(k => { 
+                const b = document.createElement('button'); 
+                b.className = 'key'; b.innerText = k; 
+                b.onclick = () => { 
+                    if(k === '←') enteredPin = enteredPin.slice(0, -1); 
+                    else if(typeof k === 'number' && enteredPin.length < 4) enteredPin += k; 
+                    const d = pinDots.children;
+                    for(let i=0; i<4; i++) d[i].classList.toggle('filled', i < enteredPin.length);
+                    if(enteredPin.length === 4) { 
+                        if(enteredPin === curUser.clientPin) navTo('screen-home'); 
+                        else { enteredPin = ""; alert("Неверный ПИН"); } 
+                    } 
+                }; 
+                keypadElement.appendChild(b); 
+            }); 
+        } 
+
+        function showHome() { 
+            if (!curUser) return; 
+            homeUser.innerText = `Здравствуйте, ${curUser.name}`; 
+            hBal.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+            hSpend.innerText = `Траты: ${(Number(curUser.spentMonth) || 0).toLocaleString()} ₽`; 
+            
+            const badge = document.getElementById('ipBadge');
+            if(badge) badge.style.display = (curUser.orgType === 'ИП') ? 'block' : 'none'; 
+
+            // Отрисовка личного счета
+            document.getElementById('accounts-container').innerHTML = `
+                <div class="card" onclick="navTo('screen-card')"> 
+                    <div class="small">Личный счет</div> 
+                    <div style="font-size:20px; font-weight:600; margin-top:8px;">${(Number(curUser.balance) || 0).toLocaleString()} ₽</div> 
+                    <div style="color:var(--accent); font-size:14px; margin-top:10px;">Подробнее →</div> 
+                </div>`; 
+
+            // ЛОГИКА КРЕДИТНОЙ КАРТЫ
+            const creditContainer = document.getElementById('credit-container');
+            const creditApplyBlock = document.getElementById('apply-credit-card');
+            
+            // Если в БД есть credit_limit и он > 0
+            if (curUser.credit_limit && Number(curUser.credit_limit) > 0) {
+                const limit = Number(curUser.credit_limit);
+                const spent = Number(curUser.credit_debt) || 0; // сколько осталось выплатить
+                const onCard = limit - spent; // сколько сейчас на карте
+
+                creditContainer.innerHTML = `
+                    <div class="card credit-card-style">
+                        <div style="display:flex; justify-content:space-between; align-items:center">
+                            <div style="font-weight:700">Кредитная Карта</div>
+                            <div style="font-size:20px">💳</div>
+                        </div>
+                        <div class="balance" style="font-size:24px; margin: 10px 0;">${onCard.toLocaleString()} ₽</div>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-end">
+                            <div class="small">Доступный лимит</div>
+                            <div style="text-align:right">
+                                <div class="small">Осталось выплатить</div>
+                                <div style="font-weight:600">${spent.toLocaleString()} ₽</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if(creditApplyBlock) creditApplyBlock.style.display = 'none'; // Скрываем кнопку "Взять кредит", так как он уже есть
             } else {
-                document.getElementById('creditCardItem').style.display = 'none';
-                document.getElementById('loanTrigger').style.display = 'flex';
+                creditContainer.innerHTML = "";
+                if(creditApplyBlock) creditApplyBlock.style.display = 'block';
+            }
+            
+            const cBalEl = document.getElementById('cBal');
+            const cBonusEl = document.getElementById('cBonus');
+            if(cBalEl) cBalEl.innerText = (Number(curUser.balance) || 0).toLocaleString() + " ₽"; 
+            if(cBonusEl) cBonusEl.innerText = "Бонусы: " + (Number(curUser.bonuses) || 0).toLocaleString(); 
+             
+            const hList = document.getElementById('historyList'); 
+            if(hList) {
+                hList.innerHTML = ""; 
+                if(curUser.history) { 
+                    curUser.history.slice().reverse().forEach(h => { 
+                        hList.innerHTML += `<div class="history-item"> 
+                            <div><div style="font-weight:600;">${h.t}</div></div>
+                            <span class="history-amount" style="color:${h.a > 0 ? 'var(--credit)' : 'var(--text)'}">${h.a > 0 ? '+' : ''}${h.a} ₽</span> 
+                        </div>`; 
+                    }); 
+                } 
+            }
+        } 
+
+        function navTo(id, el) { 
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+            document.getElementById(id).classList.add('active'); 
+            if(el) { 
+                document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active')); 
+                el.classList.add('active'); 
+            } 
+            const nav = document.getElementById('main-nav'); 
+            nav.style.display = ['screen-home', 'screen-settings', 'screen-chat', 'screen-card', 'screen-exchange'].includes(id) ? 'flex' : 'none'; 
+            if(id === 'screen-home' || id === 'screen-card') showHome(); 
+            if(id === 'screen-chat') renderChat(); 
+        } 
+
+        function submitReg() {
+            const type = document.getElementById('reg-type').value;
+            const name = document.getElementById('reg-name').value;
+            const phone = document.getElementById('reg-phone').value;
+            const pin = document.getElementById('reg-pin').value;
+            if(!name || !phone || pin.length < 4) return alert("Заполните все поля (ПИН должен быть 4 цифры)");
+            const newUser = {
+                name: name, phone: phone, clientPin: pin,
+                orgType: type === 'ip' ? 'ИП' : 'Клиент',
+                balance: 0, spentMonth: 0, bonuses: 0, frozen: false,
+                history: [{t: "Открытие счета", a: 0}],
+                messages: { "init": { text: "Добро пожаловать в поддержку!", sender: "admin", timestamp: Date.now() }}
+            };
+            firebase.database().ref('applications').push(newUser).then(() => {
+                alert("Заявка успешно отправлена! Ожидайте подтверждения.");
+                closeReg();
+            });
+        }
+
+        function processTransfer() {
+            const targetKey = document.getElementById('transfer-target').value;
+            const amount = parseFloat(document.getElementById('transfer-amount').value);
+            if (isNaN(amount) || amount <= 0) return alert("Введите корректную сумму");
+            if (amount > curUser.balance) return alert("Недостаточно средств");
+            const targetUser = db.find(u => u.fbKey === targetKey);
+            const updates = {};
+            updates['/clients/' + curUser.fbKey + '/balance'] = curUser.balance - amount;
+            updates['/clients/' + curUser.fbKey + '/spentMonth'] = (curUser.spentMonth || 0) + amount;
+            updates['/clients/' + curUser.fbKey + '/history'] = [...(curUser.history || []), { t: `Перевод: ${targetUser.name}`, a: -amount }];
+            updates['/clients/' + targetKey + '/balance'] = (targetUser.balance || 0) + amount;
+            updates['/clients/' + targetKey + '/history'] = [...(targetUser.history || []), { t: `Приход от: ${curUser.name}`, a: amount }];
+            firebase.database().ref().update(updates).then(() => {
+                closeTransfer();
+                document.getElementById('check-amount').innerText = amount + " ₽";
+                document.getElementById('check-names').innerText = `Для ${targetUser.name}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            });
+        }
+
+        function processServicePayment() {
+            const sum = parseFloat(document.getElementById('service-sum').value);
+            const provider = document.getElementById('service-provider').value;
+            const account = document.getElementById('service-account').value;
+            if (isNaN(sum) || sum <= 0 || !account) return alert("Заполните все поля");
+            if (sum > curUser.balance) return alert("Недостаточно средств");
+            const newUpdate = {
+                balance: curUser.balance - sum,
+                spentMonth: (curUser.spentMonth || 0) + sum,
+                history: [...(curUser.history || []), { t: `Оплата: ${provider}`, a: -sum }]
+            };
+            firebase.database().ref('clients/' + curUser.fbKey).update(newUpdate).then(() => {
+                closeServiceModal();
+                document.getElementById('check-amount').innerText = sum + " ₽";
+                document.getElementById('check-names').innerText = `Оплата ${provider}`;
+                document.getElementById('success-modal').style.display = 'flex';
+            });
+        }
+
+        function switchLoginTab(type) {
+            activeLoginTab = type;
+            document.getElementById('tab-client').classList.toggle('active', type === 'Клиент');
+            document.getElementById('tab-ip').classList.toggle('active', type === 'ИП');
+            findClient();
+        }
+
+        function toggleRegFields() {
+            const isIp = document.getElementById('reg-type').value === 'ip';
+            document.getElementById('ip-fields').style.display = isIp ? 'block' : 'none';
+        }
+
+        function openService(type) {
+            if(curUser.frozen) return alert("Карта заблокирована");
+            const data = services[type];
+            document.getElementById('service-title').innerText = data.title;
+            const select = document.getElementById('service-provider');
+            select.innerHTML = data.providers.map(p => `<option value="${p}">${p}</option>`).join('');
+            document.getElementById('service-account').placeholder = type === 'mobile' ? 'Номер телефона' : 'Номер счета';
+            document.getElementById('service-modal').style.display = 'flex';
+        }
+
+        function showTransfer() { 
+            if(curUser.frozen) return alert("Карта заблокирована");
+            const select = document.getElementById('transfer-target'); 
+            const others = db.filter(u => u.fbKey !== curUser.fbKey); 
+            select.innerHTML = others.map(u => `<option value="${u.fbKey}">${u.name}</option>`).join(''); 
+            document.getElementById('transfer-modal').style.display = 'flex'; 
+        } 
+
+        function lockCard() {
+            if(curUser.frozen) return;
+            if(confirm("Заблокировать карту? Это действие нельзя отменить самостоятельно.")) {
+                firebase.database().ref('clients/' + curUser.fbKey).update({ frozen: true });
             }
         }
 
-        function viewCardDetail(type) {
-            activeCardType = type;
-            const isCr = type === 'credit';
-            const debt = isCr ? (currentUser.creditLimit - currentUser.creditBalance) : 0;
-            document.getElementById('cardDetailTitle').innerText = isCr ? "Кредитная карта" : "Дебетовая карта";
-            document.getElementById('detailSum').innerText = isCr ? (currentUser.creditBalance || 0).toLocaleString() + " ₽" : (currentUser.balance || 0).toLocaleString() + " ₽";
-            document.getElementById('detailBonus').innerText = (currentUser.bonus || 0).toLocaleString();
-            const debtLabel = document.getElementById('creditDebtLabel');
-            debtLabel.style.display = (isCr && debt > 0) ? 'block' : 'none';
-            debtLabel.innerText = "Остаток долга: " + debt.toLocaleString() + " ₽";
-            const hBox = document.getElementById('historyUI');
-            const hData = currentUser.history ? Object.values(currentUser.history).reverse() : [];
-            hBox.innerHTML = hData.map(h => `<div class="op-item"><div class="op-icon">${h.sum < 0 ? '🛒' : '💰'}</div><div class="op-info"><div class="op-name">${h.title}</div><div class="op-date">Сегодня</div></div><div class="op-amount ${h.sum > 0 ? 'plus' : ''}">${h.sum > 0 ? '+' : ''}${h.sum.toLocaleString()} ₽</div></div>`).join('');
-            const extra = document.getElementById('extraActions');
-            if(!isCr) {
-                extra.innerHTML = `<button class="submit-btn" style="background:#ff4757" onclick="toggleFreeze()">Заблокировать карту</button>`;
-            } else {
-                if(debt > 0) { extra.innerHTML = `<button class="submit-btn" onclick="repayCredit()">Погасить задолженность</button>`; }
-                else { extra.innerHTML = `<button class="submit-btn" style="background:#333" onclick="closeCredit()">Закрыть кредитную карту</button>`; }
-            }
-            nav('screen-card-detail');
-        }
+        function applyTheme(t) { document.body.className = t; localStorage.setItem('app_theme', t); }
+        function logout() { curUser = null; location.reload(); }
+        function closeReg() { document.getElementById('reg-modal').style.display = 'none'; }
+        function openReg() { document.getElementById('reg-modal').style.display = 'flex'; }
+        function closeTransfer() { document.getElementById('transfer-modal').style.display='none'; }
+        function closeSuccess() { document.getElementById('success-modal').style.display='none'; }
+        function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
+        function hardReset() { location.reload(); } 
 
-        // --- ЛОГИКА УСПЕХА ---
-        function showSuccess(title, amount, path) {
-            document.getElementById('success-title').innerText = title;
-            document.getElementById('success-amount').innerText = amount.toLocaleString() + " ₽";
-            document.getElementById('success-path').innerText = path;
-            document.getElementById('modal-success').style.display = 'flex';
-        }
-        function closeSuccessModal() { document.getElementById('modal-success').style.display = 'none'; nav('screen-home'); }
-
-        // --- ОПЛАТА УСЛУГ ---
-        function openSrv(type) {
-            const p = document.getElementById('srv-provider');
-            p.innerHTML = '';
-            if(type === 'mobile') {
-                document.getElementById('srv-modal-title').innerText = "Мобильная связь";
-                document.getElementById('srv-acc-label').innerText = "Номер телефона";
-                ["МТС", "Билайн", "МегаФон", "Tele2"].forEach(x => p.innerHTML += `<option>${x}</option>`);
-            } else if(type === 'internet') {
-                document.getElementById('srv-modal-title').innerText = "Интернет";
-                document.getElementById('srv-acc-label').innerText = "Лицевой счет";
-                ["Ростелеком", "Дом.ру", "МГТС"].forEach(x => p.innerHTML += `<option>${x}</option>`);
-            } else {
-                document.getElementById('srv-modal-title').innerText = "Транспорт";
-                document.getElementById('srv-acc-label').innerText = "Номер карты";
-                ["Тройка", "Подорожник", "Стрелка"].forEach(x => p.innerHTML += `<option>${x}</option>`);
-            }
-            document.getElementById('modal-service').style.display = 'flex';
-        }
-        function closeServiceModal() { document.getElementById('modal-service').style.display = 'none'; }
-
-        function confirmServicePayment() {
-            const sum = parseInt(document.getElementById('srv-sum').value);
-            const provider = document.getElementById('srv-provider').value;
-            const acc = document.getElementById('srv-account').value;
-            if(!sum || !acc) return alert("Заполните поля");
-            if(currentUser.balance < sum) return alert("Недостаточно средств");
-
-            db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - sum });
-            db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Оплата: " + provider, sum: -sum });
-            closeServiceModal();
-            showSuccess("Оплата выполнена", sum, provider + " • " + acc);
-        }
-
-        function topUpBalance() {
-            const sum = parseInt(prompt("Введите сумму пополнения (₽):"));
-            if(sum > 0) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance + sum });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Пополнение через ATM", sum: sum });
-                showSuccess("Баланс пополнен", sum, "Наличные > Карта");
-            }
-        }
-
-        function doTransfer() {
-            const targetKey = document.getElementById('transferTarget').value;
-            const sum = parseInt(document.getElementById('transferSum').value);
-            const target = allUsers.find(u => u.fbKey === targetKey);
-            if(sum > 0 && currentUser.balance >= sum) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - sum });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Перевод: " + target.name, sum: -sum });
-                db.ref(`clients/${target.fbKey}`).update({ balance: (target.balance || 0) + sum });
-                db.ref(`clients/${target.fbKey}/history`).push({ title: "Входящий от: " + currentUser.name, sum: sum });
-                showSuccess("Перевод выполнен", sum, currentUser.name.split(' ')[0] + " > " + target.name.split(' ')[0]);
-            } else { alert("Ошибка перевода"); }
-        }
-
-        function getLoan() {
-            const sum = parseInt(document.getElementById('loanSum').value);
-            if(sum >= 1000) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ hasCredit: true, creditLimit: sum, creditBalance: sum });
-                showSuccess("Кредит одобрен", sum, "Банк > Кредитный счет");
-            }
-        }
-
-        function repayCredit() {
-            const debt = currentUser.creditLimit - currentUser.creditBalance;
-            const pay = parseInt(prompt("Сколько внести для погашения? (Максимум: " + debt + ")"));
-            if(pay > 0 && currentUser.balance >= pay) {
-                const actualPay = pay > debt ? debt : pay;
-                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - actualPay, creditBalance: currentUser.creditBalance + actualPay });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Погашение кредита", sum: -actualPay });
-                showSuccess("Долг погашен", actualPay, "Карта > Кредит");
-            }
-        }
-
-        function closeCredit() {
-            if(confirm("Закрыть кредитный продукт?")) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ hasCredit: false, creditLimit: 0, creditBalance: 0 });
-                alert("Карта закрыта"); nav('screen-home');
-            }
-        }
-
-        function doExchange() {
-            const usd = parseFloat(document.getElementById('buyUsdAmount').value);
-            const cost = Math.round(usd * 91.2);
-            if(currentUser.balance >= cost) {
-                db.ref(`clients/${currentUser.fbKey}`).update({ balance: currentUser.balance - cost, usd: (currentUser.usd || 0) + usd });
-                db.ref(`clients/${currentUser.fbKey}/history`).push({ title: "Покупка USD", sum: -cost });
-                showSuccess("Валюта куплена", cost, "RUB > USD (" + usd + "$)");
-            }
-        }
-
-        function toggleFreeze() {
-            if(confirm("Заблокировать карту?")) { db.ref(`clients/${currentUser.fbKey}`).update({ frozen: true }); nav('screen-home'); }
-        }
-
-        function setAuthTab(tab) {
-            document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-            if(tab === 'business') alert("Раздел для бизнеса временно недоступен");
-            else event.target.classList.add('active');
-        }
-
-        // Запуск проверки при загрузке страницы
-        window.addEventListener('load', checkAppMode);
-    </script>
-</body>
+        document.getElementById('version-label').innerText = "Версия системы: 12.0 Stable"; 
+        buildKeypad(); 
+        applyTheme(localStorage.getItem('app_theme') || 'light'); 
+        navTo('screen-name'); 
+    </script> 
+</body> 
 </html>
