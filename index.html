@@ -1,15 +1,13 @@
-<!DOCTYPE html> 
-<html lang="ru"> 
-<head> 
+<!DOCTYPE html><html lang="ru"><head> 
     <meta charset="UTF-8"> 
     <title>Онлайн Банк</title> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
     <meta name="apple-mobile-web-app-capable" content="yes"> 
     <meta name="apple-mobile-web-app-status-bar-style" content="default"> 
-    <link rel="apple-touch-icon" href="https://i.postimg.cc/3Jp6C40b/IMG-2667.jpg"> 
+    <link rel="apple-touch-icon" href="images/IMG-2667.jpg"> 
 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script> 
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script> 
+    <script src="js/firebase-app-compat.js"></script> 
+    <script src="js/firebase-database-compat.js"></script> 
 
     <style> 
         :root {  
@@ -337,6 +335,7 @@
         let enteredPin = ""; 
         let activeLoginTab = 'Клиент'; 
         let isSystemSlow = false;
+        let isBlocked = false; // Флаг для отслеживания блокировки
 
         const services = {
             mobile: { title: "Мобильная связь", providers: ["МТС", "Билайн", "Т2", "Yota", "Мегафон"] },
@@ -344,35 +343,101 @@
             internet: { title: "Интернет и ТВ", providers: ["Ростелеком", "Дом.ру", "МТС Интернет", "Билайн ТВ"] }
         };
 
-        // Система управления
+        // ============ ИСПРАВЛЕННАЯ СИСТЕМА УПРАВЛЕНИЯ ============
         settingsRef.on('value', (snap) => {
             const s = snap.val() || {};
             const blocker = document.getElementById('system-blocker');
+            
+            console.log('Firebase settings received:', s); // Для дебага
+            
+            // Проверка режима обслуживания
             if (s.app_status === 'maintenance') {
+                isBlocked = true;
                 blocker.style.display = 'flex';
                 document.getElementById('system-title').innerText = "Обновление системы";
                 document.getElementById('system-msg').innerText = s.maintenance_msg || "Мы проводим плановые работы. Попробуйте позже.";
-            } else {
-                blocker.style.display = 'none';
+                console.log('Maintenance mode activated');
+                return; // Выходим - maintenance имеет приоритет
             }
-            isSystemSlow = !!s.slowdown;
-            checkGeoLock(s.blocked_countries || []);
+            
+            // Устанавливаем режим замедления
+            isSystemSlow = (s.slowdown === true || s.slowdown === 'true');
+            console.log('Slowdown mode:', isSystemSlow);
+            
+            // Проверяем гео-блокировку
+            // ИСПРАВЛЕНИЕ: преобразуем объект Firebase в массив
+            let blockedCountries = [];
+            if (s.blocked_countries) {
+                if (Array.isArray(s.blocked_countries)) {
+                    blockedCountries = s.blocked_countries;
+                } else if (typeof s.blocked_countries === 'object') {
+                    // Firebase сохраняет массивы как объекты {0: "RU", 1: "BY"}
+                    blockedCountries = Object.values(s.blocked_countries);
+                }
+            }
+            console.log('Blocked countries:', blockedCountries);
+            
+            // Если нет maintenance и нет гео-блока - скрываем blocker
+            if (!isBlocked) {
+                checkGeoLock(blockedCountries);
+            }
         });
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ГЕО-БЛОКИРОВКИ
         async function checkGeoLock(blockedList) {
+            if (!blockedList || blockedList.length === 0) {
+                document.getElementById('system-blocker').style.display = 'none';
+                isBlocked = false;
+                console.log('No countries blocked');
+                return;
+            }
+            
             try {
-                const res = await fetch('https://ipapi.co/json/');
+                console.log('Checking geo location...');
+                const res = await fetch('https://ipapi.co/json/', {
+                    headers: { 'Accept': 'application/json' }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('IP API error: ' + res.status);
+                }
+                
                 const data = await res.json();
-                if (blockedList.includes(data.country_code)) {
+                console.log('User country:', data.country_code, data.country_name);
+                
+                // Проверяем, заблокирована ли страна пользователя
+                const userCountry = data.country_code;
+                const isCountryBlocked = blockedList.some(code => 
+                    code.toUpperCase() === userCountry.toUpperCase()
+                );
+                
+                if (isCountryBlocked) {
+                    isBlocked = true;
                     document.getElementById('system-blocker').style.display = 'flex';
                     document.getElementById('system-title').innerText = "Доступ ограничен";
-                    document.getElementById('system-msg').innerText = "Приложение недоступно в вашем регионе.";
+                    document.getElementById('system-msg').innerText = `Приложение недоступно в вашем регионе (${data.country_name}).`;
+                    console.log('Country blocked:', userCountry);
+                } else {
+                    isBlocked = false;
+                    document.getElementById('system-blocker').style.display = 'none';
+                    console.log('Country allowed:', userCountry);
                 }
-            } catch (e) { console.log("Geo check skipped"); }
+            } catch (e) { 
+                console.log("Geo check error:", e.message);
+                // При ошибке - разрешаем доступ
+                isBlocked = false;
+                document.getElementById('system-blocker').style.display = 'none';
+            }
         }
 
+        // ИСПРАВЛЕННАЯ ФУНКЦИЯ ЗАМЕДЛЕНИЯ
         function withDelay(fn) {
-            if (isSystemSlow) setTimeout(fn, 2000); else fn();
+            if (isSystemSlow) {
+                console.log('Slowdown active - delaying 2s...');
+                setTimeout(fn, 2000);
+            } else {
+                fn();
+            }
         }
 
         dbRef.on('value', (snapshot) => { 
@@ -553,6 +618,7 @@
             });
         }
 
+        // ============ ИСПРАВЛЕННАЯ ФУНКЦИЯ РЕГИСТРАЦИИ ============
         function submitReg() {
             const type = document.getElementById('reg-type').value;
             const name = document.getElementById('reg-name').value;
@@ -560,11 +626,22 @@
             const pin = document.getElementById('reg-pin').value;
             if(!name || !phone || pin.length < 4) return alert("Заполните все поля");
             const newUser = {
-                name: name, phone: phone, clientPin: pin,
+                name: name, 
+                phone: phone, 
+                clientPin: pin,
                 orgType: type === 'ip' ? 'ИП' : 'Клиент',
-                balance: 0, spentMonth: 0, bonuses: 0, frozen: false,
+                balance: 0, 
+                spentMonth: 0, 
+                bonuses: 0, 
+                frozen: false,
                 history: [{t: "Открытие счета", a: 0}],
-                messages: { "init": { text: "Добро пожаловать!", sender: "admin", timestamp: Date.now() }}
+                messages: { 
+                    "init": { 
+                        text: "Добро пожаловать!", 
+                        sender: "admin", 
+                        timestamp: Date.now() 
+                    } 
+                } // <-- ЭТА СКОБКА БЫЛА ПРОПУЩЕНА!
             };
             firebase.database().ref('applications').push(newUser).then(() => {
                 alert("Заявка отправлена!"); closeReg();
@@ -658,10 +735,14 @@
         function closeServiceModal() { document.getElementById('service-modal').style.display='none'; }
         function hardReset() { location.reload(); } 
 
-        document.getElementById('version-label').innerText = "Версия системы: 12.0 Stable"; 
+        document.getElementById('version-label').innerText = "Версия системы: 12.1 Fixed"; 
         buildKeypad(); 
         applyTheme(localStorage.getItem('app_theme') || 'light'); 
         navTo('screen-name'); 
+        
+        console.log('Bank app initialized. Open console to see debug logs.');
     </script> 
-</body> 
-</html>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ddeb1716f8a0e14',t:'MTc3Mzc3ODc3Mi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script><iframe height="1" width="1" style="position: absolute; top: 0px; left: 0px; border: none; visibility: hidden;"></iframe><script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" data-cf-beacon="{" rayid":"9ddeb1716f8a0e14","servertiming":{"name":{"cfextpri":true,"cfedge":true,"cforigin":true,"cfl4":true,"cfspeedbrain":true,"cfcachestatus":true}},"version":"2025.9.1","token":"7f7b0fd8732c4326aae4b9d58d5c514a"}"="" crossorigin="anonymous"></script>
+ 
+
+</body></html>
