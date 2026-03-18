@@ -593,42 +593,23 @@
             }
         });
 
- async function checkGeoLock(blockedList) {
-    // Пробуем несколько API для определения страны
-    const apis = [
-        { url: 'https://ipapi.co/json/', getCountry: (d) => d.country_code },
-        { url: 'https://ip-api.com/json/', getCountry: (d) => d.countryCode },
-        { url: 'https://ipwho.is/', getCountry: (d) => d.country_code }
-    ];
-    
-    for (const api of apis) {
-        try {
-            const res = await fetch(api.url);
-            const data = await res.json();
-            const userCountry = api.getCountry(data);
-            
-            console.log('IP Check:', api.url, '→ Country:', userCountry);
-            
-            if (userCountry) {
+        async function checkGeoLock(blockedList) {
+            try {
+                const res = await fetch('https://ipapi.co/json/');
+                const data = await res.json();
+                
+                const userCountry = data.country_code;
                 const isCountryBlocked = blockedList.some(code => 
                     code.toUpperCase() === userCountry.toUpperCase()
                 );
                 
                 if (isCountryBlocked) {
-                    console.log('BLOCKED! Country:', userCountry);
                     showGeoBanner();
-                    return;
-                } else {
-                    console.log('Allowed. Country:', userCountry);
-                    return;
                 }
+            } catch (e) { 
+                console.log("Geo check error:", e);
             }
-        } catch (e) { 
-            console.log('API failed:', api.url, e.message);
         }
-    }
-    console.log('All geo APIs failed');
-}
 
         // Функция замедления - иногда работает, иногда вечная загрузка
         function withSlowdown(fn, canFail = true) {
